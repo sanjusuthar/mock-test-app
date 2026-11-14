@@ -5,6 +5,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.print.PrintAttributes
 import android.print.PrintManager
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.text.TextUtils
 import android.util.Base64
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -51,18 +54,22 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.KeyStore
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
-import kotlin.math.max
 import kotlin.math.roundToInt
 
 // ==================== 1. GITHUB & ENCRYPTION CONFIGURATION ====================
@@ -70,7 +77,7 @@ const val GITHUB_OWNER = "sanjusuthar"
 const val GITHUB_REPO = "mock-test-app"
 const val GITHUB_BRANCH = "main"
 
-// यह गुप्त कुंजी (Secret Key) GitHub पर अपलोड होने वाले प्रश्नों को एन्क्रिप्ट रखती है ताकि कोई GitHub से प्रश्न या उत्तर न चुरा सके
+// Note: Client-side obfuscation prevents casual reading on GitHub; true zero-trust secrecy requires a backend server.
 private const val QUIZ_SECRET_PASSPHRASE = "SanjayMockTest#2026!SecureKey"
 
 // ==================== 2. CLEAN COACHING UI THEME COLORS ====================
@@ -98,6 +105,11 @@ data class Question(
     val options: List<String>,
     val correctAnswer: Int,
     val solution: String
+)
+
+data class ParseResult(
+    val questions: List<Question>,
+    val warnings: List<String>
 )
 
 data class TestConfig(
@@ -129,12 +141,88 @@ data class SavedResumeState(
     val rawTxt: String,
     val currentQIndex: Int,
     val remainingSeconds: Int,
-    val userAnswers: List<Int?>
+    val userAnswers: List<Int?>,
+    val markedForReview: List<Boolean>
 )
 
 enum class AppScreen { HOME, SUBJECT_TESTS, TEST, RESULT }
 
-// ==================== 4. AES-256 ENCRYPTION HELPER (ANTI-CHEATING) ====================
+// ==================== 4. ANDROID KEYSTORE SECURE STORAGE FOR PAT & ADMIN PIN ====================
+object SecureAdminStore {
+    private const val KEY_ALIAS = "MockTestAdminKeystoreAlias"
+    private const val PREF_NAME = "secure_admin_prefs"
+    private const val KEY_ENC_PAT = "enc_pat_v1"
+    private const val KEY_PIN_HASH = "admin_pin_hash_v1"
+
+    private fun getOrCreateKey(): SecretKey {
+        val ks = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        val existing = ks.getKey(KEY_ALIAS, null) as? SecretKey
+        if (existing != null) return existing
+
+        val spec = KeyGenParameterSpec.Builder(
+            KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setKeySize(256)
+            .build()
+
+        val keyGen = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+        keyGen.init(spec)
+        return keyGen.generateKey()
+    }
+
+    fun hasPin(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return !prefs.getString(KEY_PIN_HASH, null).isNullOrBlank()
+    }
+
+    fun setPin(context: Context, pin: String) {
+        val hash = sha256(pin)
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_PIN_HASH, hash).apply()
+    }
+
+    fun verifyPin(context: Context, pin: String): Boolean {
+        val saved = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_PIN_HASH, null) ?: return false
+        return saved == sha256(pin)
+    }
+
+    fun savePat(context: Context, pat: String) {
+        if (pat.isBlank()) return
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
+        val iv = cipher.iv
+        val encrypted = cipher.doFinal(pat.toByteArray(Charsets.UTF_8))
+        val payload = Base64.encodeToString(iv + encrypted, Base64.NO_WRAP)
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_ENC_PAT, payload).apply()
+    }
+
+    fun loadPat(context: Context): String {
+        val payload = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_ENC_PAT, null) ?: return ""
+        return try {
+            val bytes = Base64.decode(payload, Base64.DEFAULT)
+            val iv = bytes.copyOfRange(0, 12)
+            val ciphertext = bytes.copyOfRange(12, bytes.size)
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(128, iv))
+            String(cipher.doFinal(ciphertext), Charsets.UTF_8)
+        } catch (_: Exception) {
+            ""
+        }
+    }
+
+    private fun sha256(input: String): String {
+        val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray(Charsets.UTF_8))
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
+}
+
+// ==================== 5. CONTENT ENCRYPTION HELPER ====================
 object QuizCrypto {
     private fun getAesKey(): SecretKeySpec {
         val digest = MessageDigest.getInstance("SHA-256")
@@ -164,63 +252,101 @@ object QuizCrypto {
     }
 }
 
-// ==================== 5. TXT QUESTION PARSER ====================
+// ==================== 6. STRICT MULTI-LINE TXT QUESTION PARSER ====================
 object TxtQuestionParser {
-    fun parse(rawText: String): List<Question> {
+    fun parseWithValidation(rawText: String): ParseResult {
         val parsed = mutableListOf<Question>()
-        val blocks = rawText.trim().split(Regex("\\n\\s*\\n+"))
+        val warnings = mutableListOf<String>()
 
-        for (block in blocks) {
-            val lines = block.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        // Split by question start markers (TOPIC: or Q:/Question:) instead of blank lines so multi-paragraph questions don't break
+        val lines = rawText.replace("\r\n", "\n").lines()
+        val blocks = mutableListOf<MutableList<String>>()
+        var currentBlock = mutableListOf<String>()
+        var currentHasQ = false
+
+        for (rawLine in lines) {
+            val line = rawLine.trim()
+            val isTopicStart = line.matches(Regex("^(?i)TOPIC:.*"))
+            val isQStart = line.matches(Regex("^(?i)(Q:|Question:).*"))
+
+            if ((isTopicStart || (isQStart && currentHasQ)) && currentBlock.isNotEmpty()) {
+                blocks.add(currentBlock)
+                currentBlock = mutableListOf()
+                currentHasQ = false
+            }
+            if (line.isNotEmpty()) {
+                currentBlock.add(line)
+                if (isQStart) currentHasQ = true
+            }
+        }
+        if (currentBlock.isNotEmpty()) blocks.add(currentBlock)
+
+        blocks.forEachIndexed { idx, block ->
             var qText = ""
             var topic = "General"
             var solution = "व्याख्या उपलब्ध नहीं है।"
-            var answerIndex = 0
+            var answerIndex: Int? = null
             val options = mutableListOf<String>()
+            var inSolution = false
 
-            for (line in lines) {
+            for (line in block) {
                 when {
+                    line.matches(Regex("^(?i)TOPIC:.*")) -> {
+                        topic = line.replace(Regex("^(?i)TOPIC:\\s*"), "")
+                        inSolution = false
+                    }
                     line.matches(Regex("^(?i)(Q:|Question:).*")) -> {
                         qText = line.replace(Regex("^(?i)(Q:|Question:)\\s*"), "")
+                        inSolution = false
                     }
                     line.matches(Regex("^(?i)[A-E][).].*")) -> {
                         options.add(line.replace(Regex("^(?i)[A-E][).]\\s*"), ""))
+                        inSolution = false
                     }
                     line.matches(Regex("^(?i)(ANS:|Answer:).*")) -> {
                         val ansChar = line.replace(Regex("^(?i)(ANS:|Answer:)\\s*"), "").trim().uppercase()
                         val map = mapOf("A" to 0, "B" to 1, "C" to 2, "D" to 3, "E" to 4)
-                        answerIndex = map[ansChar] ?: ((ansChar.toIntOrNull() ?: 1) - 1)
-                    }
-                    line.matches(Regex("^(?i)TOPIC:.*")) -> {
-                        topic = line.replace(Regex("^(?i)TOPIC:\\s*"), "")
+                        answerIndex = map[ansChar] ?: ansChar.toIntOrNull()?.minus(1)
+                        inSolution = false
                     }
                     line.matches(Regex("^(?i)(SOL:|SOLUTION:).*")) -> {
                         solution = line.replace(Regex("^(?i)(SOL:|SOLUTION:)\\s*"), "")
+                        inSolution = true
+                    }
+                    inSolution -> {
+                        solution += "\n$line"
                     }
                     options.isEmpty() -> {
                         qText = if (qText.isEmpty()) line else "$qText\n$line"
                     }
                 }
             }
+
             if (qText.isNotEmpty() && options.size >= 2) {
-                parsed.add(
-                    Question(
-                        topic = topic,
-                        text = qText.replace("<br>", "\n"),
-                        options = options,
-                        correctAnswer = answerIndex.coerceIn(0, options.size - 1),
-                        solution = solution.replace("<br>", "\n")
+                if (answerIndex == null || answerIndex !in options.indices) {
+                    warnings.add("Q${idx + 1}: ANS: गलत या गायब है")
+                } else {
+                    parsed.add(
+                        Question(
+                            topic = topic,
+                            text = qText.replace("<br>", "\n"),
+                            options = options,
+                            correctAnswer = answerIndex,
+                            solution = solution.replace("<br>", "\n")
+                        )
                     )
-                )
+                }
             }
         }
-        return parsed
+        return ParseResult(parsed, warnings)
     }
+
+    fun parse(rawText: String): List<Question> = parseWithValidation(rawText).questions
 }
 
-// ==================== 6. RESUME STATE STORAGE HELPER ====================
+// ==================== 7. WALL-CLOCK RESUME STORAGE HELPER ====================
 object ResumeStorage {
-    private const val KEY_RESUME_JSON = "active_resume_state_v1"
+    private const val KEY_RESUME_JSON = "active_resume_state_v2"
 
     fun save(context: Context, state: SavedResumeState) {
         val prefs = context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE)
@@ -228,6 +354,9 @@ object ResumeStorage {
         state.userAnswers.forEach { ans ->
             if (ans == null) ansArr.put(JSONObject.NULL) else ansArr.put(ans)
         }
+        val revArr = JSONArray()
+        state.markedForReview.forEach { revArr.put(it) }
+
         val obj = JSONObject().apply {
             put("id", state.config.id)
             put("title", state.config.title)
@@ -240,6 +369,7 @@ object ResumeStorage {
             put("currentQIndex", state.currentQIndex)
             put("remainingSeconds", state.remainingSeconds)
             put("userAnswers", ansArr)
+            put("markedForReview", revArr)
         }
         prefs.edit().putString(KEY_RESUME_JSON, obj.toString()).apply()
     }
@@ -254,6 +384,13 @@ object ResumeStorage {
             for (i in 0 until ansArr.length()) {
                 ansList.add(if (ansArr.isNull(i)) null else ansArr.getInt(i))
             }
+            val revArr = obj.optJSONArray("markedForReview")
+            val revList = mutableListOf<Boolean>()
+            if (revArr != null) {
+                for (i in 0 until revArr.length()) revList.add(revArr.getBoolean(i))
+            } else {
+                repeat(ansList.size) { revList.add(false) }
+            }
             SavedResumeState(
                 config = TestConfig(
                     id = obj.optString("id", "custom"),
@@ -267,7 +404,8 @@ object ResumeStorage {
                 rawTxt = obj.getString("rawTxt"),
                 currentQIndex = obj.optInt("currentQIndex", 0),
                 remainingSeconds = obj.optInt("remainingSeconds", 60),
-                userAnswers = ansList
+                userAnswers = ansList,
+                markedForReview = revList
             )
         } catch (_: Exception) {
             null
@@ -275,15 +413,14 @@ object ResumeStorage {
     }
 
     fun clear(context: Context) {
-        val prefs = context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE)
-        prefs.edit().remove(KEY_RESUME_JSON).apply()
+        context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE)
+            .edit().remove(KEY_RESUME_JSON).apply()
     }
 }
 
-// ==================== 7. GITHUB CLOUD SYNC & ADMIN PUBLISHER / DELETER ====================
+// ==================== 8. GITHUB CLOUD SYNC (WITH OFFLINE CACHE & HTTP CHECKS) ====================
 object GitHubCloudService {
     suspend fun fetchOnlineQuizzes(): List<OnlineQuizMeta> = withContext(Dispatchers.IO) {
-        // GitHub API gives instant 0-second updates (no 5-minute raw.githubusercontent.com CDN cache)
         val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/quizzes/index.json?ref=$GITHUB_BRANCH&t=${System.currentTimeMillis()}"
         val apiConn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
             connectTimeout = 10000
@@ -306,6 +443,7 @@ object GitHubCloudService {
             if (rawConn.responseCode != 200) return@withContext emptyList()
             rawConn.inputStream.bufferedReader().use { it.readText() }
         }
+
         val arr = JSONArray(jsonText)
         val list = mutableListOf<OnlineQuizMeta>()
         for (i in 0 until arr.length()) {
@@ -335,11 +473,30 @@ object GitHubCloudService {
         list
     }
 
-    suspend fun downloadAndDecryptQuizText(fileUrl: String): String = withContext(Dispatchers.IO) {
-        val sep = if (fileUrl.contains("?")) "&" else "?"
-        val conn = URL("$fileUrl${sep}t=${System.currentTimeMillis()}").openConnection() as HttpURLConnection
-        val rawDownloaded = conn.inputStream.bufferedReader().use { it.readText() }
-        QuizCrypto.decryptIfNeeded(rawDownloaded)
+    suspend fun downloadAndDecryptQuizText(context: Context, meta: OnlineQuizMeta): String = withContext(Dispatchers.IO) {
+        val cacheDir = File(context.filesDir, "quiz_cache").apply { mkdirs() }
+        val cacheFile = File(cacheDir, "${meta.id}.enc")
+
+        try {
+            val sep = if (meta.fileUrl.contains("?")) "&" else "?"
+            val conn = (URL("${meta.fileUrl}${sep}t=${System.currentTimeMillis()}").openConnection() as HttpURLConnection).apply {
+                connectTimeout = 12000
+                readTimeout = 12000
+                useCaches = false
+            }
+            if (conn.responseCode != 200) {
+                throw Exception("Server HTTP ${conn.responseCode}")
+            }
+            val rawDownloaded = conn.inputStream.bufferedReader().use { it.readText() }
+            cacheFile.writeText(rawDownloaded, Charsets.UTF_8)
+            QuizCrypto.decryptIfNeeded(rawDownloaded)
+        } catch (e: Exception) {
+            if (cacheFile.exists()) {
+                QuizCrypto.decryptIfNeeded(cacheFile.readText(Charsets.UTF_8))
+            } else {
+                throw e
+            }
+        }
     }
 
     suspend fun publishEncryptedQuizToGitHub(
@@ -406,7 +563,7 @@ object GitHubCloudService {
                 sha = existingFile?.second
             )
 
-            Result.success("टेस्ट एन्क्रिप्टेड रूप में '$subject' फोल्डर में पब्लिश हो गया!")
+            Result.success("टेस्ट '$subject' फोल्डर में पब्लिश हो गया!")
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -555,7 +712,7 @@ object GitHubCloudService {
     }
 }
 
-// ==================== 8. MAIN ACTIVITY ====================
+// ==================== 9. MAIN ACTIVITY ====================
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -590,19 +747,21 @@ fun MockTestAppRoot() {
     var candidateName by remember { mutableStateOf(prefs.getString("student_name", "") ?: "") }
     var hasCustomSavedQuiz by remember { mutableStateOf(false) }
 
-    // Resume State
     var savedResumeState by remember { mutableStateOf<SavedResumeState?>(null) }
 
     // Test Active State
     var currentQIndex by remember { mutableStateOf(0) }
     var userAnswers by remember { mutableStateOf<List<Int?>>(emptyList()) }
+    var markedForReview by remember { mutableStateOf<List<Boolean>>(emptyList()) }
     var remainingSeconds by remember { mutableStateOf(0) }
+
     var showPaletteSheet by remember { mutableStateOf(false) }
     var showSubmitConfirm by remember { mutableStateOf(false) }
     var showExitTestConfirm by remember { mutableStateOf(false) }
 
     // Modals
     var showCustomQuizModal by remember { mutableStateOf(false) }
+    var showPinGateModal by remember { mutableStateOf(false) }
     var showAdminModal by remember { mutableStateOf(false) }
     var showNamePromptDialog by remember { mutableStateOf(false) }
     var pendingQuizToStart by remember { mutableStateOf<OnlineQuizMeta?>(null) }
@@ -621,7 +780,8 @@ fun MockTestAppRoot() {
                 rawTxt = activeRawTxt,
                 currentQIndex = currentQIndex,
                 remainingSeconds = remainingSeconds,
-                userAnswers = userAnswers
+                userAnswers = userAnswers,
+                markedForReview = markedForReview
             )
             ResumeStorage.save(context, state)
             savedResumeState = state
@@ -634,25 +794,18 @@ fun MockTestAppRoot() {
         currentScreen = AppScreen.RESULT
     }
 
-    // Proper Android Back Navigation
     BackHandler(enabled = true) {
         when (currentScreen) {
             AppScreen.TEST -> {
-                if (showPaletteSheet) {
-                    showPaletteSheet = false
-                } else {
-                    showExitTestConfirm = true
-                }
+                if (showPaletteSheet) showPaletteSheet = false
+                else showExitTestConfirm = true
             }
-            AppScreen.RESULT -> {
-                currentScreen = previousScreenBeforeTest
-            }
-            AppScreen.SUBJECT_TESTS -> {
-                currentScreen = AppScreen.HOME
-            }
+            AppScreen.RESULT -> currentScreen = previousScreenBeforeTest
+            AppScreen.SUBJECT_TESTS -> currentScreen = AppScreen.HOME
             AppScreen.HOME -> {
                 when {
                     showCustomQuizModal -> showCustomQuizModal = false
+                    showPinGateModal -> showPinGateModal = false
                     showAdminModal -> showAdminModal = false
                     else -> {
                         val now = System.currentTimeMillis()
@@ -678,7 +831,7 @@ fun MockTestAppRoot() {
         scope.launch {
             isDownloadingQuiz = true
             try {
-                val decryptedTxt = GitHubCloudService.downloadAndDecryptQuizText(meta.fileUrl)
+                val decryptedTxt = GitHubCloudService.downloadAndDecryptQuizText(context, meta)
                 val parsed = TxtQuestionParser.parse(decryptedTxt)
                 if (parsed.isNotEmpty()) {
                     activeRawTxt = decryptedTxt
@@ -693,23 +846,23 @@ fun MockTestAppRoot() {
                         negativeMark = meta.negativeMark
                     )
                     userAnswers = List(parsed.size) { null }
+                    markedForReview = List(parsed.size) { false }
                     currentQIndex = 0
                     remainingSeconds = meta.timeMinutes * 60
                     previousScreenBeforeTest = currentScreen
                     currentScreen = AppScreen.TEST
                     persistActiveProgress()
                 } else {
-                    Toast.makeText(context, "टेस्ट फाइल में कोई प्रश्न नहीं मिला।", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "टेस्ट फाइल में कोई मान्य प्रश्न नहीं मिला।", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "टेस्ट लोड नहीं हो सका: इंटरनेट कनेक्शन जांचें", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "टेस्ट लोड नहीं हो सका: ${e.message}", Toast.LENGTH_LONG).show()
             } finally {
                 isDownloadingQuiz = false
             }
         }
     }
 
-    // Initial Load
     LaunchedEffect(Unit) {
         savedResumeState = ResumeStorage.load(context)
 
@@ -741,7 +894,7 @@ fun MockTestAppRoot() {
         }
     }
 
-    // Timer + Auto-save every 5 seconds for Resume
+    // Countdown Timer (Pauses when app is closed or exited)
     LaunchedEffect(currentScreen, remainingSeconds) {
         if (currentScreen == AppScreen.TEST && remainingSeconds > 0) {
             delay(1000L)
@@ -783,6 +936,7 @@ fun MockTestAppRoot() {
                             currentQIndex = state.currentQIndex.coerceIn(0, parsed.size - 1)
                             remainingSeconds = state.remainingSeconds.coerceAtLeast(1)
                             userAnswers = if (state.userAnswers.size == parsed.size) state.userAnswers else List(parsed.size) { null }
+                            markedForReview = if (state.markedForReview.size == parsed.size) state.markedForReview else List(parsed.size) { false }
                             previousScreenBeforeTest = AppScreen.HOME
                             currentScreen = AppScreen.TEST
                         }
@@ -820,16 +974,18 @@ fun MockTestAppRoot() {
                             if (parsed.isNotEmpty()) {
                                 activeRawTxt = savedTxt
                                 questions = parsed
+                                val tMins = prefs.getInt("saved_time", 60)
                                 testConfig = TestConfig(
                                     id = "custom",
                                     title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
-                                    timeMinutes = prefs.getInt("saved_time", 60),
+                                    timeMinutes = tMins,
                                     marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
                                     negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
                                 )
                                 userAnswers = List(parsed.size) { null }
+                                markedForReview = List(parsed.size) { false }
                                 currentQIndex = 0
-                                remainingSeconds = testConfig.timeMinutes * 60
+                                remainingSeconds = tMins * 60
                                 previousScreenBeforeTest = AppScreen.HOME
                                 currentScreen = AppScreen.TEST
                                 persistActiveProgress()
@@ -837,7 +993,7 @@ fun MockTestAppRoot() {
                         }
                     },
                     onOpenCustomModal = { showCustomQuizModal = true },
-                    onOpenAdminModal = { showAdminModal = true }
+                    onOpenAdminModal = { showPinGateModal = true }
                 )
             }
 
@@ -859,8 +1015,15 @@ fun MockTestAppRoot() {
                     questions = questions,
                     currentQIndex = currentQIndex,
                     userAnswers = userAnswers,
+                    isMarkedForReview = markedForReview.getOrElse(currentQIndex) { false },
                     remainingSeconds = remainingSeconds,
                     onBackClick = { showExitTestConfirm = true },
+                    onToggleReview = {
+                        val mutable = markedForReview.toMutableList()
+                        mutable[currentQIndex] = !mutable[currentQIndex]
+                        markedForReview = mutable
+                        persistActiveProgress()
+                    },
                     onSelectOption = { optIdx ->
                         val mutable = userAnswers.toMutableList()
                         mutable[currentQIndex] = optIdx
@@ -900,7 +1063,7 @@ fun MockTestAppRoot() {
                     candidateName = candidateName,
                     questions = questions,
                     userAnswers = userAnswers,
-                    timeSpentSeconds = (testConfig.timeMinutes * 60) - remainingSeconds,
+                    timeSpentSeconds = ((testConfig.timeMinutes * 60) - remainingSeconds).coerceAtLeast(0),
                     onBackHome = { currentScreen = previousScreenBeforeTest },
                     onPrintPdf = {
                         printTwoColumnA4ResultPdf(
@@ -913,6 +1076,7 @@ fun MockTestAppRoot() {
                     },
                     onRetake = {
                         userAnswers = List(questions.size) { null }
+                        markedForReview = List(questions.size) { false }
                         currentQIndex = 0
                         remainingSeconds = testConfig.timeMinutes * 60
                         currentScreen = AppScreen.TEST
@@ -948,7 +1112,12 @@ fun MockTestAppRoot() {
             AlertDialog(
                 onDismissRequest = { showPaletteSheet = false },
                 containerColor = CardDark,
-                title = { Text("Question Palette", color = TextMain, fontWeight = FontWeight.Bold) },
+                title = {
+                    Column {
+                        Text("Question Palette", color = TextMain, fontWeight = FontWeight.Bold)
+                        Text("हरा: उत्तर दिया | पीला: Review | लाल: वर्तमान", color = TextMuted, fontSize = 11.sp)
+                    }
+                },
                 text = {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(5),
@@ -959,6 +1128,7 @@ fun MockTestAppRoot() {
                         items(questions.size) { idx ->
                             val bg = when {
                                 idx == currentQIndex -> PrimaryRose
+                                markedForReview.getOrElse(idx) { false } -> AmberGold
                                 userAnswers[idx] != null -> CorrectGreen
                                 else -> BgDark
                             }
@@ -994,7 +1164,6 @@ fun MockTestAppRoot() {
             )
         }
 
-        // Exit Test Confirmation (Saves Resume State!)
         if (showExitTestConfirm) {
             AlertDialog(
                 onDismissRequest = { showExitTestConfirm = false },
@@ -1108,14 +1277,29 @@ fun MockTestAppRoot() {
             )
         }
 
-        // Admin Portal Dialog (Publish + Delete Tests & Folders)
+        // PIN Gate Before Opening Admin Panel
+        if (showPinGateModal) {
+            AdminPinGateDialog(
+                isSettingNewPin = !SecureAdminStore.hasPin(context),
+                onDismiss = { showPinGateModal = false },
+                onPinVerified = { pin ->
+                    if (!SecureAdminStore.hasPin(context)) {
+                        SecureAdminStore.setPin(context, pin)
+                    }
+                    showPinGateModal = false
+                    showAdminModal = true
+                }
+            )
+        }
+
+        // Admin Portal Dialog (Uses Keystore-Encrypted PAT)
         if (showAdminModal) {
             AdminPortalDialog(
-                savedToken = prefs.getString("gh_pat_token", "") ?: "",
+                savedToken = SecureAdminStore.loadPat(context),
                 groupedSubjects = groupedBySubject,
                 onDismiss = { showAdminModal = false },
                 onActionSuccess = { tokenUsed ->
-                    prefs.edit().putString("gh_pat_token", tokenUsed).apply()
+                    SecureAdminStore.savePat(context, tokenUsed)
                     scope.launch {
                         isLoadingOnline = true
                         try {
@@ -1130,7 +1314,74 @@ fun MockTestAppRoot() {
     }
 }
 
-// ==================== 9. HOME SCREEN UI (WELCOME + RESUME CARD + SUBJECT FOLDERS) ====================
+// ==================== 10. ADMIN PIN LOCK DIALOG ====================
+@Composable
+fun AdminPinGateDialog(
+    isSettingNewPin: Boolean,
+    onDismiss: () -> Unit,
+    onPinVerified: (String) -> Unit
+) {
+    val context = LocalContext.current
+    var pinInput by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = CardDark,
+        title = {
+            Text(
+                text = if (isSettingNewPin) "🔐 नया Admin PIN सेट करें" else "🔐 Teacher Admin PIN दर्ज करें",
+                color = PrimaryRose,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = if (isSettingNewPin)
+                        "ताकि कोई भी छात्र आपके टेस्ट या फोल्डर डिलीट न कर सके, 4 से 6 अंकों का PIN सेट करें।"
+                    else
+                        "Admin पैनल खोलने के लिए अपना गुप्त PIN डालें।",
+                    color = TextMuted,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                OutlinedTextField(
+                    value = pinInput,
+                    onValueChange = { if (it.length <= 6) pinInput = it },
+                    label = { Text("4-6 Digit PIN") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (pinInput.length < 4) {
+                        Toast.makeText(context, "कम से कम 4 अंकों का PIN डालें", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (isSettingNewPin || SecureAdminStore.verifyPin(context, pinInput)) {
+                        onPinVerified(pinInput)
+                    } else {
+                        Toast.makeText(context, "गलत PIN! कृपया सही PIN डालें।", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose)
+            ) {
+                Text(if (isSettingNewPin) "Set PIN & Open" else "Unlock", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel", color = TextMuted) }
+        }
+    )
+}
+
+// ==================== 11. HOME SCREEN UI ====================
 @Composable
 fun HomeScreenUI(
     candidateName: String,
@@ -1157,7 +1408,6 @@ fun HomeScreenUI(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 18.dp, vertical = 16.dp)
     ) {
-        // Welcome Card
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1223,7 +1473,6 @@ fun HomeScreenUI(
             }
         }
 
-        // RESUME INTERRUPTED TEST BANNER
         if (savedResumeState != null) {
             Spacer(modifier = Modifier.height(16.dp))
             val answered = savedResumeState.userAnswers.count { it != null }
@@ -1264,7 +1513,12 @@ fun HomeScreenUI(
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("▶ Resume Test", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(
+                            "▶ Resume Test",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
                     }
                     OutlinedButton(
                         onClick = onDiscardResume,
@@ -1278,7 +1532,6 @@ fun HomeScreenUI(
 
         Spacer(modifier = Modifier.height(22.dp))
 
-        // Subject-Wise Folders Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1386,7 +1639,6 @@ fun HomeScreenUI(
 
         Spacer(modifier = Modifier.height(22.dp))
 
-        // Custom Local .TXT Quiz Card
         Text(
             text = "📂 खुद का कस्टम टेस्ट (.TXT फाइल से)",
             color = TextMain,
@@ -1453,7 +1705,7 @@ fun HomeScreenUI(
     }
 }
 
-// ==================== 10. SUBJECT FOLDER TESTS SCREEN ====================
+// ==================== 12. SUBJECT FOLDER TESTS SCREEN ====================
 @Composable
 fun SubjectTestsScreenUI(
     subjectName: String,
@@ -1560,7 +1812,7 @@ fun StatInfoBox(modifier: Modifier, value: String, label: String, valueColor: Co
     }
 }
 
-// ==================== 11. TEST SCREEN UI ====================
+// ==================== 13. TEST SCREEN UI (WITH REVIEW BOOKMARK) ====================
 @Composable
 fun TestScreenUI(
     testConfig: TestConfig,
@@ -1568,8 +1820,10 @@ fun TestScreenUI(
     questions: List<Question>,
     currentQIndex: Int,
     userAnswers: List<Int?>,
+    isMarkedForReview: Boolean,
     remainingSeconds: Int,
     onBackClick: () -> Unit,
+    onToggleReview: () -> Unit,
     onSelectOption: (Int) -> Unit,
     onPrev: () -> Unit,
     onNext: () -> Unit,
@@ -1644,9 +1898,17 @@ fun TestScreenUI(
                 .fillMaxWidth()
                 .background(BgDark)
                 .padding(horizontal = 15.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text("प्रश्न ${currentQIndex + 1} / ${questions.size}", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = if (isMarkedForReview) "🔖 Marked for Review" else "🔖 Mark Review",
+                color = if (isMarkedForReview) AmberGold else TextMuted,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { onToggleReview() }
+            )
             Text("उत्तर दिए: $answeredCount", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
 
@@ -1795,7 +2057,7 @@ fun TestScreenUI(
     }
 }
 
-// ==================== 12. RESULT SCREEN UI ====================
+// ==================== 14. RESULT SCREEN UI (TRUE NEGATIVE SCORE SUPPORT) ====================
 @Composable
 fun ResultScreenUI(
     testConfig: TestConfig,
@@ -1817,7 +2079,7 @@ fun ResultScreenUI(
         else wrong++
     }
 
-    val totalMarks = max(0.0, (correct * testConfig.marksPerCorrect) - (wrong * testConfig.negativeMark))
+    val totalMarks = (correct * testConfig.marksPerCorrect) - (wrong * testConfig.negativeMark)
     val maxMarks = questions.size * testConfig.marksPerCorrect
     val attempted = correct + wrong
     val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).roundToInt() else 0
@@ -1865,7 +2127,7 @@ fun ResultScreenUI(
                 ) {
                     Text(
                         text = "%.2f / %.2f".format(totalMarks, maxMarks),
-                        color = Color.White,
+                        color = if (totalMarks < 0) WrongRed else Color.White,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -1980,7 +2242,7 @@ fun ResultScreenUI(
     }
 }
 
-// ==================== 13. CUSTOM LOCAL QUIZ MODAL ====================
+// ==================== 15. CUSTOM LOCAL QUIZ MODAL ====================
 @Composable
 fun CustomQuizDialog(
     initialConfig: TestConfig,
@@ -2059,10 +2321,13 @@ fun CustomQuizDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val parsed = TxtQuestionParser.parse(rawTextContent)
-                    if (parsed.isEmpty()) {
-                        Toast.makeText(context, "कृपया सही फॉर्मेट वाली .txt फाइल चुनें!", Toast.LENGTH_LONG).show()
+                    val result = TxtQuestionParser.parseWithValidation(rawTextContent)
+                    if (result.questions.isEmpty()) {
+                        Toast.makeText(context, "फाइल में कोई मान्य प्रश्न नहीं मिला! ANS: जांचें।", Toast.LENGTH_LONG).show()
                         return@Button
+                    }
+                    if (result.warnings.isNotEmpty()) {
+                        Toast.makeText(context, "${result.warnings.size} प्रश्न अधूरे होने के कारण छोड़े गए।", Toast.LENGTH_LONG).show()
                     }
                     val cfg = TestConfig(
                         id = "custom_${System.currentTimeMillis()}",
@@ -2071,7 +2336,7 @@ fun CustomQuizDialog(
                         marksPerCorrect = marksStr.toDoubleOrNull() ?: 2.0,
                         negativeMark = negStr.toDoubleOrNull() ?: 0.0
                     )
-                    onSaveCustomQuiz(cfg, rawTextContent, parsed)
+                    onSaveCustomQuiz(cfg, rawTextContent, result.questions)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose)
             ) {
@@ -2084,7 +2349,7 @@ fun CustomQuizDialog(
     )
 }
 
-// ==================== 14. TEACHER ADMIN PORTAL (PUBLISH ENCRYPTED + DELETE TEST/FOLDER) ====================
+// ==================== 16. TEACHER ADMIN PORTAL ====================
 @Composable
 fun AdminPortalDialog(
     savedToken: String,
@@ -2094,11 +2359,10 @@ fun AdminPortalDialog(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var selectedTab by remember { mutableStateOf(0) } // 0 = Publish, 1 = Manage/Delete
+    var selectedTab by remember { mutableStateOf(0) }
     var token by remember { mutableStateOf(savedToken) }
     var isBusy by remember { mutableStateOf(false) }
 
-    // Publish Tab State
     val existingSubjects = groupedSubjects.keys.toList()
     var subject by remember { mutableStateOf(existingSubjects.firstOrNull() ?: "Computer Science") }
     var title by remember { mutableStateOf("Rajasthan SET & UGC NET Mock Test") }
@@ -2148,7 +2412,7 @@ fun AdminPortalDialog(
                 OutlinedTextField(
                     value = token,
                     onValueChange = { token = it },
-                    label = { Text("GitHub PAT Token") },
+                    label = { Text("GitHub Fine-Grained PAT (Keystore Encrypted)") },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -2156,12 +2420,6 @@ fun AdminPortalDialog(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 if (selectedTab == 0) {
-                    Text(
-                        "टेस्ट AES-256 एन्क्रिप्शन के साथ अपलोड होगा ताकि कोई GitHub से प्रश्न या उत्तर न देख सके।",
-                        color = CorrectGreen,
-                        fontSize = 11.sp,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
                     OutlinedTextField(
                         value = subject,
                         onValueChange = { subject = it },
@@ -2242,7 +2500,6 @@ fun AdminPortalDialog(
                         Text(selectedFileName, color = TextMain, fontSize = 13.sp)
                     }
                 } else {
-                    // MANAGE / DELETE TAB
                     if (groupedSubjects.isEmpty()) {
                         Text("अभी कोई ऑनलाइन टेस्ट मौजूद नहीं है।", color = TextMuted, fontSize = 13.sp)
                     } else {
@@ -2345,14 +2602,17 @@ fun AdminPortalDialog(
                 Button(
                     enabled = !isBusy,
                     onClick = {
-                        val parsed = TxtQuestionParser.parse(rawTextContent)
+                        val result = TxtQuestionParser.parseWithValidation(rawTextContent)
                         if (token.isBlank()) {
                             Toast.makeText(context, "कृपया अपना GitHub Token डालें!", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
-                        if (parsed.isEmpty()) {
-                            Toast.makeText(context, "कृपया सही प्रश्नों वाली .txt फाइल चुनें!", Toast.LENGTH_SHORT).show()
+                        if (result.questions.isEmpty()) {
+                            Toast.makeText(context, "कृपया सही प्रश्नों और ANS: वाली .txt फाइल चुनें!", Toast.LENGTH_SHORT).show()
                             return@Button
+                        }
+                        if (result.warnings.isNotEmpty()) {
+                            Toast.makeText(context, "चेतावनी: ${result.warnings.size} प्रश्नों में ANS: गलत था (छोड़े गए)।", Toast.LENGTH_LONG).show()
                         }
                         isBusy = true
                         scope.launch {
@@ -2365,7 +2625,7 @@ fun AdminPortalDialog(
                                 marks = marksStr.toDoubleOrNull() ?: 2.0,
                                 neg = negStr.toDoubleOrNull() ?: 0.0,
                                 rawTxtContent = rawTextContent,
-                                questionCount = parsed.size
+                                questionCount = result.questions.size
                             )
                             isBusy = false
                             res.onSuccess { msg ->
@@ -2389,7 +2649,7 @@ fun AdminPortalDialog(
     )
 }
 
-// ==================== 15. TWO-COLUMN A4 PDF PRINT HELPER (NO WATERMARK) ====================
+// ==================== 17. ESCAPED TWO-COLUMN A4 PDF PRINT HELPER (NO WATERMARK) ====================
 fun printTwoColumnA4ResultPdf(
     context: Context,
     config: TestConfig,
@@ -2403,6 +2663,8 @@ fun printTwoColumnA4ResultPdf(
     val letters = listOf("A", "B", "C", "D", "E")
     val qHtmlBuilder = StringBuilder()
 
+    fun esc(s: String): String = TextUtils.htmlEncode(s).replace("\n", "<br>")
+
     questions.forEachIndexed { idx, q ->
         val uAns = userAnswers.getOrNull(idx)
         val printColor = when (uAns) {
@@ -2412,25 +2674,25 @@ fun printTwoColumnA4ResultPdf(
         }
         if (uAns == null) skipped++ else if (uAns == q.correctAnswer) correct++ else wrong++
 
-        val uAnsText = if (uAns != null) "(${letters.getOrElse(uAns) { "" }}) ${q.options.getOrElse(uAns) { "" }}" else "कोई नहीं"
-        val cAnsText = "(${letters.getOrElse(q.correctAnswer) { "" }}) ${q.options.getOrElse(q.correctAnswer) { "" }}"
+        val uAnsText = if (uAns != null) "(${letters.getOrElse(uAns) { "" }}) ${esc(q.options.getOrElse(uAns) { "" })}" else "कोई नहीं"
+        val cAnsText = "(${letters.getOrElse(q.correctAnswer) { "" }}) ${esc(q.options.getOrElse(q.correctAnswer) { "" })}"
 
-        val optsHtml = q.options.mapIndexed { i, opt -> "<div>(${letters.getOrElse(i) { "" }}) $opt</div>" }.joinToString("")
+        val optsHtml = q.options.mapIndexed { i, opt -> "<div>(${letters.getOrElse(i) { "" }}) ${esc(opt)}</div>" }.joinToString("")
         qHtmlBuilder.append(
             """
             <div class="print-q-box">
-                <div class="print-q-head"><span>Q${idx + 1}.</span><span class="print-q-topic">${q.topic}</span></div>
-                <div class="print-q-text">${q.text}</div>
+                <div class="print-q-head"><span>Q${idx + 1}.</span><span class="print-q-topic">${esc(q.topic)}</span></div>
+                <div class="print-q-text">${esc(q.text)}</div>
                 <div class="print-options-grid">$optsHtml</div>
                 <div class="print-ans-row"><strong>आपका उत्तर:</strong> <span style="color:$printColor">$uAnsText</span></div>
                 <div class="print-ans-row"><strong>सही उत्तर:</strong> <span style="color:#10b981">$cAnsText</span></div>
-                <div class="print-sol-box"><strong>व्याख्या:</strong> ${q.solution}</div>
+                <div class="print-sol-box"><strong>व्याख्या:</strong> ${esc(q.solution)}</div>
             </div>
             """.trimIndent()
         )
     }
 
-    val totalMarks = max(0.0, (correct * config.marksPerCorrect) - (wrong * config.negativeMark))
+    val totalMarks = (correct * config.marksPerCorrect) - (wrong * config.negativeMark)
     val maxMarks = questions.size * config.marksPerCorrect
     val attempted = correct + wrong
     val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).roundToInt() else 0
@@ -2485,8 +2747,8 @@ fun printTwoColumnA4ResultPdf(
         </head>
         <body>
             <div class="print-header-box">
-                <h2>${config.title}</h2>
-                <h3>Candidate: $studentName | Total Questions: ${questions.size}</h3>
+                <h2>${esc(config.title)}</h2>
+                <h3>Candidate: ${esc(studentName)} | Total Questions: ${questions.size}</h3>
                 <p>Marking: +${"%.2f".format(config.marksPerCorrect)} / Correct | $negInfo</p>
                 <div class="print-score-row">
                     <span>Score: ${"%.2f".format(totalMarks)} / ${"%.2f".format(maxMarks)}</span>
