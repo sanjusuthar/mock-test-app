@@ -1,0 +1,1439 @@
+TOPIC: CDP - Principles of Development
+Q: निम्नलिखित में से कौन-सा विकास का सिद्धांत नहीं है? / Which of the following is NOT a principle of development?
+A) विकास एक सतत प्रक्रिया है। / Development is a continuous process.
+B) विकास प्रतिवर्ती (रिवर्सिबल) होता है। / Development is reversible.
+C) विकास आनुवंशिकता और पर्यावरण दोनों से प्रभावित होता है। / Development is influenced by both heredity and environment.
+D) विकास सार्वभौमिक है तथा सांस्कृतिक संदर्भ इसे प्रभावित नहीं करते। / Development is universal and cultural contexts do not influence it.
+ANS: D
+SOL: विकास सांस्कृतिक और पर्यावरणीय संदर्भों से गहराई से प्रभावित होता है; यह पूरी तरह से सार्वभौमिक और संदर्भ-मुक्त नहीं हो सकता। साथ ही, विकास प्रतिवर्ती नहीं बल्कि संशोध्य (modifiable) होता है। दिए गए विकल्पों में D सबसे उपयुक्त गलत कथन है क्योंकि विकास पर सामाजिक-सांस्कृतिक संदर्भ का गहरा प्रभाव पड़ता है।
+
+TOPIC: CDP - Principles of Development
+Q: अभिकथन (A): बच्चे का शारीरिक विकास और गामक क्षमताएं सिर से पैर की दिशा में आगे बढ़ती हैं। कारण (R): विकास का यह स्वरूप शीर्षगामी (सेफेलोकॉडल) प्रवृत्ति कहलाता है। सही विकल्प चुनें: / Assertion (A): A child's physical growth and motor capabilities advance from head to toe. Reason (R): This pattern of progression is known as the Cephalocaudal tendency of development. Choose the correct option:
+A) (A) और (R) दोनों सही हैं और (R), (A) की सही व्याख्या करता है। / Both (A) and (R) are true and (R) is the correct explanation of (A).
+B) (A) और (R) दोनों सही हैं, लेकिन (R), (A) की सही व्याख्या नहीं करता है। / Both (A) and (R) are true, but (R) is not the correct explanation of (A).
+C) (A) सही है, लेकिन (R) गलत है। / (A) is true, but (R) is false.
+D) (A) और (R) दोनों गलत हैं। / Both (A) and (R) are false.
+ANS: A
+SOL: शीर्षगामी (Cephalocaudal) सिद्धांत के अनुसार, विकास सिर से पैर की ओर बढ़ता है। बच्चा सबसे पहले अपने सिर और गर्दन पर नियंत्रण प्राप्त करता है, उसके बाद धड़ और अंत में पैरों पर नियंत्रण सीखता है। अतः अभिकथन और कारण दोनों सही हैं और कारण सही व्याख्या करता है।
+
+TOPIC: CDP - Heredity and Environment
+Q: किसी बच्चे के संज्ञानात्मक और सामाजिक विकास के संदर्भ में आनुवंशिकता और पर्यावरण की क्या भूमिका है? / What is the role of heredity and environment in the cognitive and social development of a child?
+A) केवल आनुवंशिकता ही बच्चे के विकास को निर्धारित करती है। / Only heredity determines the development of a child.
+B) केवल विद्यालयी पर्यावरण विकास के लिए उत्तरदायी है। / Only the school environment is responsible for development.
+C) आनुवंशिकता और पर्यावरण दोनों की जटिल परस्पर क्रिया विकास को आकार देती है। / Both heredity and environment interact in a complex manner to shape development.
+D) न तो आनुवंशिकता और न ही पर्यावरण का विकास पर कोई महत्वपूर्ण प्रभाव पड़ता है। / Neither heredity nor environment has any significant impact on development.
+ANS: C
+SOL: आधुनिक विकासात्मक मनोविज्ञान और NCERT के अनुसार मानव विकास आनुवंशिकता (प्रकृति) और पर्यावरण (पोषण) की अंतःक्रिया का परिणाम है। आनुवंशिकता विकास की संभावित सीमाएं तय करती है, जबकि पर्यावरण यह निर्धारित करता है कि बच्चा उन संभावनाओं को कितना प्राप्त कर पाता है।
+
+TOPIC: CDP - Socialization Agencies
+Q: प्राथमिक और द्वितीयक समाजीकरण की संस्थाओं के संदर्भ में निम्नलिखित में से कौन-सा युग्म सही सुमेलित है? / In the context of primary and secondary agencies of socialization, which of the following pairs is correctly matched?
+A) प्राथमिक एजेंसी: मीडिया; द्वितीयक एजेंसी: परिवार / Primary Agency: Media; Secondary Agency: Family
+B) प्राथमिक एजेंसी: परिवार; द्वितीयक एजेंसी: विद्यालय / Primary Agency: Family; Secondary Agency: School
+C) प्राथमिक एजेंसी: धर्म; द्वितीयक एजेंसी: सहपाठी / Primary Agency: Religion; Secondary Agency: Peers
+D) प्राथमिक एजेंसी: विद्यालय; द्वितीयक एजेंसी: पड़ोस / Primary Agency: School; Secondary Agency: Neighborhood
+ANS: B
+SOL: परिवार समाजीकरण की प्राथमिक एजेंसी (Primary Agency) है क्योंकि बच्चा सबसे पहले परिवार में ही भाषा, मूल्य और व्यवहार के बुनियादी नियम सीखता है। विद्यालय, मीडिया और धार्मिक संस्थान द्वितीयक एजेंसियां (Secondary Agencies) हैं जो बाद में समाजीकरण की प्रक्रिया को आगे बढ़ाती हैं।
+
+TOPIC: CDP - Piaget's Cognitive Development
+Q: पियाजे के संज्ञानात्मक विकास के सिद्धांत के अनुसार, किस चरण में एक बच्चा अमूर्त प्रस्तावों (abstract propositions) का मूल्यांकन करने और परिकल्पनात्मक-निगमनात्मक तर्क (hypothetico-deductive reasoning) लागू करने में सक्षम होता है? / According to Piaget's theory of cognitive development, at which stage can a child evaluate abstract propositions and apply hypothetico-deductive reasoning?
+A) संवेदी-गामक अवस्था / Sensorimotor Stage
+B) पूर्व-संक्रियात्मक अवस्था / Pre-operational Stage
+C) मूर्त संक्रियात्मक अवस्था / Concrete Operational Stage
+D) औपचारिक संक्रियात्मक अवस्था / Formal Operational Stage
+ANS: D
+SOL: पियाजे के अनुसार 11 वर्ष और उससे अधिक आयु के बच्चे 'औपचारिक संक्रियात्मक अवस्था' (Formal Operational Stage) में प्रवेश करते हैं। इस चरण में वे अमूर्त चिंतन, परिकल्पनाएं बनाने और उनका व्यवस्थित परीक्षण (Hypothetico-deductive reasoning) करने में पूरी तरह सक्षम हो जाते हैं।
+
+TOPIC: CDP - Piaget's Concepts
+Q: सात वर्षीय रिया देखती है कि मिट्टी की एक गेंद को बेलनाकार आकार में बदलने पर भी मिट्टी की मात्रा उतनी ही रहती है। पियाजे के अनुसार रिया ने क्या हासिल कर लिया है? / Seven-year-old Riya observes that when a ball of clay is rolled into a cylinder, the amount of clay remains the same. According to Piaget, what has Riya achieved?
+A) वस्तु स्थायित्व / Object permanence
+B) संरक्षण / Conservation
+C) अहंकेंद्रित चिंतन / Egocentric thinking
+D) जीववाद / Animism
+ANS: B
+SOL: संरक्षण (Conservation) का तात्पर्य यह समझने की क्षमता से है कि किसी वस्तु के बाह्य स्वरूप या आकार में परिवर्तन होने के बावजूद उसके भौतिक गुण (जैसे भार, आयतन या मात्रा) अपरिवर्तित रहते हैं। यह गुण मूर्त संक्रियात्मक अवस्था (7-11 वर्ष) की मुख्य विशेषता है।
+
+TOPIC: CDP - Vygotsky's Socio-Cultural Theory
+Q: लेव वायगोत्स्की के अनुसार, बच्चे अपने विचारों और व्यवहार को निर्देशित करने के लिए जो स्वयं से वार्तालाप करते हैं, उसे क्या कहा जाता है? / According to Lev Vygotsky, the talk that children use to direct their own behavior and thinking is termed as:
+A) अहंकेंद्रित वाक् / Egocentric speech
+B) निजी वाक् (प्राइवेट स्पीच) / Private speech
+C) मूक आंतरिक वाक् / Silent inner speech
+D) सामाजिक संवाद / Social speech
+ANS: B
+SOL: वायगोत्स्की के सिद्धांत के अनुसार जब बच्चे अपने व्यवहार और गतिविधियों को निर्देशित करने के लिए स्वयं से जोर-जोर से बोलते हैं, तो उसे 'निजी वाक्' (Private Speech) कहा जाता है। यह संज्ञानात्मक विकास और आत्म-नियमन (self-regulation) में अत्यंत महत्वपूर्ण उपकरण है। पियाजे ने इसे अहंकेंद्रित वाक् कहा था।
+
+TOPIC: CDP - Vygotsky's Scaffolding & ZPD
+Q: एक गणित शिक्षिका एक छात्र को बीजगणित का प्रश्न हल करते समय रुकने पर संकेत देती है और आधा हल किया गया उदाहरण दिखाती है। वायगोत्स्की के अनुसार शिक्षिका क्या प्रदान कर रही है? / A mathematics teacher provides hints and shows a half-solved example to a student who gets stuck while solving an algebra problem. According to Vygotsky, what is the teacher providing?
+A) अनुकूलन / Adaptation
+B) पाड़ (स्कैफोल्डिंग) / Scaffolding
+C) पुनर्बलन / Reinforcement
+D) अनुकरण / Modeling
+ANS: B
+SOL: वायगोत्स्की के अनुसार बच्चे के समीपस्थ विकास के क्षेत्र (ZPD) में लक्ष्य हासिल करने के लिए दी जाने वाली अस्थायी सहायता, संकेत या मार्गदर्शन को 'पाड़' या 'मचान' (Scaffolding) कहा जाता है। जैसे-जैसे बच्चा दक्ष होता जाता है, यह सहायता हटा ली जाती है।
+
+TOPIC: CDP - Kohlberg's Moral Development
+Q: कोहलबर्ग के नैतिक विकास के सिद्धांत के अनुसार, एक बालक सोचता है: "मुझे नियमों का पालन करना चाहिए ताकि शिक्षक मुझे एक अच्छा लड़का समझें।" वह किस चरण में है? / According to Kohlberg's theory of moral development, a child thinks: "I should obey rules so that the teacher considers me a good boy." Which stage is he in?
+A) आज्ञाकारिता और दंड अभिविन्यास / Obedience and Punishment Orientation
+B) 'अच्छा लड़का-अच्छी लड़की' अभिविन्यास / 'Good Boy-Nice Girl' Orientation
+C) सामाजिक व्यवस्था बनाए रखने का अभिविन्यास / Law and Order Orientation
+D) सार्वभौमिक नैतिक सिद्धांत अभिविन्यास / Universal Ethical Principles Orientation
+ANS: B
+SOL: कोहलबर्ग के पारंपरिक स्तर (Conventional Level) के तीसरे चरण को 'अच्छा लड़का-अच्छी लड़की अभिविन्यास' (Good boy-nice girl orientation) कहा जाता है। इसमें व्यक्ति दूसरों की स्वीकृति पाने, अच्छा दिखने और सामाजिक अपेक्षाओं के अनुरूप व्यवहार करने के आधार पर नैतिक निर्णय लेता है।
+
+TOPIC: CDP - Gender as a Social Construct
+Q: कक्षा 7 की एक शिक्षिका प्रायः लड़कों को विज्ञान प्रदर्शनी के मॉडल जोड़ने और लड़कियों को अतिथियों के स्वागत व मंच सज्जा का कार्य सौंपती है। शिक्षिका का यह व्यवहार क्या दर्शाता है? / A Class 7 teacher often assigns boys the task of assembling science models and girls the task of welcoming guests and stage decoration. What does the teacher's behavior reflect?
+A) जेंडर समानता / Gender equality
+B) जेंडर संवेदनशीलता / Gender sensitivity
+C) जेंडर रूढ़िवादिता / Gender stereotyping
+D) जेंडर सशक्तिकरण / Gender empowerment
+ANS: C
+SOL: लैंगिक भूमिकाओं को पारंपरिक पूर्वग्रहों के आधार पर विभाजित करना कि अमुक कार्य केवल लड़कों के लिए या लड़कियों के लिए है, 'जेंडर रूढ़िवादिता' (Gender Stereotyping) कहलाता है। शिक्षक को इसे बढ़ावा देने के बजाय निष्पक्ष और लचीली भूमिकाओं को प्रोत्साहित करना चाहिए।
+
+TOPIC: CDP - Progressive Education
+Q: प्रगतिशील शिक्षा (Progressive Education) के संदर्भ में जॉन ड्यूई के विचारों के अनुसार कक्षा-कक्ष का वातावरण कैसा होना चाहिए? / In the context of Progressive Education according to John Dewey's ideas, how should the classroom environment be?
+A) शिक्षक-केंद्रित और पूरी तरह से सत्तावादी / Teacher-centric and fully authoritarian
+B) लोकतांत्रिक, जहां शिक्षार्थियों को प्रयोग और सक्रिय अन्वेषण के पर्याप्त अवसर मिलें / Democratic, where learners get ample opportunities for experimentation and active inquiry
+C) केवल पाठ्यपुस्तक और रटने पर आधारित / Based entirely on textbooks and rote memorization
+D) मानकीकृत परीक्षणों और पुरस्कार-दंड द्वारा नियंत्रित / Controlled strictly by standardized tests and reward-punishment
+ANS: B
+SOL: जॉन ड्यूई की प्रगतिशील शिक्षा के अनुसार विद्यालय समाज का एक लघु रूप (miniature society) है। कक्षा का वातावरण लोकतांत्रिक होना चाहिए, जहाँ बच्चे 'करके सीखने' (Learning by doing), समूह कार्य और वास्तविक जीवन की समस्याओं का समाधान खोजने में सक्रिय भागीदार बनें।
+
+TOPIC: CDP - Individual Differences
+Q: एक विविध प्राथमिक/उच्च प्राथमिक कक्षा में शिक्षार्थियों के व्यक्तिगत मतभेदों को शिक्षक द्वारा किस रूप में देखा जाना चाहिए? / In a diverse elementary classroom, how should individual differences among learners be viewed by the teacher?
+A) शिक्षण-अधिगम प्रक्रिया में एक बड़ी बाधा / A major hindrance in the teaching-learning process
+B) बच्चों में कमी का संकेत जिसे दूर किया जाना चाहिए / An indication of deficiency in children that needs elimination
+C) सीखने-सिखाने की प्रक्रिया को समृद्ध करने का एक मूल्यवान संसाधन / A valuable resource for enriching the teaching-learning process
+D) छात्रों को उनकी बुद्धि लब्धि (IQ) के आधार पर अलग-अलग वर्गों में बांटने का आधार / A basis for segregating students into different sections based on IQ
+ANS: C
+SOL: प्रगतिशील और बाल-केंद्रित शिक्षा के अनुसार व्यक्तिगत विभिन्नताएं (Individual Differences) शिक्षण-अधिगम प्रक्रिया में बाधा नहीं हैं, बल्कि वे एक समृद्ध संसाधन हैं। शिक्षक को विभेदित अनुदेशन (differentiated instruction) का उपयोग कर प्रत्येक बच्चे की अनूठी गति और शैली का सम्मान करना चाहिए।
+
+TOPIC: CDP - Intelligence & Gardner
+Q: हावर्ड गार्डनर के बहुबुद्धि सिद्धांत के अनुसार, स्वयं की भावनाओं, प्रेरणाओं और आंतरिक शक्तियों व कमजोरियों को समझने की योग्यता क्या कहलाती है? / According to Howard Gardner's theory of multiple intelligences, what is the ability to understand one's own feelings, motives, strengths, and weaknesses called?
+A) अंतर्वैयक्तिक (इंटेरपर्सनल) बुद्धि / Interpersonal intelligence
+B) अंतःवैयक्तिक (इंट्रापर्सनल) बुद्धि / Intrapersonal intelligence
+C) स्थानिक (स्थान-संबंधी) बुद्धि / Spatial intelligence
+D) प्राकृतिक बुद्धि / Naturalistic intelligence
+ANS: B
+SOL: गार्डनर के अनुसार 'अंतःवैयक्तिक बुद्धि' (Intrapersonal Intelligence) स्वयं की आंतरिक मानसिक स्थिति, भावनाओं, इच्छाओं और लक्ष्यों को समझने और उनका आत्म-नियमन करने की क्षमता है। दूसरों के भावों और व्यवहारों को समझने की योग्यता को अंतर्वैयक्तिक (Interpersonal) कहा जाता है।
+
+TOPIC: CDP - Language and Thought
+Q: भाषा और विचार के संबंध में पियाजे और वायगोत्स्की के दृष्टिकोण में मुख्य अंतर क्या है? / What is the primary difference between Piaget's and Vygotsky's perspectives regarding the relationship between language and thought?
+A) पियाजे मानते हैं कि भाषा विचार से पहले आती है, जबकि वायगोत्स्की मानते हैं कि विचार भाषा को निर्देशित करता है। / Piaget believes language precedes thought, whereas Vygotsky believes thought directs language.
+B) पियाजे के अनुसार विचार भाषा से पहले आता है, जबकि वायगोत्स्की के अनुसार भाषा संज्ञानात्मक विकास को सुगम बनाती है। / According to Piaget, thought precedes language, whereas according to Vygotsky, language facilitates cognitive development.
+C) दोनों मानते हैं कि भाषा और विचार हमेशा पूरी तरह से स्वतंत्र रहते हैं। / Both believe that language and thought remain completely independent throughout life.
+D) दोनों का मानना है कि भाषा विचार का पूर्ववर्ती घटक नहीं हो सकती। / Both believe that language cannot be a precursor to thought.
+ANS: B
+SOL: जीन पियाजे का तर्क था कि संज्ञान/विचार पहले विकसित होता है और भाषा केवल विचार को अभिव्यक्त करने का माध्यम बनती है। इसके विपरीत, लेव वायगोत्स्की का मानना था कि भाषा एक प्राथमिक मनोवैज्ञानिक उपकरण है जो विचार और संज्ञानात्मक विकास को दिशा और गति प्रदान करता है।
+
+TOPIC: CDP - Middle Childhood Development
+Q: मध्य बाल्यावस्था (Middle Childhood: 6-11 वर्ष) के बच्चों की प्रमुख विकासात्मक विशेषता क्या है? / What is a prominent developmental characteristic of children in middle childhood (6-11 years)?
+A) तार्किक सोच का विकास जो मूर्त अनुभवों पर आधारित होता है। / Emergence of logical thinking that is grounded in concrete experiences.
+B) केवल संवेदी अनुभवों और सहज क्रियाओं के माध्यम से सीखना। / Learning exclusively through sensory experiences and reflexive actions.
+C) पूरी तरह से अमूर्त और दार्शनिक चिंतन की शुरुआत। / Onset of completely abstract and philosophical thinking.
+D) समाजीकरण की प्रक्रिया की पूर्ण समाप्ति। / Complete cessation of the socialization process.
+ANS: A
+SOL: मध्य बाल्यावस्था (6 से 11 वर्ष) पियाजे के मूर्त संक्रियात्मक चरण के समरूप होती है। इस आयु में बच्चे तार्किक रूप से सोचने लगते हैं, लेकिन उनका यह तार्किक चिंतन मूर्त (प्रत्यक्ष और वास्तविक) वस्तुओं तथा अनुभवों तक सीमित रहता है; अमूर्त चिंतन का विकास किशोरावस्था में होता है।
+
+TOPIC: Inclusive Education - Learning Disabilities
+Q: एक छात्र निरंतर पाठ्यपुस्तक पढ़ते समय शब्दों को उलटने (जैसे 'saw' को 'was' पढ़ना) और अक्षरों को पहचानने में कठिनाई महसूस करता है। वह संभावित रूप से किससे ग्रसित है? / A student consistently struggles with letter recognition and reverses words while reading (e.g., reading 'saw' as 'was'). Which condition is the student likely experiencing?
+A) डिस्कैलकुलिया (गुणन-वैकल्य) / Dyscalculia
+B) डिस्लेक्सिया (पठन-वैकल्य) / Dyslexia
+C) डिस्प्रेक्सिया (गति-समन्वय वैकल्य) / Dyspraxia
+D) ऑटिज्म (स्वलीनता) / Autism
+ANS: B
+SOL: डिस्लेक्सिया (Dyslexia) एक विशिष्ट अधिगम अक्षमता (Specific Learning Disability) है जो पठन कौशल, ध्वनि-अक्षर संबंध (phonological processing), और शब्दों की सही पहचान को प्रभावित करती है। इसमें बच्चे अक्सर अक्षरों या शब्दों को उल्टा पढ़ते या पहचानते हैं।
+
+TOPIC: Inclusive Education - ADHD
+Q: एक शिक्षार्थी जो कक्षा में लंबे समय तक एक जगह ध्यान केंद्रित नहीं कर पाता, अपनी बारी की प्रतीक्षा करने में अधीर हो जाता है और आवेगपूर्ण (impulsive) व्यवहार करता है, वह किस स्थिति के लक्षण प्रदर्शित कर रहा है? / A learner who cannot sustain attention for long, gets impatient waiting for their turn, and displays impulsive behavior is showing characteristics of:
+A) ध्यान अभाव एवं अतिसक्रियता विकार (ADHD) / Attention Deficit Hyperactivity Disorder (ADHD)
+B) सेरेब्रल पाल्सी (प्रमस्तिष्क पक्षाघात) / Cerebral Palsy
+C) दृष्टिबाधिता / Visual Impairment
+D) श्रवण अक्षमता / Hearing Impairment
+ANS: A
+SOL: ADHD (Attention Deficit Hyperactivity Disorder) से ग्रसित बच्चों में असावधानी (inattention), अतिसक्रियता (hyperactivity) और आवेगी व्यवहार (impulsivity) के स्पष्ट लक्षण पाए जाते हैं। ऐसे बच्चों को छोटे-छोटे चरणों में कार्य देकर और लचीली समय-सारणी के माध्यम से सहायता की जानी चाहिए।
+
+TOPIC: Inclusive Education - Gifted Learners
+Q: एक समावेशी कक्षा में प्रतिभाशाली (Gifted) विद्यार्थियों की अधिगम आवश्यकताओं को पूरा करने के लिए शिक्षक को क्या रणनीति अपनानी चाहिए? / To meet the learning needs of gifted students in an inclusive classroom, what strategy should a teacher adopt?
+A) उन्हें दोहराव वाले और यांत्रिक अभ्यास कार्य देना। / Assigning repetitive and drill-based tasks to them.
+B) उनके लिए संवर्धित (enriched) और चुनौतीपूर्ण पाठ्यचर्या सामग्री प्रदान करना। / Providing enriched and challenging curricular materials for them.
+C) उनसे केवल निम्न-स्तरीय स्मरण आधारित प्रश्न पूछना। / Asking only low-level recall-based questions from them.
+D) उन्हें अन्य सामान्य विद्यार्थियों से पूरी तरह अलग करके पढ़ाना। / Segregating them completely from other general students.
+ANS: B
+SOL: प्रतिभाशाली विद्यार्थियों में उच्च संज्ञानात्मक क्षमता, जिज्ञासा और त्वरित सीखने की गति होती है। उन्हें सामान्य कार्य नीरस लग सकते हैं। अतः शिक्षक को उनके लिए संवर्धन (Enrichment) कार्यक्रम, उच्च-स्तरीय चिंतन वाले कार्य और चुनौतीपूर्ण परियोजनाएं उपलब्ध करानी चाहिए।
+
+TOPIC: Inclusive Education - Diverse Learners
+Q: वंचित और हाशिए पर रहने वाले समूहों से आने वाले शिक्षार्थियों के सफल समावेशन के लिए एक शिक्षक को: / For the successful inclusion of learners from disadvantaged and marginalized groups, a teacher should:
+A) उन पर हीनता का ठप्पा लगाना और उन्हें अलग बैठाना चाहिए। / Label them as deficient and seat them separately.
+B) उनकी सामाजिक-सांस्कृतिक पृष्ठभूमि और अनुभवों को कक्षा-चर्चाओं में शामिल करना चाहिए। / Integrate their socio-cultural background and lived experiences into classroom discussions.
+C) केवल मानकीकृत और कठोर शिक्षण विधियों का पालन करना चाहिए। / Follow only standardized and rigid pedagogical methods.
+D) उन्हें व्यावसायिक शिक्षा तक ही सीमित कर देना चाहिए। / Restrict them only to vocational education.
+ANS: B
+SOL: NEP 2020 और समावेशी शिक्षा का मुख्य सिद्धांत यह है कि प्रत्येक पृष्ठभूमि के बच्चे का सम्मान किया जाए। वंचित समूहों के शिक्षार्थियों के संदर्भ और मातृभाषा/स्थानीय अनुभवों को कक्षा में स्थान देने से उनमें अपनेपन की भावना विकसित होती है और अधिगम अधिक अर्थपूर्ण बनता है।
+
+TOPIC: Inclusive Education - Dyscalculia
+Q: गणितीय अवधारणाओं, संख्याओं के संबंधों और बुनियादी गणनाओं को समझने में लगातार गंभीर कठिनाई का अनुभव करने वाले बच्चे को क्या हो सकता है? / A child experiencing persistent and severe difficulty in grasping numerical concepts, number relationships, and basic calculations is likely to have:
+A) डिस्ग्राफिया / Dysgraphia
+B) डिस्कैलकुलिया / Dyscalculia
+C) लोकोमोटर दिव्यांगता / Locomotor disability
+D) वाचाघात (अफेजिया) / Aphasia
+ANS: B
+SOL: डिस्कैलकुलिया (Dyscalculia) एक विशिष्ट गणितीय अधिगम अक्षमता है, जिसमें छात्र को संख्या बोध (number sense), गणितीय संक्रियाओं (+, -, ×, ÷), प्रतीकों को समझने तथा समय या सारणी पढ़ने में अत्यधिक कठिनाई होती है।
+
+TOPIC: Learning and Pedagogy - Constructivism
+Q: रचनावादी (Constructivist) कक्षा में ज्ञान के सृजन के संबंध में निम्नलिखित में से कौन-सा कथन सर्वाधिक उपयुक्त है? / Which of the following statements is most appropriate regarding knowledge construction in a constructivist classroom?
+A) शिक्षार्थी ज्ञान के निष्क्रिय प्राप्तकर्ता होते हैं। / Learners are passive recipients of knowledge.
+B) ज्ञान केवल पाठ्यपुस्तक में दिए गए तथ्यों को ज्यों-का-त्यों याद करने से बनता है। / Knowledge is constructed solely by memorizing facts from the textbook verbatim.
+C) शिक्षार्थी अपने पूर्व ज्ञान और सक्रिय सामाजिक सहभागिता के आधार पर ज्ञान का निर्माण करते हैं। / Learners construct knowledge based on their prior experiences and active social participation.
+D) ज्ञान शिक्षक द्वारा बिना किसी संशोधन के सीधे छात्र के मस्तिष्क में स्थानांतरित किया जाता है। / Knowledge is directly transferred by the teacher into the student's mind without alteration.
+ANS: C
+SOL: रचनावादी (निर्मितवादी) उपागम के अनुसार अधिगम एक सक्रिय और अर्थ-निर्माण (meaning-making) की प्रक्रिया है। बच्चे कोरे कागज नहीं होते; वे अपने पूर्व अनुभवों, सामाजिक अंतःक्रियाओं और परिवेश की खोजबीन के आधार पर सक्रिय रूप से ज्ञान की रचना करते हैं।
+
+TOPIC: Learning and Pedagogy - Metacognition
+Q: अभिकथन (A): विद्यार्थियों में परासंज्ञान (मेटाकॉग्निशन) क्षमताओं के विकास से वे अधिक प्रभावी और स्वतंत्र शिक्षार्थी बनते हैं। कारण (R): परासंज्ञान शिक्षार्थी को अपनी सोच, समझ और सीखने की रणनीतियों की निगरानी और नियंत्रण करने में सक्षम बनाता है। सही विकल्प चुनें: / Assertion (A): Fostering metacognitive abilities in students helps them become more effective and self-directed learners. Reason (R): Metacognition enables learners to monitor and regulate their own thinking, understanding, and learning strategies. Choose the correct option:
+A) (A) और (R) दोनों सही हैं और (R), (A) की सही व्याख्या करता है। / Both (A) and (R) are true and (R) is the correct explanation of (A).
+B) (A) और (R) दोनों सही हैं, लेकिन (R), (A) की सही व्याख्या नहीं करता है। / Both (A) and (R) are true, but (R) is not the correct explanation of (A).
+C) (A) सही है, लेकिन (R) गलत है। / (A) is true, but (R) is false.
+D) (A) गलत है, लेकिन (R) सही है। / (A) is false, but (R) is true.
+ANS: A
+SOL: परासंज्ञान (Metacognition) का अर्थ है "सोचने के बारे में सोचना" (thinking about thinking)। जब विद्यार्थी यह जान पाते हैं कि वे कैसे सीखते हैं और किन रणनीतियों से उनकी समझ बेहतर होती है, तो वे अपने सीखने के स्वयं नियामक बन जाते हैं। अतः (A) और (R) दोनों सही हैं और R सही कारण है।
+
+TOPIC: Learning and Pedagogy - Motivation
+Q: आंतरिक प्रेरणा (Intrinsic Motivation) का सटीक उदाहरण निम्नलिखित में से कौन-सा है? / Which of the following is an accurate example of intrinsic motivation?
+A) सुमन प्रथम पुरस्कार जीतने के लिए चित्रकला प्रतियोगिता में भाग लेती है। / Suman participates in an art competition to win the first prize.
+B) अमन परीक्षा में दंड से बचने के लिए विज्ञान के पाठ पढ़ता है। / Aman studies science lessons to avoid punishment in exams.
+C) कबीर खगोल विज्ञान की पुस्तकें इसलिए पढ़ता है क्योंकि उसे ब्रह्मांड के रहस्यों को जानने में गहरा आनंद आता है। / Kabir reads astronomy books because he derives deep personal joy from exploring the mysteries of the universe.
+D) रिया माता-पिता की प्रशंसा पाने के लिए प्रतिदिन अपना गृहकार्य पूरा करती है। / Riya completes her homework daily to earn praise from her parents.
+ANS: C
+SOL: आंतरिक प्रेरणा वह प्रेरणा है जिसमें व्यक्ति किसी बाह्य पुरस्कार (जैसे पैसे, अंक या प्रशंसा) के लालच के बिना, केवल अपनी आत्म-संतुष्टि, रुचि, जिज्ञासा और आनंद के लिए कार्य करता है। कबीर का ब्रह्मांड के बारे में जिज्ञासावश पढ़ना आंतरिक प्रेरणा का स्पष्ट प्रमाण है।
+
+TOPIC: Learning and Pedagogy - Assessment For vs Of Learning
+Q: एक शिक्षिका विज्ञान के अध्याय के दौरान छोटे-छोटे प्रश्न पूछती है, विद्यार्थियों से परस्पर चर्चा करवाती है और यह देखती है कि किस अवधारणा में उन्हें भ्रम है ताकि वह अपनी शिक्षण विधि में सुधार कर सके। यह किस प्रकार का आकलन है? / A teacher asks short questions during a science chapter, facilitates peer discussions, and identifies conceptual misconceptions to adapt her teaching. This is an example of:
+A) सीखने का आकलन (Assessment of Learning) / Assessment of Learning
+B) सीखने के लिए आकलन (Assessment for Learning) / Assessment for Learning
+C) मानकीकृत योगात्मक आकलन (Standardized Summative Assessment) / Standardized Summative Assessment
+D) मानक-संदर्भित आकलन (Norm-referenced Assessment) / Norm-referenced Assessment
+ANS: B
+SOL: 'सीखने के लिए आकलन' (Assessment for Learning) रचनात्मक आकलन (Formative Assessment) का अभिन्न अंग है। यह शिक्षण-अधिगम प्रक्रिया के दौरान निरंतर होता है जिसका उद्देश्य ग्रेड देना नहीं, बल्कि सीखने की कमियों की पहचान करना और शिक्षण प्रक्रिया को तत्काल परिष्कृत करना होता है।
+
+TOPIC: Learning and Pedagogy - Role of Errors
+Q: बच्चों द्वारा की जाने वाली गलतियों (त्रुटियों) के संबंध में समकालीन शैक्षणिक दृष्टिकोण क्या है? / What is the contemporary pedagogical perspective regarding errors made by children?
+A) त्रुटियां केवल बच्चों की बौद्धिक अक्षमता और लापरवाही को दर्शाती हैं। / Errors merely reflect children's cognitive deficits and carelessness.
+B) त्रुटियों को तुरंत लाल स्याही से चिह्नित कर दंडित किया जाना चाहिए। / Errors should be immediately flagged with red ink and punished.
+C) त्रुटियां अधिगम प्रक्रिया का स्वाभाविक हिस्सा हैं जो बच्चों की सोच में अंतर्दृष्टि प्रदान करती हैं। / Errors are a natural part of the learning process that offer insights into children's thinking.
+D) त्रुटियों का सीखने की प्रक्रिया में कोई शैक्षणिक महत्व नहीं होता। / Errors hold no pedagogical significance in the learning process.
+ANS: C
+SOL: आधुनिक रचनावादी शिक्षाशास्त्र के अनुसार त्रुटियां 'अधिगम की खिड़कियां' (windows into learning) हैं। वे यह दर्शाती हैं कि बच्चा वर्तमान में अवधारणा को किस प्रकार समझ रहा है। शिक्षक को त्रुटियों का उपयोग उपचारात्मक शिक्षण (Remedial Teaching) की योजना बनाने के लिए करना चाहिए।
+
+TOPIC: Learning and Pedagogy - Problem Solving
+Q: अभिकथन (A): शिक्षकों को विद्यार्थियों में समस्या-समाधान कौशल विकसित करने के लिए उन्हें अनुमान लगाने और अंतर्ज्ञान-आधारित समाधान (heuristics) खोजने के लिए प्रोत्साहित करना चाहिए। कारण (R): अनुमान और स्वतःशोध (heuristics) आलोचनात्मक चिंतन और समस्या को सुलझाने के प्रभावी मानसिक उपकरण हैं। सही विकल्प चुनें: / Assertion (A): Teachers should encourage students to make intuitive guesses and use heuristics to foster problem-solving skills. Reason (R): Intuitive guesses and heuristics serve as powerful cognitive tools for critical thinking and problem resolution. Choose the correct option:
+A) (A) और (R) दोनों सही हैं और (R), (A) की सही व्याख्या करता है। / Both (A) and (R) are true and (R) is the correct explanation of (A).
+B) (A) और (R) दोनों सही हैं, लेकिन (R), (A) की सही व्याख्या नहीं करता है। / Both (A) and (R) are true, but (R) is not the correct explanation of (A).
+C) (A) सही है, लेकिन (R) गलत है। / (A) is true, but (R) is false.
+D) (A) और (R) दोनों गलत हैं। / Both (A) and (R) are false.
+ANS: A
+SOL: समस्या-समाधान में 'अनुमान' (Educated guesses) और 'स्वतःशोध' (Heuristics) विद्यार्थियों को नए दृष्टिकोण तलाशने और परिकल्पनाओं के निर्माण में मदद करते हैं। शिक्षक द्वारा इस प्रकार की मानसिक खोज को बढ़ावा देना आलोचनात्मक और समस्या-समाधान कौशल को सुदृढ़ करता है। अतः कथन और कारण दोनों सत्य हैं।
+
+TOPIC: Learning and Pedagogy - Meaningful Learning
+Q: सार्थक अधिगम (Meaningful Learning) को बढ़ावा देने के लिए एक शिक्षक को कक्षा में क्या करना चाहिए? / To promote meaningful learning, what should a teacher do in the classroom?
+A) विद्यार्थियों को जानकारी को अलग-थलग खंडों में रटने के लिए विवश करना। / Force students to memorize information in isolated fragments.
+B) संकल्पनाओं को शिक्षार्थियों के दैनिक जीवन के संदर्भों और वास्तविक परिस्थितियों से जोड़ना। / Connect concepts with learners' daily life contexts and real-world situations.
+C) केवल व्याख्यान विधि का उपयोग करना और प्रश्न पूछने को हतोत्साहित करना। / Rely exclusively on the lecture method and discourage questioning.
+D) पूरी तरह से पुरस्कार और बाह्य प्रतिस्पर्धा पर आधारित वातावरण बनाना। / Create an environment solely driven by extrinsic rewards and competition.
+ANS: B
+SOL: सार्थक अधिगम तब घटित होता है जब नई जानकारी को विद्यार्थी के पूर्व ज्ञान और उसके वास्तविक जीवन के संदर्भों से जोड़ा जाता है। अमूर्त सिद्धांतों को जीवन के व्यावहारिक उदाहरणों से जोड़ने पर अवधारणाएं स्थायी और समझने योग्य बनती हैं।
+
+TOPIC: Learning and Pedagogy - NEP 2020 on Assessment
+Q: राष्ट्रीय शिक्षा नीति (NEP) 2020 के अनुसार, विद्यार्थियों का आकलन किस ओर स्थानांतरित होना चाहिए? / According to the National Education Policy (NEP) 2020, student assessment should shift towards:
+A) योगात्मक आकलन से रटंत-आधारित स्मरण परीक्षण की ओर / From summative assessment to rote-based recall testing
+B) योगात्मक आकलन से नियमित और रचनात्मक आकलन की ओर जो योग्यता-आधारित हो / From summative assessment to regular and formative assessment that is competency-based
+C) रचनात्मक आकलन से वर्ष के अंत में ली जाने वाली बोर्ड परीक्षाओं की ओर / From formative assessment to high-stakes year-end board examinations
+D) सतत विकास से मानकीकृत बहुविकल्पीय परीक्षणों की ओर / From continuous development to rigid standardized multiple-choice tests
+ANS: B
+SOL: NEP 2020 स्पष्ट रूप से योगात्मक आकलन (जो साल के अंत में रटने का परीक्षण करता है) से 'योग्यता-आधारित रचनात्मक एवं सतत आकलन' (competency-based formative assessment) की ओर स्थानांतरण पर बल देती है, जो बच्चे के समग्र विकास और आलोचनात्मक सोच का मूल्यांकन करता है।
+
+TOPIC: Learning and Pedagogy - Emotions and Cognition
+Q: अभिकथन (A): अत्यधिक चिंता और परीक्षा का तनाव विद्यार्थियों के संज्ञानात्मक निष्पादन को नकारात्मक रूप से प्रभावित करता है। कारण (R): संज्ञान और संवेग एक-दूसरे से पूरी तरह पृथक और स्वतंत्र प्रणालियां हैं। सही विकल्प चुनें: / Assertion (A): High anxiety and examination stress negatively impact students' cognitive performance. Reason (R): Cognition and emotions are completely separate and independent systems. Choose the correct option:
+A) (A) और (R) दोनों सही हैं और (R), (A) की सही व्याख्या करता है। / Both (A) and (R) are true and (R) is the correct explanation of (A).
+B) (A) और (R) दोनों सही हैं, लेकिन (R), (A) की सही व्याख्या नहीं करता है। / Both (A) and (R) are true, but (R) is not the correct explanation of (A).
+C) (A) सही है, लेकिन (R) गलत है। / (A) is true, but (R) is false.
+D) (A) और (R) दोनों गलत हैं। / Both (A) and (R) are false.
+ANS: C
+SOL: संज्ञान (Cognition) और संवेग (Emotion) आपस में अंतर्गुंफित (intertwined) और परस्पर जुड़े होते हैं; वे स्वतंत्र नहीं हैं। अत्यधिक भय या तनाव कार्यशील स्मृति (Working Memory) और ध्यान को अवरुद्ध करता है, जिससे संज्ञानात्मक प्रदर्शन गिर जाता है। अतः अभिकथन सही है, किन्तु कारण असत्य है।
+
+TOPIC: CDP - Concept Formation
+Q: निम्नलिखित में से कौन-सी शिक्षण रणनीति विद्यार्थियों में संप्रत्ययात्मक समझ (Conceptual Understanding) को सबसे बेहतर बढ़ावा देती है? / Which of the following pedagogical strategies best fosters conceptual understanding among students?
+A) विद्यार्थियों को केवल गैर-उदाहरण (non-examples) देना और उदाहरणों से बचना। / Giving only non-examples to students and avoiding examples.
+B) नई अवधारणा समझाते समय उदाहरणों (examples) और गैर-उदाहरणों (non-examples) दोनों का संतुलित उपयोग करना। / Using a balanced combination of both examples and non-examples while introducing a new concept.
+C) पाठ्यपुस्तक की परिभाषा को बोर्ड पर लिखकर छात्रों से 10 बार लिखवाना। / Writing textbook definitions on the board and having students rewrite them 10 times.
+D) बिना किसी चर्चा के सीधे जटिल तकनीकी शब्दों की सूची याद करवाना। / Making students memorize lists of complex technical terms without any discussion.
+ANS: B
+SOL: संप्रत्यय (Concept) निर्माण के दौरान उदाहरण यह स्पष्ट करते हैं कि अवधारणा में कौन-से गुण शामिल हैं, जबकि 'गैर-उदाहरण' (Non-examples) यह स्पष्ट करते हैं कि अवधारणा की सीमाएँ कहाँ समाप्त होती हैं और क्या शामिल नहीं है। यह संतुलित उपागम बच्चों में सटीक और गहरी वैचारिक समझ विकसित करता है।
+
+TOPIC: SST - History: Harappan Civilization
+Q: हड़प्पा सभ्यता के नगर नियोजन के संदर्भ में निम्नलिखित कथनों पर विचार कीजिए: (I) हड़प्पा के कई नगरों को दो या उससे अधिक हिस्सों में विभाजित किया गया था; पश्चिमी भाग प्रायः छोटा लेकिन ऊँचाई पर था जिसे नगर दुर्ग कहा जाता था। (II) निचले नगर में सामान्य लोग रहते थे और यह हिस्सा बड़ा था। (III) धौलावीरा नगर को तीन भागों में बांटा गया था और हर हिस्से के चारों ओर पत्थर की विशाल दीवारें बनाई गई थीं। उपर्युक्त में से कौन-से कथन सही हैं? / Consider the following statements regarding the town planning of Harappan Civilization: (I) Many of the Harappan cities were divided into two or more parts; the part to the west was smaller but higher, called the citadel. (II) The lower town was larger and inhabited by common people. (III) The city of Dholavira was divided into three parts, and each part was surrounded with massive stone walls. Which of the statements given above are correct?
+A) केवल I और II / Only I and II
+B) केवल II और III / Only II and III
+C) केवल I और III / Only I and III
+D) I, II और III / I, II and III
+ANS: D
+SOL: NCERT कक्षा 6 इतिहास 'हमारे अतीत-I' (अध्याय: आरंभिक नगर) के अनुसार, अधिकांश हड़प्पा नगर दो भागों में विभाजित थे- पश्चिमी भाग छोटा और ऊँचा (नगर दुर्ग या सिटाडेल) तथा पूर्वी भाग बड़ा और निचला (निचला नगर)। गुजरात के कच्छ में स्थित धौलावीरा अन्य नगरों से भिन्न था, क्योंकि इसे तीन भागों में विभाजित किया गया था और प्रत्येक भाग के चारों ओर पत्थर की ऊँची दीवारें व भव्य प्रवेश द्वार थे। अतः तीनों कथन सत्य हैं।
+
+TOPIC: SST - History: Vedic Period
+Q: वैदिक काल के संदर्भ में निम्नलिखित में से कौन-सा कथन सही नहीं है? / Which of the following statements is NOT correct regarding the Vedic period?
+A) ऋग्वेद की रचना लगभग 3500 वर्ष पूर्व प्राक्-संस्कृत (वैदिक संस्कृत) में हुई थी। / The Rigveda was composed about 3500 years ago in Vedic Sanskrit.
+B) ऋग्वेद में गंगा और यमुना नदी का उल्लेख केवल एक-एक बार हुआ है। / The rivers Ganga and Yamuna are named only once in the Rigveda.
+C) वैदिक काल में 'दास' या 'दस्यु' वे लोग थे जो यज्ञ नहीं करते थे और शायद दूसरी भाषाएं बोलते थे। / In the Vedic period, 'Dasas' or 'Dasyus' were people who did not perform sacrifices and probably spoke different languages.
+D) उत्तर वैदिक काल में वर्ण व्यवस्था जन्म पर आधारित नहीं थी बल्कि व्यक्तिगत कर्म और पसंद पर आधारित थी। / In the Later Vedic period, the varna system was not based on birth but on individual deeds and choice.
+ANS: D
+SOL: NCERT कक्षा 6 इतिहास (अध्याय: क्या बताती हैं हमें किताबें और कब्रें तथा राज्य, राजा और एक प्राचीन गणराज्य) के अनुसार उत्तर वैदिक काल में समाज पुरोहितों द्वारा तय चार वर्णों (ब्राह्मण, क्षत्रिय, वैश्य, शूद्र) में विभाजित हो चुका था और यह व्यवस्था जन्म आधारित हो गई थी (ब्राह्मण की संतान ब्राह्मण ही बनेगी)। अतः कथन D गलत है।
+
+TOPIC: SST - History: Mahajanapadas
+Q: महाजनपद काल के संदर्भ में मगध के शक्तिशाली साम्राज्य के रूप में उभरने के कारणों पर विचार कीजिए: (i) गंगा और सोन नदियाँ मगध से होकर बहती थीं, जो जल परिवहन और उपजाऊ भूमि प्रदान करती थीं। (ii) इस क्षेत्र में लौह-अयस्क की खदानें थीं, जिनसे मजबूत औजार और हथियार बनाए जा सकते थे। (iii) मगध के जंगलों में हाथी उपलब्ध थे, जिन्हें पकड़कर सेना के लिए प्रशिक्षित किया जाता था। उपर्युक्त में से कौन-से कारण सही हैं? / Consider the reasons for the emergence of Magadha as a powerful empire during the Mahajanapada period: (i) Rivers Ganga and Son flowed through Magadha, providing water transport and fertile land. (ii) The region had iron-ore mines to make strong tools and weapons. (iii) Elephants were available in Magadha's forests and trained for the army. Which of the reasons given above are correct?
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 2 और 3 / Only 2 and 3
+C) केवल 1 और 3 / Only 1 and 3
+D) 1, 2 और 3 / 1, 2 and 3
+ANS: D
+SOL: NCERT कक्षा 6 इतिहास के अनुसार लगभग दो सौ वर्षों के भीतर मगध सबसे महत्वपूर्ण महाजनपद बन गया। इसके प्रमुख भौगोलिक और रणनीतिक कारणों में गंगा व सोन नदियों द्वारा जल यातायात, जल आपूर्ति एवं कृषि भूमि की उर्वरता, जंगलों से हाथियों की उपलब्धता तथा हथियारों/औजारों के निर्माण हेतु लौह अयस्क की समृद्ध खदानें शामिल थीं।
+
+TOPIC: SST - History: Ashoka and Mauryan Empire
+Q: अभिकथन (A): सम्राट अशोक ने कलिंग युद्ध के बाद युद्ध-विजय की नीति को त्याग कर धम्म-विजय की नीति अपनाई। कारण (R): कलिंग युद्ध में हुए भीषण रक्तपात, हिंसा और लाखों लोगों की मृत्यु ने अशोक के मन को गहरे दुःख और पश्चाताप से भर दिया था। सही विकल्प चुनिए: Assertion (A): Emperor Ashoka abandoned the policy of conquest through war and adopted conquest through Dhamma after the Kalinga war. Reason (R): The immense bloodshed, violence, and death of lakhs of people in the Kalinga war filled Ashoka's heart with deep sorrow and remorse. Choose the correct option:
+A) (A) और (R) दोनों सही हैं और (R), (A) की सही व्याख्या करता है। / Both (A) and (R) are true and (R) is the correct explanation of (A).
+B) (A) और (R) दोनों सही हैं, लेकिन (R), (A) की सही व्याख्या नहीं करता है। / Both (A) and (R) are true, but (R) is not the correct explanation of (A).
+C) (A) सही है, लेकिन (R) गलत है। / (A) is true, but (R) is false.
+D) (A) गलत है, लेकिन (R) सही है। / (A) is false, but (R) is true.
+ANS: A
+SOL: NCERT कक्षा 6 अध्याय 'अशोक: एक अनोखा सम्राट जिसने युद्ध का त्याग किया' के अनुसार, अशोक विश्व इतिहास का एकमात्र ऐसा राजा था जिसने युद्ध जीतने के बाद विजय का त्याग कर दिया। कलिंग युद्ध में लगभग 1.5 लाख लोग बंदी बनाए गए और 1 लाख से अधिक मारे गए। इस संहार ने अशोक को झकझोर दिया और उसने हिंसा त्यागकर धम्म के प्रसार का संकल्प लिया। अतः कथन और कारण दोनों सही हैं तथा कारण सही व्याख्या है।
+
+TOPIC: SST - History: Gupta Period
+Q: गुप्त काल के प्रसिद्ध शासक समुद्रगुप्त की प्रशस्ति (इलाहाबाद स्तंभ अभिलेख) के संदर्भ में निम्नलिखित कथनों में से कौन-सा कथन 'दक्षिणापथ के 12 शासकों' के प्रति उसकी नीति को दर्शाता है? / With reference to the Prashasti of Samudragupta (Allahabad Pillar Inscription), which of the following statements reflects his policy towards the '12 rulers of Dakshinapatha'?
+A) उन्हें पराजित कर उनके राज्यों को गुप्त साम्राज्य में पूरी तरह मिला लिया गया। / They were defeated and their kingdoms were completely annexed into the Gupta empire.
+B) उन्होंने समर्पण किया और समुद्रगुप्त ने उन्हें पुनः शासन करने की अनुमति दे दी। / They surrendered and Samudragupta permitted them to rule again.
+C) उन्हें दास बना लिया गया और उनकी संतानों को गुप्त दरबार में सेवा देने के लिए बाध्य किया गया। / They were enslaved and their descendants were compelled to serve in the Gupta court.
+D) उनसे केवल वार्षिक कर लिया गया और उनके शासन में आंतरिक हस्तक्षेप किया गया। / Only annual tribute was collected from them with direct interference in internal administration.
+ANS: B
+SOL: NCERT कक्षा 6 इतिहास अध्याय 'नए साम्राज्य और राज्य' में हरिषेण द्वारा रचित प्रयाग प्रशस्ति का उल्लेख है। इसमें बताया गया है कि दक्षिणापथ के 12 शासकों ने युद्ध हारने के बाद समुद्रगुप्त के समक्ष आत्मसमर्पण किया था, जिसके बाद समुद्रगुप्त ने उन्हें अपने-अपने राज्यों पर पुनः शासन करने की अनुमति दे दी थी।
+
+TOPIC: SST - History: Delhi Sultanate
+Q: दिल्ली सल्तनत की प्रशासनिक व्यवस्था के संदर्भ में 'इक्ता' (Iqta) और 'मुक्ति' (Muqti) के संबंध में निम्नलिखित में से कौन-सा कथन सही है? / Regarding the administrative system of Delhi Sultanate, which of the following statements concerning 'Iqta' and 'Muqti' is correct?
+A) इक्तादारों को जमीन का स्थायी और वंशानुगत मालिकाना हक दिया जाता था। / Iqtadars were given permanent and hereditary ownership rights over land.
+B) मुक्ति का प्राथमिक कर्तव्य सैन्य अभियानों का नेतृत्व करना और अपने इक्ता में कानून-व्यवस्था बनाए रखना था। / The primary duty of the Muqti was to lead military campaigns and maintain law and order in their iqta.
+C) मुक्ता को अपने क्षेत्र से मनमाना राजस्व वसूलने की असीमित छूट थी, जिसका कोई हिसाब नहीं रखा जाता था। / The Muqti had unlimited freedom to collect arbitrary revenue without any audit.
+D) अलाउद्दीन खिलजी ने इक्तादारों के पदों को पूरी तरह वंशानुगत बना दिया था। / Alauddin Khalji made the posts of iqtadars completely hereditary.
+ANS: B
+SOL: NCERT कक्षा 7 'हमारे अतीत-II' अध्याय 'दिल्ली के सुल्तान' के अनुसार, सल्तनत काल में भूक्षेत्र को 'इक्ता' कहा जाता था और उस क्षेत्र के सैन्य कमांडर को 'इक्तादार' या 'मुक्ति' कहा जाता था। उनका कर्तव्य सैन्य टुकड़ियों का नेतृत्व करना और कानून-व्यवस्था बनाए रखना था। राजस्व से ही वे अपने सैनिकों को वेतन देते थे। अलाउद्दीन खिलजी और मुहम्मद तुगलक के काल में मुक्ति का पद वंशानुगत नहीं रखा गया था और कठोर निगरानी रखी जाती थी।
+
+TOPIC: SST - History: Delhi Sultanate Architecture
+Q: दिल्ली सल्तनत और मुग़ल काल की स्थापत्य कला के संदर्भ में 'चापदार' (Arcuate) शैली की प्रमुख विशेषता क्या थी? / With reference to the architecture of the Delhi Sultanate and Mughal period, what was the prominent characteristic of the 'Arcuate' architectural style?
+A) छतों और दरवाजों का भार दो सीधे खंभों के आर-पार एक शहतीर (बीम) रखकर संभाला जाता था। / The weight of roofs and doors was supported by placing a horizontal beam across two vertical pillars.
+B) दरवाजों और खिड़कियों के ऊपर की संरचना का भार मेहराबों (Arches) पर डाला जाता था और इसमें चूना पत्थर के गारे का व्यापक प्रयोग होता था। / The weight of the superstructure above doors and windows was carried by arches, with extensive use of limestone cement.
+C) केवल कच्ची मिट्टी और लकड़ी का उपयोग बिना किसी गारे के किया जाता था। / Only mud and timber were used without any mortar.
+D) मीनारों को पूरी तरह से खोखला बनाकर छोड़ दिया जाता था। / Minarets were left completely hollow.
+ANS: B
+SOL: NCERT कक्षा 7 'हमारे अतीत-II' अध्याय 'शासक और इमारतें' के अनुसार 12वीं शताब्दी के बाद स्थापत्य कला में दो मुख्य परिवर्तन आए: एक, दरवाजों व खिड़कियों के ऊपर की अधिरचना का भार मेहराबों पर डाला जाने लगा, जिसे 'चापदार' (Arcuate) शैली कहा गया (पूर्ववर्ती शैली 'अनुप्रस्थ टोडा निर्माण' या Trabeate थी जिसमें खंभों पर क्षैतिज शहतीर रखी जाती थी)। दूसरा, निर्माण कार्य में चूना-पत्थर सीमेंट का बढ़ता प्रयोग था।
+
+TOPIC: SST - History: Mughal Empire
+Q: मुग़ल प्रशासन में 'मनसबदारी प्रणाली' के संदर्भ में निम्नलिखित कथनों पर विचार कीजिए: कथन I: 'मनसब' शब्द का अर्थ किसी पद या हैसियत से था, जो मुग़लों द्वारा सैन्य और प्रशासनिक अधिकारियों को दी जाती थी। कथन II: 'जात' की संख्या से अधिकारी की प्रतिष्ठा और वेतन तय होता था, जबकि 'सवार' से यह निर्धारित होता था कि उसे कितने घुड़सवार रखने हैं। उपर्युक्त कथनों के आलोक में सही विकल्प चुनिए: / Consider the following statements regarding the 'Mansabdari System' in Mughal administration: Statement I: The term 'Mansab' refers to a rank or position given by the Mughals to military and administrative officers. Statement II: The numerical value of 'Zat' determined the prestige and salary of the noble, while 'Sawar' indicated the number of cavalrymen he was required to maintain. Choose the correct option:
+A) कथन I सही है लेकिन कथन II गलत है। / Statement I is correct but Statement II is incorrect.
+B) कथन I गलत है लेकिन कथन II सही है। / Statement I is incorrect but Statement II is correct.
+C) कथन I और कथन II दोनों सही हैं। / Both Statement I and Statement II are correct.
+D) कथन I और कथन II दोनों गलत हैं। / Both Statement I and Statement II are incorrect.
+ANS: C
+SOL: NCERT कक्षा 7 'हमारे अतीत-II' के अध्याय 'मुग़ल साम्राज्य' के अनुसार, मनसबदार प्रणाली मुग़लों द्वारा सैन्य और नागरिक प्रशासन के लिए चलाई गई एक श्रेणीबद्ध व्यवस्था थी। इसमें 'जात' (Zat) पद और वेतन निर्धारित करता था, और जात संख्या जितनी अधिक होती थी, दरबार में प्रतिष्ठा उतनी अधिक होती थी। 'सवार' (Sawar) पद से यह तय होता था कि मनसबदार को कितने घुड़सवार सैनिक अपने नियंत्रण में रखने होंगे। अतः दोनों कथन सही हैं।
+
+TOPIC: SST - History: Bhakti and Sufi Traditions
+Q: 12वीं शताब्दी के कर्नाटक में बसवन्ना, अल्लम प्रभु और अक्कमहादेवी द्वारा चलाए गए 'वीरशैव आंदोलन' की मुख्य विशेषताएं क्या थीं? (i) सभी मानवों की समानता और जाति तथा नारी के प्रति व्यवहार पर कड़ा विरोध। (ii) मूर्तिपूजा और कर्मकांडों का घोर विरोध। (iii) संन्यास और संसार त्याग का पूर्ण समर्थन। नीचे दिए गए कूट का प्रयोग कर सही उत्तर चुनिए: / What were the main characteristics of the 'Virashaiva Movement' led by Basavanna, Allama Prabhu, and Akkamahadevi in 12th-century Karnataka? (i) Strong advocacy for equality of all human beings and opposition to caste and mistreatment of women. (ii) Fierce rejection of idol worship and rituals. (iii) Complete support for asceticism and renunciation of the world. Select the correct answer using the code given below:
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 2 और 3 / Only 2 and 3
+C) केवल 1 और 3 / Only 1 and 3
+D) 1, 2 और 3 / 1, 2 and 3
+ANS: A
+SOL: NCERT कक्षा 7 इतिहास अध्याय 'ईश्वर से अनुराग' के अनुसार, वीरशैव आंदोलन ने सभी प्राणियों की समानता, जातिवाद के विरोध और महिलाओं के प्रति रूढ़िवादी ब्राह्मणवादी दृष्टिकोण की तीव्र निंदा की। उन्होंने मूर्तिपूजा और बाह्य आडंबरों को नकारा। महत्वपूर्ण बात यह है कि उन्होंने संसार त्याग या संन्यास का समर्थन नहीं किया, बल्कि गृहस्थ जीवन जीते हुए निष्ठापूर्वक कार्य करने और दूसरों की सेवा करने पर बल दिया। अतः कथन 3 असत्य है।
+
+TOPIC: SST - History: Bhakti Movement
+Q: कबीरदास के संदर्भ में निम्नलिखित कथनों पर विचार कीजिए: (i) उनके विचार 'साखी' और 'पद' नामक साखियों में संकलित हैं, जिन्हें कभी-कभी बनारस के कबीर चौरा में बुना गया माना जाता है। (ii) कबीर की कुछ रचनाएं सिखों के पवित्र ग्रंथ 'गुरु ग्रंथ साहिब' में भी संकलित हैं। (iii) कबीर ने बाह्य आडंबरों, मूर्तिपूजा और जाति प्रथा पर तीखे व्यंग्य किए। उपर्युक्त में से कौन-से कथन सही हैं? / Consider the following statements regarding Kabir: (i) His ideas were compiled in sakhis and pads. (ii) Some compositions are compiled in Guru Granth Sahib. (iii) Kabir attacked rituals, idol worship, and caste system. Which are correct?
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 2 और 3 / Only 2 and 3
+C) केवल 1 और 3 / Only 1 and 3
+D) 1, 2 और 3 / 1, 2 and 3
+ANS: D
+SOL: NCERT कक्षा 7 इतिहास अध्याय 'ईश्वर से अनुराग' के अनुसार कबीरदास 15वीं-16वीं सदी के सबसे प्रभावशाली संतों में से एक थे। उनकी कविता की भाषा जनसाधारण की सधुक्कड़ी/हिंदवी थी। उनके पद गुरु ग्रंथ साहिब, पंचवाणी और बीजक में संगृहीत हैं। उन्होंने हिंदू और इस्लाम दोनों धर्मों के बाह्य पाखंडों, कर्मकांडों और वर्ण व्यवस्था की खुली निंदा की। अतः तीनों कथन सही हैं।
+
+TOPIC: SST - History: Regional Cultures
+Q: क्षेत्रीय संस्कृतियों के विकास के संदर्भ में निम्नलिखित युग्मों पर विचार कीजिए: (i) कथकली - केरल (ii) मणिप्रवालम - चोल साम्राज्य की राजभाषा (iii) कांगड़ा शैली - लघु चित्रकला (पहाड़ी चित्रकला)। उपर्युक्त में से कौन-से युग्म सही सुमेलित हैं? / Consider the following pairs in the context of the development of regional cultures: (i) Kathakali - Kerala (ii) Manipravalam - Official court language of the Chola Empire (iii) Kangra Style - Miniature painting (Pahari painting). Which of the pairs given above are correctly matched?
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 1 और 3 / Only 1 and 3
+C) केवल 2 और 3 / Only 2 and 3
+D) 1, 2 और 3 / 1, 2 and 3
+ANS: B
+SOL: NCERT कक्षा 7 इतिहास अध्याय 'क्षेत्रीय संस्कृतियों का निर्माण' के अनुसार, 'मणिप्रवालम' (जिसका शाब्दिक अर्थ है 'हीरे और मूंगे') एक भाषा-शैली थी जिसमें संस्कृत और मलयालम दोनों भाषाओं का एक साथ प्रयोग किया जाता था (जैसे 14वीं सदी का ग्रंथ 'लीलातिलकम'), यह चोलों की राजभाषा नहीं थी। कथकली केरल का शास्त्रीय नृत्य है और कांगड़ा शैली 18वीं सदी के अंत में हिमाचल प्रदेश के पहाड़ी क्षेत्रों में विकसित हुई एक प्रसिद्ध लघुचित्र शैली थी। अतः केवल 1 और 3 सुमेलित हैं।
+
+TOPIC: SST - History: Company Rule and Trade
+Q: 18वीं शताब्दी में ईस्ट इंडिया कंपनी द्वारा भारत में शुरू किए गए 'व्यापारिक एकाधिकार' और 'दस्तक' के दुरुपयोग ने निम्नलिखित में से किस संघर्ष को सीधे जन्म दिया? / In the 18th century, the East India Company's trade monopoly and abuse of 'Dastak' (trade permits) directly led to which of the following conflicts?
+A) प्लासी का युद्ध (1757) / Battle of Plassey (1757)
+B) तृतीय पानीपत युद्ध (1761) / Third Battle of Panipat (1761)
+C) प्रथम आंग्ल-सिख युद्ध (1845) / First Anglo-Sikh War (1845)
+D) संथाल विद्रोह (1855) / Santhal Rebellion (1855)
+ANS: A
+SOL: NCERT कक्षा 8 इतिहास अध्याय 'व्यापार से साम्राज्य तक' के अनुसार मुग़ल फरमान द्वारा कंपनी को शुल्क-मुक्त व्यापार की अनुमति दी गई थी, लेकिन कंपनी के अधिकारी अपने निजी व्यापार के लिए भी 'दस्तक' का दुरुपयोग करते थे और कर चुकाने से मना करते थे। इससे बंगाल के नवाब (मुर्शिद कुली खान, अलीवर्दी खान और बाद में सिराजुद्दौला) को भारी राजस्व हानि हुई, जो अंततः 1757 के प्रसिद्ध प्लासी के युद्ध का कारण बना।
+
+TOPIC: SST - History: British Land Revenue Settlements
+Q: औपनिवेशिक भारत में ब्रिटिश भू-राजस्व नीतियों के संदर्भ में सूची-I को सूची-II से सुमेलित कीजिए: सूची-I (व्यवस्था): (p) स्थायी बंदोबस्त (Permanent Settlement) (q) रैयतवाड़ी व्यवस्था (Ryotwari System) (r) महालवाड़ी व्यवस्था (Mahalwari System)। सूची-II (क्षेत्र / व्यक्तित्व): (1) मद्रास और बंबई प्रेसीडेंसी (थॉमस मुनरो) (2) बंगाल, बिहार और ओडिशा (लॉर्ड कॉर्नवालिस) (3) उत्तर-पश्चिम प्रांत और पंजाब (होल्ट मैकेंजी)। / Match List-I with List-II: List-I: (p) Permanent Settlement (q) Ryotwari System (r) Mahalwari System. List-II: (1) Madras and Bombay Presidencies (Thomas Munro) (2) Bengal, Bihar and Orissa (Lord Cornwallis) (3) North-Western Provinces and Punjab (Holt Mackenzie).
+A) p-2, q-1, r-3
+B) p-1, q-2, r-3
+C) p-3, q-1, r-2
+D) p-2, q-3, r-1
+ANS: A
+SOL: NCERT कक्षा 8 'हमारे अतीत-III' अध्याय 'ग्रामीण क्षेत्र पर शासन चलाना' के अनुसार: स्थायी बंदोबस्त 1793 में लॉर्ड कॉर्नवालिस द्वारा बंगाल, बिहार, ओडिशा में लागू किया गया; रैयतवाड़ी व्यवस्था दक्षिण भारत में थॉमस मुनरो और अलेक्जेंडर रीड द्वारा मद्रास व बंबई क्षेत्रों में किसानों (रैयतों) से सीधे समझौते के रूप में लागू हुई; महालवाड़ी व्यवस्था 1822 में होल्ट मैकेंजी द्वारा गंगा के मैदान, उत्तर-पश्चिमी प्रांतों में शुरू की गई, जहाँ गाँव (महाल) की सामूहिक जिम्मेदारी होती थी।
+
+TOPIC: SST - History: Tribal Societies and Colonial Rule
+Q: 19वीं शताब्दी के दौरान भारत में जनजातीय विद्रोहों के संदर्भ में 'बिरसा मुंडा' के आंदोलन का मुख्य उद्देश्य क्या था? / In the context of tribal revolts in 19th-century India, what was the primary aim of Birsa Munda's movement?
+A) ब्रिटिश अधिकारियों, साहूकारों (दिकू) और ईसाई मिशनरियों को बाहर निकालकर मुंडा राज स्थापित करना। / To drive out British officials, moneylenders (Dikus), and Christian missionaries to establish Munda Raj.
+B) अंग्रेजों से भारी मात्रा में हथियारों की खरीद कर स्वतंत्र रियासत बनाना। / To purchase large quantities of weapons from the British to form an independent princely state.
+C) जनजातीय परंपराओं को समाप्त कर पश्चिमी शिक्षा और धर्म को अपनाना। / To eradicate tribal traditions and adopt Western education and religion.
+D) केवल झूम खेती को छोड़कर पूर्ण रूप से स्थायी बागान मजदूर बनना। / To abandon shifting cultivation completely and become permanent plantation laborers.
+ANS: A
+SOL: NCERT कक्षा 8 अध्याय 'आदिवासी, दिकू और एक स्वर्ण युग की कल्पना' के अनुसार बिरसा मुंडा ने 'दिकू' (बाहरी लोग जैसे महाजन, ठेकेदार, मिशनरी और ब्रिटिश सरकार) के शोषण के विरुद्ध उलगुलान (महाविद्रोह) का नेतृत्व किया। उनका उद्देश्य शराब पीने की लत छोड़ना, गाँव को साफ रखना और बाहरी तत्वों को खदेड़कर मुंडा स्वायत्त शासन व 'सत्य के युग' (सतयुग) की पुनर्स्थापना करना था।
+
+TOPIC: SST - History: Revolt of 1857
+Q: अभिकथन (A): 1857 के विद्रोह के बाद ब्रिटिश संसद ने 1858 का नया अधिनियम पारित कर ईस्ट इंडिया कंपनी के सारे अधिकार ब्रिटिश साम्राज्य (क्राउन) के हाथ में सौंप दिए। कारण (R): ब्रिटिश सरकार का उद्देश्य भविष्य में किसी भी बड़े विद्रोह को रोकने के लिए भारतीय मामलों पर बेहतर और प्रत्यक्ष नियंत्रण सुनिश्चित करना था। सही विकल्प चुनिए: Assertion (A): After the revolt of 1857, the British Parliament passed a new Act in 1858 transferring all powers of the East India Company to the British Crown. Reason (R): The British government aimed to ensure better and direct control over Indian affairs to prevent any major rebellion in future. Choose the correct option:
+A) (A) और (R) दोनों सही हैं और (R), (A) की सही व्याख्या करता है। / Both (A) and (R) are true and (R) is the correct explanation of (A).
+B) (A) और (R) दोनों सही हैं, लेकिन (R), (A) की सही व्याख्या नहीं करता है। / Both (A) and (R) are true, but (R) is not the correct explanation of (A).
+C) (A) सही है, लेकिन (R) गलत है। / (A) is true, but (R) is false.
+D) (A) गलत है, लेकिन (R) सही है। / (A) is false, but (R) is true.
+ANS: A
+SOL: NCERT कक्षा 8 इतिहास अध्याय 'जब जनता बगावत करती है: 1857 और उसके बाद' के अनुसार 1857 के व्यापक विद्रोह के दमन के पश्चात ब्रिटिश संसद ने 1858 में 'गवर्नमेंट ऑफ इंडिया एक्ट' पारित किया। इसके द्वारा भारत का शासन कंपनी से छीनकर महारानी विक्टोरिया के प्रत्यक्ष अधीन कर दिया गया, ताकि शासन का उत्तरदायित्व अधिक कुशलता से संभाला जा सके और सेना में भारतीय सैनिकों का अनुपात घटाकर यूरोपीय सैनिकों का अनुपात बढ़ाया गया।
+
+TOPIC: SST - History: Social Reform Movements
+Q: 19वीं और 20वीं सदी के समाज सुधारकों और उनके द्वारा स्थापित संस्थाओं के संदर्भ में कौन-सा युग्म सही सुमेलित नहीं है? / Which of the following pairs is NOT correctly matched regarding 19th and 20th-century social reformers and their institutions?
+A) राजा राममोहन राय - ब्रह्म समाज / Raja Ram Mohan Roy - Brahmo Samaj
+B) ज्योतिराव फुले - सत्यशोधक समाज / Jyotirao Phule - Satyashodhak Samaj
+C) स्वामी दयानंद सरस्वती - प्रार्थना समाज / Swami Dayanand Saraswati - Prarthana Samaj
+D) सैयद अहमद खान - अलीगढ़ आंदोलन / Syed Ahmad Khan - Aligarh Movement
+ANS: C
+SOL: NCERT कक्षा 8 अध्याय 'महिलाएं, जाति एवं सुधार' के अनुसार स्वामी दयानंद सरस्वती ने 1875 में 'आर्य समाज' की स्थापना की थी। 'प्रार्थना समाज' की स्थापना 1867 में बॉम्बे में आत्माराम पांडुरंग, महादेव गोविंद रानाडे आदि द्वारा की गई थी। अतः युग्म C गलत है।
+
+TOPIC: SST - History: Indian National Movement
+Q: 'रोलेट एक्ट' (1919) के विरोध में महात्मा गांधी द्वारा आयोजित सत्याग्रह के संदर्भ में निम्नलिखित कथनों में से कौन-सा कथन सत्य है? / With reference to the Satyagraha organized by Mahatma Gandhi against the 'Rowlatt Act' (1919), which of the following statements is true?
+A) इस कानून ने अभिव्यक्ति की स्वतंत्रता का समर्थन किया और पुलिस की शक्तियों को सीमित किया। / This act supported freedom of expression and curbed police powers.
+B) इस कानून के तहत सरकार बिना किसी मुकदमे के किसी भी व्यक्ति को 2 वर्ष तक जेल में बंद रख सकती थी। / Under this act, the government could detain any person in prison for up to 2 years without trial.
+C) रवींद्रनाथ टैगोर ने इस कानून के विरोध में 'महात्मा' की उपाधि का त्याग किया था। / Rabindranath Tagore renounced the title of 'Mahatma' in protest against this act.
+D) रोलेट सत्याग्रह केवल उत्तर-पूर्वी राज्यों तक ही सीमित रहा। / The Rowlatt Satyagraha remained confined only to the northeastern states.
+ANS: B
+SOL: NCERT कक्षा 8 इतिहास अध्याय 'राष्ट्रीय आंदोलन का संघटन: 1870 के दशक से 1947 तक' के अनुसार, रोलेट कानून ने पुलिस शक्तियों को अत्यधिक बढ़ा दिया और सरकार को बिना किसी अदालती मुकदमे के राजनीतिक कैदियों को दो साल तक हिरासत में रखने की अनुमति दी। गांधीजी ने इसे 'काला कानून' कहा। जलियांवाला बाग हत्याकांड के बाद रवींद्रनाथ टैगोर ने अपनी 'नाइटहुड' (Knighthood) की उपाधि वापस की थी, न कि महात्मा की।
+
+TOPIC: SST - History: Indian National Movement
+Q: 1930 की प्रसिद्ध 'दांडी यात्रा' (नमक सत्याग्रह) के संबंध में निम्नलिखित में से कौन-सा निष्कर्ष सबसे उपयुक्त है? / Regarding the famous 'Dandi March' (Salt Satyagraha) of 1930, which of the following conclusions is most appropriate?
+A) गांधीजी ने नमक कानून इसलिए तोड़ा क्योंकि नमक केवल धनाढ्य वर्ग का उपभोग पदार्थ था। / Gandhiji broke the salt law because salt was consumed only by the wealthy class.
+B) नमक पर कर लगाना अन्यायपूर्ण था क्योंकि यह अमीर और गरीब दोनों के भोजन का एक बुनियादी हिस्सा था। / Imposing tax on salt was unjust as it was a basic ingredient of food consumed equally by the rich and the poor.
+C) दांडी मार्च साबरमती से मुंबई तक 500 मील की पदयात्रा थी। / The Dandi March was a 500-mile walk from Sabarmati to Bombay.
+D) नमक सत्याग्रह के साथ भारत छोड़ो आंदोलन का आरंभ हुआ। / The Salt Satyagraha marked the launch of the Quit India Movement.
+ANS: B
+SOL: NCERT कक्षा 8 अध्याय 'राष्ट्रीय आंदोलन का संघटन' के अनुसार, 1930 में गांधीजी ने साबरमती आश्रम से दांडी तक 240 मील की यात्रा 78 अनुयायियों के साथ 24 दिनों में पूरी की। नमक पर राज्य का एकाधिकार और कर लगाना अन्यायपूर्ण था क्योंकि नमक भोजन का अनिवार्य अंग था और यह हर गरीब और अमीर की रसोई से सीधे जुड़ा था। इसने सविनय अवज्ञा आंदोलन (Civil Disobedience Movement) की शुरुआत की।
+
+TOPIC: SST - Geography: Latitudes, Longitudes and Time
+Q: यदि ग्रीनविच (0° देशांतर) पर दोपहर के 12:00 बजे हैं, तो 82°30' पूर्व (भारतीय मानक याम्योत्तर - IST) पर स्थानीय समय क्या होगा? / If it is 12:00 noon at Greenwich (0° Longitude), what will be the local time at 82°30' East (Indian Standard Meridian - IST)?
+A) शाम के 5:30 बजे (5:30 PM) / 5:30 PM
+B) सुबह के 6:30 बजे (6:30 AM) / 6:30 AM
+C) शाम के 6:30 बजे (6:30 PM) / 6:30 PM
+D) सुबह के 5:30 बजे (5:30 AM) / 5:30 AM
+ANS: A
+SOL: NCERT कक्षा 6 भूगोल अध्याय 'ग्लोब: अक्षांश एवं देशांतर' के अनुसार पृथ्वी 24 घंटे में 360° घूमती है, अर्थात 1° देशांतर घूमने में 4 मिनट का समय लगता है। भारत का मानक समय 82°30' पूर्व देशांतर से लिया गया है। गणना: 82.5° × 4 मिनट = 330 मिनट = 5 घंटे 30 मिनट। चूंकि भारत ग्रीनविच के पूर्व में है, इसलिए समय आगे होगा: 12:00 दोपहर + 5 घंटे 30 मिनट = शाम 5:30 बजे (5:30 PM)।
+
+TOPIC: SST - Geography: Motions of the Earth
+Q: 21 जून को उत्तरी गोलार्ध में वर्ष का सबसे लंबा दिन और सबसे छोटी रात होती है। इस स्थिति को भूगोल में क्या कहा जाता है? / On 21st June, the Northern Hemisphere experiences the longest day and the shortest night. What is this phenomenon termed in Geography?
+A) शीत अयनांत (Winter Solstice) / Winter Solstice
+B) उत्तर अयनांत (Summer Solstice) / Summer Solstice
+C) वसंत विषुव (Spring Equinox) / Spring Equinox
+D) शरद विषुव (Autumnal Equinox) / Autumnal Equinox
+ANS: B
+SOL: NCERT कक्षा 6 भूगोल अध्याय 'पृथ्वी की गतियाँ' के अनुसार 21 जून को उत्तरी गोलार्ध सूर्य की ओर झुका होता है और कर्क रेखा (23½° N) पर सूर्य की किरणें लंबवत पड़ती हैं। इस कारण उत्तरी गोलार्ध में ग्रीष्म ऋतु होती है और सबसे लंबा दिन व सबसे छोटी रात होती है। इसे 'उत्तर अयनांत' (Summer Solstice) कहते हैं।
+
+TOPIC: SST - Geography: Interior of the Earth
+Q: पृथ्वी की आंतरिक परतों के संदर्भ में निम्नलिखित कथनों पर विचार कीजिए: (i) क्रस्ट (पर्पटी) पृथ्वी की सबसे पतली परत है और महाद्वीपीय संहति में यह लगभग 35 किमी तथा समुद्री सतह पर केवल 5 किमी मोटी है। (ii) महासागरीय पर्पटी मुख्य रूप से सिलिका और मैग्नीशियम (सिमा) से बनी है। (iii) क्रोड (Core) मुख्य रूप से सिलिका और एल्यूमिना से बना है। उपर्युक्त में से कौन-से कथन सही हैं? / Consider the following statements regarding the interior layers of the Earth: (i) The Crust is the thinnest layer of the Earth, being about 35 km on the continental masses and only 5 km on the ocean floors. (ii) The oceanic crust mainly consists of silica and magnesium (sima). (iii) The Core is primarily composed of silica and alumina. Which of the statements given above are correct?
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 2 और 3 / Only 2 and 3
+C) केवल 1 और 3 / Only 1 and 3
+D) 1, 2 और 3 / 1, 2 and 3
+ANS: A
+SOL: NCERT कक्षा 7 भूगोल 'हमारा पर्यावरण' अध्याय 'हमारी पृथ्वी के अंदर' के अनुसार क्रस्ट सबसे ऊपरी पतली परत है। महाद्वीपीय भाग 'सियाल' (सिलिका + एल्यूमिना) और महासागरीय भाग 'सिमा' (सिलिका + मैग्नीशियम) से बना है। सबसे आंतरिक परत क्रोड (Core) है जो मुख्य रूप से निकेल और लोहे (NiFe - निफे) से बनी है। अतः कथन 3 गलत है, केवल 1 और 2 सही हैं।
+
+TOPIC: SST - Geography: Rock Cycle
+Q: कायांतरित शैलों (Metamorphic Rocks) के निर्माण के संदर्भ में निम्नलिखित में से कौन-सा कथन सत्य है? / Which of the following statements is true regarding the formation of Metamorphic Rocks?
+A) जब आग्नेय और अवसादी शैलें अत्यधिक ऊष्मा और दाब के प्रभाव में आती हैं, तो वे कायांतरित शैलों में परिवर्तित हो जाती हैं। / When igneous and sedimentary rocks are subjected to immense heat and pressure, they change into metamorphic rocks.
+B) वे केवल ज्वालामुखी उद्गार के समय मैग्मा के ठंडा होकर जमने से बनती हैं। / They are formed exclusively by the cooling and solidification of magma during volcanic eruptions.
+C) वे केवल नदियों द्वारा तलछट के जमाव और संघनन से निर्मित होती हैं। / They are formed solely by the deposition and compaction of sediments by rivers.
+D) चूना पत्थर बिना किसी ऊष्मा या दाब के बलुआ पत्थर में बदल जाता है। / Limestone transforms into sandstone without any heat or pressure.
+ANS: A
+SOL: NCERT कक्षा 7 भूगोल अध्याय 2 के अनुसार आग्नेय (Igneous) और अवसादी (Sedimentary) शैलें उच्च तापमान और भारी दबाव के कारण अपने भौतिक व रासायनिक स्वरूप को बदल लेती हैं और कायांतरित (रूपांतरित) शैल बन जाती हैं। उदाहरण के लिए चिकनी मिट्टी स्लेट में और चूना पत्थर संगमरमर में परिवर्तित हो जाता है।
+
+TOPIC: SST - Geography: Layers of Atmosphere
+Q: वायुमंडल की परतों के संदर्भ में सूची-I को सूची-II से सुमेलित कीजिए: सूची-I (परत): (p) क्षोभमंडल (Troposphere) (q) समतापमंडल (Stratosphere) (r) बाह्य वायुमंडल / आयनमंडल (Thermosphere) (s) बहिर्मंडल (Exosphere)। सूची-II (विशेषता): (1) ओजोन गैस की परत और हवाई जहाजों के उड़ने के लिए आदर्श (2) मौसम की लगभग सभी घटनाएं इसी में घटित होती हैं (3) हल्की गैसें जैसे हीलियम और हाइड्रोजन यहीं से अंतरिक्ष में तैरती हैं (4) रेडियो तरंगों के परावर्तन में सहायक। / Match List-I with List-II: List-I: (p) Troposphere (q) Stratosphere (r) Thermosphere (s) Exosphere. List-II: (1) Contains ozone layer, ideal for planes (2) Weather phenomena occur here (3) Helium and hydrogen float into space (4) Radio reflection.
+A) p-2, q-1, r-4, s-3
+B) p-1, q-2, r-3, s-4
+C) p-2, q-4, r-1, s-3
+D) p-4, q-1, r-2, s-3
+ANS: A
+SOL: NCERT कक्षा 7 भूगोल अध्याय 'वायु' (Air) के अनुसार: क्षोभमंडल में औसत ऊँचाई 13 किमी है और सभी मौसमी परिघटनाएँ इसी में घटित होती हैं; समतापमंडल 50 किमी तक है और बादलों से मुक्त होकर ओजोन परत युक्त तथा विमान उड़ाने हेतु उत्तम है; आयनमंडल रेडियो संचार के लिए उपयोगी है और बहिर्मंडल सबसे ऊपरी पतली परत है जहाँ हल्की गैसें अंतरिक्ष में तैरती हैं।
+
+TOPIC: SST - Geography: Pressure Belts and Winds
+Q: व्यापारिक पवनें (Trade Winds) निम्नलिखित में से किस प्रकार की पवनों का उदाहरण हैं? / Trade Winds are an example of which of the following types of winds?
+A) मौसमी पवनें (Seasonal winds) / Seasonal winds
+B) स्थानीय पवनें (Local winds) / Local winds
+C) स्थायी पवनें (Permanent winds) / Permanent winds
+D) परिवर्तनशील पवनें (Variable winds) / Variable winds
+ANS: C
+SOL: NCERT कक्षा 7 भूगोल के अनुसार पवनें तीन प्रकार की होती हैं: स्थायी पवनें (व्यापारिक, पछुआ और ध्रुवीय पवनें जो वर्ष भर निश्चित दिशा में चलती हैं), मौसमी पवनें (जैसे मानसून), और स्थानीय पवनें (जैसे स्थल समीर, समुद्र समीर और लू)।
+
+TOPIC: SST - Geography: Ocean Currents
+Q: अभिकथन (A): जिस स्थान पर गर्म और ठंडी जलधाराएं आपस में मिलती हैं, वह क्षेत्र विश्व भर में सर्वोत्तम मत्स्यन (मछली पकड़ने के) क्षेत्र माने जाते हैं। कारण (R): गर्म और ठंडी जलधाराओं के संगम क्षेत्र में प्लवक (प्लवक/प्लवक वनस्पति) की प्रचुरता होती है और कुहरे वाला मौसम बनता है। सही विकल्प चुनिए: Assertion (A): The areas where warm and cold ocean currents meet provide world-renowned fishing grounds. Reason (R): The mixing of warm and cold currents produces abundant plankton and creates foggy weather. Choose the correct option:
+A) (A) और (R) दोनों सही हैं और (R), (A) की सही व्याख्या करता है। / Both (A) and (R) are true and (R) is the correct explanation of (A).
+B) (A) और (R) दोनों सही हैं, लेकिन (R), (A) की सही व्याख्या नहीं करता है। / Both (A) and (R) are true, but (R) is not the correct explanation of (A).
+C) (A) सही है, लेकिन (R) गलत है। / (A) is true, but (R) is false.
+D) (A) गलत है, लेकिन (R) सही है। / (A) is false, but (R) is true.
+ANS: A
+SOL: NCERT कक्षा 7 भूगोल अध्याय 'जल' के अनुसार जहाँ गर्म और ठंडी महासागरीय धाराएँ मिलती हैं (जैसे जापान के तट के पास क्यूरोशियो और ओयाशियो का मिलना, तथा उत्तरी अमेरिका के पूर्वी तट पर गल्फ स्ट्रीम और लैब्राडोर धारा का मिलना), वहाँ प्लवक (मछलियों का मुख्य भोजन) प्रचुर मात्रा में विकसित होता है, जिससे वे विश्व के सर्वश्रेष्ठ मत्स्यन क्षेत्र बनते हैं। अतः कथन और कारण दोनों सत्य हैं और कारण सही व्याख्या है।
+
+TOPIC: SST - Geography: Tides
+Q: जब सूर्य, चंद्रमा और पृथ्वी तीनों एक सीधी रेखा में होते हैं, तब सागरीय जल में सर्वाधिक ऊँचे ज्वार उत्पन्न होते हैं। इन ज्वारों को क्या कहा जाता है? / When the Sun, Moon, and Earth are in a straight line, the highest tides are generated in oceanic waters. What are these tides called?
+A) लघु ज्वार (Neap tide) / Neap tide
+B) वृहत् ज्वार (Spring tide) / Spring tide
+C) दैनिक ज्वार (Diurnal tide) / Diurnal tide
+D) अपभू ज्वार (Apogean tide) / Apogean tide
+ANS: B
+SOL: NCERT कक्षा 7 भूगोल अध्याय 'जल' के अनुसार पूर्णिमा और अमावस्या के दिनों में सूर्य, चंद्रमा और पृथ्वी तीनों एक सीध में होते हैं, जिससे उनका गुरुत्वाकर्षण बल संयुक्त होकर काम करता है और सबसे ऊँचे ज्वार उठते हैं। इन्हें 'वृहत् ज्वार' (Spring Tides) कहते हैं। जब चंद्रमा अपने प्रथम और अंतिम चतुर्थांश में समकोण बनाता है, तब 'लघु ज्वार' (Neap Tides) आते हैं।
+
+TOPIC: SST - Geography: Natural Vegetation
+Q: निम्नलिखित में से किस प्रकार के वनों को 'विश्व का फलोद्यान' (Orchards of the world) भी कहा जाता है क्योंकि यहाँ रसदार फलों की खेती बड़े पैमाने पर की जाती है? / Which of the following types of forests are also known as the 'Orchards of the world' due to extensive cultivation of citrus fruits?
+A) उष्णकटिबंधीय पर्णपाती वन / Tropical Deciduous Forests
+B) शीतोष्ण सदाबहार वन / Temperate Evergreen Forests
+C) भूमध्यसागरीय वनस्पति / Mediterranean Vegetation
+D) शंकुधारी वन (टैगा) / Coniferous Forests (Taiga)
+ANS: C
+SOL: NCERT कक्षा 7 भूगोल अध्याय 'प्राकृतिक वनस्पति एवं वन्य जीवन' के अनुसार भूमध्यसागरीय क्षेत्रों में ग्रीष्म ऋतु शुष्क और शीत ऋतु नम होती है। यहाँ संतरा, अंजीर, जैतून और अंगूर जैसे खट्टे/रसदार फलों की व्यापक खेती के कारण भूमध्यसागरीय क्षेत्र को 'विश्व का फलोद्यान' कहा जाता है।
+
+TOPIC: SST - Geography: Resources
+Q: संसाधनों के वर्गीकरण के संदर्भ में निम्नलिखित में से कौन-सा युग्म सही सुमेलित है? / In the context of the classification of resources, which of the following pairs is correctly matched?
+A) संभावित संसाधन (Potential Resource) - लद्दाख में पाया गया यूरेनियम / Uranium found in Ladakh
+B) वास्तविक संसाधन (Actual Resource) - भविष्य में उपयोग होने वाली उच्च गति की पवनें / High-speed winds for future use
+C) अनवीकरणीय संसाधन (Non-renewable Resource) - सौर ऊर्जा और पवन ऊर्जा / Solar and wind energy
+D) अजैव संसाधन (Abiotic Resource) - वनस्पति और वन्यजीव / Flora and Fauna
+ANS: A
+SOL: NCERT कक्षा 8 भूगोल 'संसाधन एवं विकास' अध्याय 'संसाधन' के अनुसार संभावित संसाधन वे हैं जिनकी संपूर्ण मात्रा ज्ञात नहीं है और जिनका भविष्य में उपयोग हो सकता है जैसे लद्दाख का यूरेनियम। सौर और पवन ऊर्जा नवीकरणीय संसाधन हैं, जबकि वनस्पति और जीव जैव संसाधन हैं। अतः विकल्प A सही सुमेलित है।
+
+TOPIC: SST - Geography: Soil Conservation Methods
+Q: तटीय प्रदेशों और शुष्क क्षेत्रों में पवन की गति को रोकने के लिए वृक्षों को कतारों में लगाया जाता है ताकि मृदा आवरण को बचाया जा सके। इस मृदा संरक्षण विधि को क्या कहते हैं? / In coastal and dry regions, rows of trees are planted to check wind movement to protect soil cover. What is this soil conservation method called?
+A) मल्च बनाना (Mulching) / Mulching
+B) वेदिका फार्म (Terrace farming) / Terrace farming
+C) रक्षक मेखलाएं (Shelter belts) / Shelter belts
+D) समोच्चरेखीय रोधिकाएं (Contour barriers) / Contour barriers
+ANS: C
+SOL: NCERT कक्षा 8 भूगोल अध्याय 'भूमि, मृदा, जल, प्राकृतिक वनस्पति और वन्य जीवन संसाधन' के अनुसार तटीय और शुष्क प्रदेशों में तेज हवाओं से मृदा अपरदन रोकने के लिए खेतों के किनारे कतारों में पेड़ लगाए जाते हैं। इस विधि को 'रक्षक मेखला' (Shelter Belts) कहा जाता है।
+
+TOPIC: SST - Geography: Types of Agriculture
+Q: कृषि के प्रकारों के संदर्भ में 'स्थानांतरी कृषि' (Shifting Cultivation) के संबंध में निम्नलिखित कथनों में से कौन-सा कथन सही नहीं है? / Regarding types of agriculture, which of the following statements is NOT correct about 'Shifting Cultivation'?
+A) इसे 'कर्तन एवं दहन' (Slash and burn) कृषि भी कहा जाता है। / It is also known as 'Slash and burn' agriculture.
+B) उत्तर-पूर्वी भारत में इसे 'झूमिंग' के नाम से जाना जाता है। / It is known as 'Jhumming' in North-East India.
+C) मैक्सिको में इसे 'मिल्पा' और ब्राजील में 'रोका' कहा जाता है। / It is known as 'Milpa' in Mexico and 'Roca' in Brazil.
+D) यह गहन पूंजी और आधुनिक भारी मशीनों के उपयोग पर आधारित वाणिज्यिक कृषि है। / It is a commercial agriculture based on heavy capital investment and modern machinery.
+ANS: D
+SOL: NCERT कक्षा 8 भूगोल अध्याय 'कृषि' के अनुसार स्थानांतरी कृषि एक आदिम निर्वाह कृषि (Primitive Subsistence Farming) है। इसमें वृक्षों को काटकर व जलाकर भूमि साफ की जाती है और राख को मिट्टी में मिलाया जाता है। यह किसी भी प्रकार से पूंजी-गहन या आधुनिक मशीनों पर आधारित वाणिज्यिक खेती नहीं है। अतः D गलत है।
+
+TOPIC: SST - Geography: Major Crops
+Q: सुनहारा रेशा (Golden Fibre) से क्या अभिप्राय है और इसके लिए अनुकूल भौगोलिक दशाएं क्या हैं? / What is meant by 'Golden Fibre' and what are its ideal geographical conditions?
+A) कपास; इसके लिए उच्च तापमान और 210 पाला-रहित दिन चाहिए / Cotton; requires high temperature and 210 frost-free days
+B) पटसन (जूट); इसके लिए उच्च तापमान, भारी वर्षा और आर्द्र जलवायु चाहिए / Jute; requires high temperature, heavy rainfall, and humid climate
+C) रेशम; इसके लिए ठंडी शुष्क जलवायु और बलुई मिट्टी चाहिए / Silk; requires cold dry climate and sandy soil
+D) चाय; इसके लिए पाला-मुक्त मौसम और अत्यधिक तेज धूप चाहिए / Tea; requires frost-free weather and extreme scorching sunlight
+ANS: B
+SOL: NCERT कक्षा 8 भूगोल अध्याय 'कृषि' के अनुसार पटसन (Jute) को 'सुनहरा रेशा' कहा जाता है। यह जलोढ़ मिट्टी में अच्छी तरह बढ़ता है और इसे उच्च तापमान, भारी वर्षा और आर्द्र जलवायु की आवश्यकता होती है। भारत और बांग्लादेश पटसन के अग्रणी उत्पादक हैं।
+
+TOPIC: SST - Geography: Conventional vs Non-Conventional Energy
+Q: गैर-परंपरागत (Non-conventional) ऊर्जा स्रोतों के संदर्भ में निम्नलिखित कथनों पर विचार कीजिए: (i) सौर ऊर्जा, पवन ऊर्जा और ज्वारीय ऊर्जा नवीकरणीय ऊर्जा स्रोत हैं। (ii) परमाणु ऊर्जा प्राकृतिक रूप से प्राप्त यूरेनियम और थोरियम जैसे रेडियोएक्टिव तत्वों के नाभिकीय विखंडन से प्राप्त होती है। (iii) मणिकरण (हिमाचल प्रदेश) और पुगा घाटी (लद्दाख) में भारत के प्रमुख भू-तापीय ऊर्जा (Geothermal energy) संयंत्र स्थित हैं। सही कूट चुनिए: / With reference to non-conventional energy sources: (i) Solar, wind and tidal energy are renewable energy sources. (ii) Nuclear power is obtained from nuclear fission of radioactive elements. (iii) Major geothermal plants are located at Manikaran and Puga Valley. Select the correct code:
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 2 और 3 / Only 2 and 3
+C) केवल 1 और 3 / Only 1 and 3
+D) 1, 2 और 3 / 1, 2 and 3
+ANS: D
+SOL: NCERT कक्षा 8 भूगोल अध्याय 'खनिज और शक्ति संसाधन' के अनुसार सौर, पवन, ज्वारीय और भूतापीय ऊर्जा गैर-परंपरागत और प्रदूषण-मुक्त नवीकरणीय ऊर्जा स्रोत हैं। परमाणु ऊर्जा यूरेनियम/थोरियम से मिलती है। भारत में मणिकरण (हिमाचल प्रदेश) और लद्दाख की पुगा घाटी में भू-तापीय ऊर्जा (पृथ्वी से उत्पन्न ताप ऊर्जा) निकालने के संयंत्र स्थापित हैं। तीनों कथन सत्य हैं।
+
+TOPIC: SST - Geography: Distribution of Minerals
+Q: विश्व में खनिजों के वितरण के संदर्भ में निम्नलिखित में से कौन-सा कथन सही है? / Which of the following statements is correct regarding the distribution of minerals in the world?
+A) धात्विक खनिज सामान्यतः अवसादी शैल समूहों में पाए जाते हैं। / Metallic minerals are generally found in sedimentary rock formations.
+B) कोयला और पेट्रोलियम जैसी खनिज ईंधन प्राचीन कायांतरित शैलों में पाए जाते हैं। / Mineral fuels such as coal and petroleum are found in ancient metamorphic rocks.
+C) लोहा, तांबा और निकेल जैसे धात्विक खनिज मुख्य रूप से आग्नेय और कायांतरित शैलों में पाए जाते हैं। / Metallic minerals like iron, copper, and nickel are predominantly found in igneous and metamorphic rocks.
+D) पूरे यूरोप महाद्वीप में किसी भी प्रकार का लौह अयस्क निक्षेप नहीं पाया जाता। / The entire European continent has no iron ore deposits at all.
+ANS: C
+SOL: NCERT कक्षा 8 भूगोल अध्याय 'खनिज और शक्ति संसाधन' के अनुसार धात्विक खनिज मुख्य रूप से आग्नेय (Igneous) और कायांतरित (Metamorphic) शैलों में पाए जाते हैं (जैसे स्वीडन में लौह अयस्क, दक्षिण अफ्रीका में प्लैटिनम)। इसके विपरीत, कोयला और पेट्रोलियम जैसे खनिज ईंधन अवसादी (Sedimentary) शैल स्तरों में संचित होते हैं।
+
+TOPIC: SST - Geography: Agriculture - Types of Farming
+Q: रोपण कृषि (Plantation Agriculture) के संदर्भ में निम्नलिखित कथनों में से कौन-सा कथन सही नहीं है? / Which of the following statements is NOT correct with reference to Plantation Agriculture?
+A) यह एक प्रकार की वाणिज्यिक कृषि है जिसमें एक बड़े क्षेत्र पर केवल एक ही फसल उगाई जाती है। / It is a type of commercial farming where a single crop is grown over a large area.
+B) इसमें अत्यधिक मात्रा में पूंजी और आधुनिक तकनीकी प्रबंधन की आवश्यकता होती है। / It requires large amounts of capital and modern technical management.
+C) चाय, कॉफी, रबर, केला और काजू इसके प्रमुख उदाहरण हैं। / Tea, coffee, rubber, banana, and cashew are its prominent examples.
+D) इसमें उत्पादित फसल का उपयोग केवल किसान के परिवार के भरण-पोषण हेतु स्थानीय स्तर पर होता है। / The produce is consumed exclusively at the local level for the subsistence of the farmer's family.
+ANS: D
+SOL: NCERT कक्षा 8 भूगोल अध्याय 'कृषि' के अनुसार रोपण कृषि वाणिज्यिक खेती (Commercial Farming) का रूप है। इसमें व्यापक पूंजी, आधुनिक तकनीक और बड़े बागान होते हैं। इसका उत्पादन मुख्यतः उद्योगों के कच्चे माल और वैश्विक/राष्ट्रीय बाजारों में बिक्री के लिए होता है, न कि किसान के पारिवारिक उपभोग के लिए। अतः D गलत कथन है।
+
+TOPIC: SST - Geography: Industries and Distribution
+Q: जापान के प्रसिद्ध सूती वस्त्र निर्माण केंद्र 'ओसाका' को जापान का मैनचेस्टर कहा जाता है। ओसाका में सूती वस्त्र उद्योग के फलने-फूलने का भौगोलिक कारण कौन-सा नहीं है? / Osaka is an important textile centre of Japan, also known as the 'Manchester of Japan'. Which of the following is NOT a geographical reason for the flourishing of the textile industry in Osaka?
+A) योडो नदी से कताई और बुनाई की मिलों के लिए प्रचुर मात्रा में मीठा जल उपलब्ध होना। / Abundant fresh water provided by River Yodo for spinning and weaving mills.
+B) बंदरगाह की सुगम सुविधा जो आयात और निर्यात को आसान बनाती है। / Favorable port location facilitating import and export.
+C) ओसाका के आसपास विस्तृत स्तर पर उत्तम गुणवत्ता वाले कच्चे कपास का भारी उत्पादन होना। / Extensive local production of high-quality raw cotton around Osaka.
+D) सूत कातने और बुनने के लिए आदर्श गर्म एवं आर्द्र जलवायु। / Warm and humid climate well suited to spinning and weaving.
+ANS: C
+SOL: NCERT कक्षा 8 भूगोल अध्याय 'उद्योग' के अनुसार ओसाका में सूती वस्त्र उद्योग पूर्णतः आयातित कच्चे माल पर निर्भर है। कपास का आयात मिस्र, भारत, चीन और अमेरिका से किया जाता है। स्थानीय स्तर पर ओसाका में कपास की खेती नहीं होती। अतः विकल्प C गलत कथन है।
+
+TOPIC: SST - Civics: Indian Constitution - Preamble & Key Features
+Q: भारतीय संविधान की प्रस्तावना में प्रयुक्त शब्द 'धर्मनिरपेक्ष' (Secular) का संवैधानिक और वास्तविक अर्थ क्या है? / What is the constitutional and practical meaning of the term 'Secular' as used in the Preamble to the Indian Constitution?
+A) राज्य किसी एक बहुसंख्यक धर्म को राजकीय धर्म के रूप में मान्यता देता है। / The State recognizes one majority religion as the official State religion.
+B) राज्य का अपना कोई आधिकारिक धर्म नहीं है और नागरिकों को किसी भी धर्म को मानने व आचरण करने की स्वतंत्रता है। / The State has no official religion of its own and citizens have full freedom to profess and practice any religion.
+C) राज्य सभी नागरिकों के धार्मिक आयोजनों और रीति-रिवाजों पर पूर्ण प्रतिबंध लगाता है। / The State strictly prohibits all religious events and customs for all citizens.
+D) केवल अल्पसंख्यक समुदायों को अपने धार्मिक संस्थानों के संचालन का अधिकार है। / Only minority communities have the right to operate religious institutions.
+ANS: B
+SOL: NCERT कक्षा 8 सामाजिक एवं राजनीतिक जीवन-III अध्याय 'धर्मनिरपेक्षता की समझ' के अनुसार भारतीय धर्मनिरपेक्षता का अर्थ है कि राज्य स्वयं को धर्म से दूर रखता है और किसी विशेष धर्म को आधिकारिक राज्य धर्म नहीं बनाता। सभी नागरिकों को अपनी अंतरात्मा के अनुसार किसी भी धर्म को मानने, आचरण करने और प्रचार करने की पूर्ण स्वतंत्रता है।
+
+TOPIC: SST - Civics: Fundamental Rights
+Q: भारतीय संविधान के अनुच्छेद 21 के तहत प्रदत्त 'जीवन के अधिकार' (Right to Life) के दायरे में सर्वोच्च न्यायालय ने निम्नलिखित में से किसे शामिल माना है? (i) स्वास्थ्य का अधिकार (ii) सुरक्षित पेयजल और प्रदूषण मुक्त हवा का अधिकार (iii) आजीविका का अधिकार (iv) प्राथमिक शिक्षा का अधिकार। नीचे दिए गए कूट का प्रयोग कर सही उत्तर चुनिए: / Under Article 21 of the Constitution, which of the following are included in 'Right to Life'? (i) Right to Health (ii) Right to Safe Drinking Water and Pollution-free Air (iii) Right to Livelihood (iv) Right to Primary Education. Select the correct code:
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 2 और 3 / Only 2 and 3
+C) केवल 1, 2 और 3 / Only 1, 2 and 3
+D) 1, 2, 3 और 4 / 1, 2, 3 and 4
+ANS: D
+SOL: NCERT कक्षा 8 सामाजिक एवं राजनीतिक जीवन-III (अध्याय: न्यायपालिका तथा जनसुविधाएं) के अनुसार सर्वोच्च न्यायालय ने विभिन्न ऐतिहासिक फैसलों (जैसे ओल्गा टेलिस बनाम बॉम्बे नगर निगम, सुभाष कुमार बनाम बिहार राज्य, मोहिनी जैन/उन्नीकृष्णन केस) में जीवन के अधिकार (अनुच्छेद 21) का विस्तार किया है। इसमें केवल जीवित रहना ही नहीं बल्कि सम्मानजनक जीवन, स्वास्थ्य, स्वच्छ पर्यावरण, स्वच्छ जल, आजीविका तथा शिक्षा का अधिकार भी शामिल है।
+
+TOPIC: SST - Civics: Secularism in Practice
+Q: भारतीय धर्मनिरपेक्षता और अमेरिकी धर्मनिरपेक्षता के बीच प्रमुख सैद्धांतिक अंतर क्या है? / What is the primary conceptual difference between Indian Secularism and American Secularism?
+A) अमेरिका में राज्य किसी भी धर्म के मामले में कोई हस्तक्षेप नहीं कर सकता, जबकि भारत में समता स्थापित करने हेतु राज्य धर्म में सैद्धांतिक हस्तक्षेप कर सकता है। / In America, the State cannot intervene in religious affairs under any circumstance, whereas in India, the State can intervene on principled grounds to uphold equality.
+B) भारत में एक आधिकारिक धर्म घोषित है, जबकि अमेरिका में नहीं है। / India has an officially declared religion, whereas America does not.
+C) अमेरिका में नागरिकों को धर्म की स्वतंत्रता नहीं है। / Citizens in America do not possess religious freedom.
+D) भारतीय संविधान धार्मिक अल्पसंख्यकों को सुरक्षा प्रदान नहीं करता है। / The Indian Constitution does not provide safeguards to religious minorities.
+ANS: A
+SOL: NCERT कक्षा 8 सामाजिक एवं राजनीतिक जीवन अध्याय 2 के अनुसार अमेरिकी धर्मनिरपेक्षता में राज्य और धर्म के बीच पूर्ण अलगाव (strict separation) है; राज्य किसी भी धार्मिक रीति में हस्तक्षेप नहीं कर सकता। इसके विपरीत भारतीय धर्मनिरपेक्षता 'सैद्धांतिक दूरी' (principled distance) बनाए रखती है—अर्थात छुआछूत जैसी कुरीतियों को मिटाने और समानता की रक्षा के लिए राज्य धर्म में विधिसम्मत हस्तक्षेप कर सकता है।
+
+TOPIC: SST - Civics: Parliament and Law Making
+Q: संसद के दोनों सदनों द्वारा पारित किसी विधेयक के संदर्भ में निम्नलिखित में से कौन-सा कथन सत्य है? / Which of the following statements is true regarding a bill passed by both Houses of Parliament?
+A) यह दोनों सदनों से पास होते ही तुरंत स्वतः कानून बन जाता है। / It automatically becomes an Act immediately after being passed by both Houses.
+B) यह राष्ट्रपति की सहमति और हस्ताक्षर के बाद ही अधिनियम (कानून) बनता है। / It becomes an Act (law) only after receiving the assent and signature of the President.
+C) इसे कानून बनने के लिए सर्वोच्च न्यायालय के मुख्य न्यायाधीश की अनिवार्य अनुमति चाहिए। / It requires mandatory approval of the Chief Justice of India to become a law.
+D) लोकसभा अध्यक्ष अकेले ही किसी विधेयक को राष्ट्रपति की सहमति के बिना कानून घोषित कर सकता है। / The Speaker of Lok Sabha alone can declare a bill as an Act without Presidential assent.
+ANS: B
+SOL: NCERT कक्षा 8 सामाजिक एवं राजनीतिक जीवन अध्याय 'संसद तथा कानूनों का निर्माण' के अनुसार जब कोई विधेयक लोकसभा और राज्यसभा दोनों सदनों से बहुमत द्वारा पारित हो जाता है, तो उसे राष्ट्रपति की स्वीकृति हेतु भेजा जाता है। राष्ट्रपति के हस्ताक्षर और सहमति प्राप्त होने के बाद ही कोई विधेयक 'अधिनियम' या कानून का रूप लेता है।
+
+TOPIC: SST - Civics: Judiciary System
+Q: भारत में न्यायपालिका की स्वतंत्रता सुनिश्चित करने के लिए संविधान में क्या प्रावधान किए गए हैं? (i) न्यायाधीशों की नियुक्ति में विधायिका और कार्यपालिका का सीधा हस्तक्षेप न्यूनतम है। (ii) न्यायाधीशों का कार्यकाल सुरक्षित होता है और उन्हें हटाना अत्यंत कठिन है। (iii) न्यायाधीशों के वेतन और भत्ते संचित निधि पर भारित होते हैं और इनमें संसद द्वारा कटौती नहीं की जा सकती। सही कूट चुनिए: / What provisions ensure judicial independence in India? (i) Minimal direct interference of Legislature/Executive in appointments. (ii) Judges have security of tenure. (iii) Salaries are charged upon Consolidated Fund and cannot be reduced. Select the correct code:
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 2 और 3 / Only 2 and 3
+C) केवल 1 और 3 / Only 1 and 3
+D) 1, 2 और 3 / 1, 2 and 3
+ANS: D
+SOL: NCERT कक्षा 8 अध्याय 'न्यायपालिका' के अनुसार स्वतंत्र न्यायपालिका लोकतंत्र की रीढ़ है। इसे सत्ताधारी दल या विधायिका के दबाव से मुक्त रखने के लिए संविधान ने न्यायाधीशों की निश्चित पदावधि, महाभियोग जैसी अत्यंत जटिल हटाने की प्रक्रिया और वित्तीय स्वायत्तता प्रदान की है। अतः तीनों कथन सत्य हैं।
+
+TOPIC: SST - Civics: Criminal Justice System
+Q: भारत की आपराधिक न्याय प्रणाली में 'प्रथम सूचना रिपोर्ट' (FIR) के संदर्भ में निम्नलिखित में से कौन-सा कथन सही नहीं है? / In India's criminal justice system, which of the following statements is NOT correct regarding a 'First Information Report' (FIR)?
+A) किसी संज्ञेय अपराध की सूचना मिलने पर पुलिस के लिए FIR दर्ज करना अनिवार्य है। / It is mandatory for the police to register an FIR upon receiving information about a cognizable offense.
+B) शिकायतकर्ता को पुलिस से FIR की एक प्रति निःशुल्क प्राप्त करने का कानूनी अधिकार है। / The complainant has a legal right to receive a copy of the FIR free of cost from the police.
+C) पुलिस केवल लिखित रूप में दी गई शिकायत पर ही FIR दर्ज कर सकती है, मौखिक सूचना पर नहीं। / The police can register an FIR only on a written complaint, not on oral information.
+D) FIR में अपराध की तिथि, समय, स्थान और घटना का विवरण दर्ज किया जाता है। / The FIR records the date, time, location of the offense, and details of the incident.
+ANS: C
+SOL: NCERT कक्षा 8 अध्याय 'हमारी आपराधिक न्याय प्रणाली' के अनुसार कानूनन पुलिस को किसी संज्ञेय अपराध की जानकारी मिलने पर तुरंत FIR दर्ज करनी होती है। यह सूचना मौखिक या लिखित दोनों रूपों में दी जा सकती है। यदि मौखिक दी जाती है, तो पुलिस अधिकारी इसे लिपिबद्ध करता है। अतः विकल्प C गलत कथन है।
+
+TOPIC: SST - Civics: Role of the Police and Judiciary
+Q: भारतीय आपराधिक न्याय व्यवस्था में 'निष्पक्ष सुनवाई' (Fair Trial) के अधिकार के तहत संविधान के अनुच्छेद 22 और CrPC की धारा 41 के अनुसार किसी गिरफ्तार व्यक्ति को कौन-से बुनियादी अधिकार प्राप्त हैं? (i) गिरफ्तारी के समय कारण जानने का अधिकार। (ii) गिरफ्तारी के 24 घंटों के भीतर मजिस्ट्रेट के समक्ष पेश किए जाने का अधिकार। (iii) हिरासत के दौरान यातना या दुर्व्यवहार न किए जाने का अधिकार। (iv) पुलिस हिरासत में दिए गए बयान को अदालत में सबूत न माना जाना। सही कूट चुनिए: / Under 'Fair Trial' (Article 22 & CrPC), rights of an arrested person: (i) Right to know grounds of arrest. (ii) Presentation before magistrate within 24 hours. (iii) Right against torture in custody. (iv) Confession to police not admissible as evidence. Select the correct code:
+A) केवल 1, 2 और 3 / Only 1, 2 and 3
+B) केवल 2, 3 और 4 / Only 2, 3 and 4
+C) केवल 1, 3 और 4 / Only 1, 3 and 4
+D) 1, 2, 3 और 4 / 1, 2, 3 and 4
+ANS: D
+SOL: NCERT कक्षा 8 अध्याय 'हमारी आपराधिक न्याय प्रणाली' के अनुसार संविधान का अनुच्छेद 22 और दंड प्रक्रिया संहिता प्रत्येक गिरफ्तार व्यक्ति को ये सभी मौलिक अधिकार देती है: गिरफ्तारी का कारण जानना, 24 घंटे में मजिस्ट्रेट के समक्ष पेशी, हिरासत में यातना से संरक्षण तथा पुलिस हिरासत में दिए गए बयान को अदालती साक्ष्य न मानना। इसके अतिरिक्त 15 वर्ष से कम उम्र के बालकों और महिलाओं को केवल पूछताछ के लिए थाने नहीं बुलाया जा सकता।
+
+TOPIC: SST - Civics: Understanding Marginalisation
+Q: भारतीय संविधान के किस अनुच्छेद के तहत 'अस्पृश्यता' (छुआछूत) का पूर्णतः उन्मूलन कर दिया गया है और इसका किसी भी रूप में आचरण दंडनीय अपराध घोषित किया गया है? / Under which Article of the Indian Constitution has 'Untouchability' been completely abolished and its practice in any form made a punishable offense?
+A) अनुच्छेद 14 / Article 14
+B) अनुच्छेद 17 / Article 17
+C) अनुच्छेद 19 / Article 19
+D) अनुच्छेद 25 / Article 25
+ANS: B
+SOL: NCERT कक्षा 8 सामाजिक एवं राजनीतिक जीवन अध्याय 'हाशियाकरण से निपटना' के अनुसार संविधान के अनुच्छेद 17 द्वारा अस्पृश्यता या छुआछूत का पूरी तरह उन्मूलन कर दिया गया है। इसका अर्थ है कि अब किसी भी दलित को शिक्षा, मंदिरों में प्रवेश या सार्वजनिक सुविधाओं के उपयोग से कोई नहीं रोक सकता।
+
+TOPIC: SST - Civics: Confronting Marginalisation
+Q: 'अनुसूचित जाति एवं अनुसूचित जनजाति (अत्याचार निवारण) अधिनियम, 1989' के निर्माण की मुख्य पृष्ठभूमि क्या थी? / What was the primary background behind the enactment of the 'Scheduled Castes and Scheduled Tribes (Prevention of Atrocities) Act, 1989'?
+A) केवल जनजातियों को वनों से बेदखल करने के लिए कानून बनाना / Enacting a law solely to evict tribes from forests
+B) 1970 और 1980 के दशक में दलित और आदिवासी समुदायों द्वारा अपने संवैधानिक अधिकारों के लिए किए गए मुखर संघर्ष और उन पर बढ़ते अत्याचारों पर रोक लगाना / To curb increasing atrocities and address assertive struggles by Dalit and tribal communities for their constitutional rights in the 1970s and 1980s
+C) दलितों और आदिवासियों को न्यायालय जाने से रोकना / Preventing Dalits and tribals from approaching courts
+D) अस्पृश्यता को केवल ग्रामीण क्षेत्रों में कानूनी मान्यता देना / Giving legal sanction to untouchability only in rural areas
+ANS: B
+SOL: NCERT कक्षा 8 सामाजिक एवं राजनीतिक जीवन अध्याय 'हाशियाकरण से निपटना' के अनुसार 1970 और 1980 के दशक में दलित और आदिवासी समूहों ने अपने बुनियादी अधिकारों, भूमि और आत्मसम्मान के लिए बड़े आंदोलन किए। सवर्ण प्रभुत्वशाली ताकतों द्वारा उन पर की जाने वाली हिंसा, अपमान और शोषण को रोकने के लिए संसद द्वारा 1989 का ऐतिहासिक अत्याचार निवारण अधिनियम पारित किया गया।
+
+TOPIC: SST - Civics: Public Facilities
+Q: अभिकथन (A): संविधान के अनुसार जनसुविधाएं (जैसे सुरक्षित पेयजल, स्वास्थ्य सेवाएं, स्वच्छता) सभी नागरिकों को समान रूप से उपलब्ध कराना सरकार की प्राथमिक जिम्मेदारी है। कारण (R): निजी कंपनियां प्रायः जनसुविधाएं केवल अपने निजी मुनाफे के उद्देश्य से चलाती हैं, जिससे वे गरीबों की पहुँच से बाहर हो सकती हैं। सही विकल्प चुनिए: Assertion (A): According to the Constitution, providing public facilities (like safe drinking water, health, sanitation) equally to all citizens is the primary responsibility of the government. Reason (R): Private companies usually operate public facilities solely for private profit, which can make them unaffordable for the poor. Choose the correct option:
+A) (A) और (R) दोनों सही हैं और (R), (A) की सही व्याख्या करता है। / Both (A) and (R) are true and (R) is the correct explanation of (A).
+B) (A) और (R) दोनों सही हैं, लेकिन (R), (A) की सही व्याख्या नहीं करता है। / Both (A) and (R) are true, but (R) is not the correct explanation of (A).
+C) (A) सही है, लेकिन (R) गलत है। / (A) is true, but (R) is false.
+D) (A) गलत है, लेकिन (R) सही है। / (A) is false, but (R) is true.
+ANS: A
+SOL: NCERT कक्षा 8 अध्याय 'जनसुविधाएं' के अनुसार जनसुविधाओं का संबंध जीवन की बुनियादी आवश्यकताओं से है और यह संविधान के अनुच्छेद 21 (जीवन का अधिकार) से जुड़ी हैं। निजी क्षेत्र केवल वहीं निवेश करता है जहाँ लाभ हो (जैसे बोतलबंद पानी)। अतः गरीबों को न्यूनतम लागत पर ये सुविधाएं सुनिश्चित करना सरकार का कर्तव्य है। दोनों कथन सत्य हैं और कारण सही व्याख्या है।
+
+TOPIC: SST - Civics: Understanding Media
+Q: लोकतंत्र में एक 'स्वतंत्र मीडिया' (Independent Media) की क्या भूमिका होती है और वर्तमान में इस पर मुख्य दबाव क्या है? / What is the role of an 'Independent Media' in a democracy, and what is the primary constraint on it today?
+A) मीडिया को केवल सरकार की नीतियों की प्रशंसा करनी चाहिए; इसका कोई व्यावसायिक दबाव नहीं होता। / Media should only praise government policies; it faces no commercial pressure.
+B) मीडिया नागरिकों को निष्पक्ष समाचार और सूचनाएं उपलब्ध कराता है, लेकिन बड़े व्यापारिक घरानों का स्वामित्व और विज्ञापनों पर निर्भरता इसकी स्वतंत्रता को प्रभावित करती है। / Media provides balanced news and information to citizens, but ownership by big business houses and dependence on advertisements compromises its independence.
+C) मीडिया का कार्य केवल मनोरंजन प्रदान करना है और इसका सार्वजनिक बहसों से कोई संबंध नहीं है। / The role of media is merely to provide entertainment without any relation to public debate.
+D) मीडिया सीधे तौर पर संसद में कानून बनाने के लिए जिम्मेदार होता है। / Media is directly responsible for enacting laws in the Parliament.
+ANS: B
+SOL: NCERT कक्षा 7 सामाजिक एवं राजनीतिक जीवन अध्याय 'संचार माध्यमों को समझना' के अनुसार लोकतंत्र में स्वतंत्र मीडिया नागरिकों को जागरूक करने और सरकार के कामकाज पर नजर रखने के लिए अनिवार्य है। परंतु आज अधिकांश मीडिया घराने बड़े कॉरपोरेट समूहों के नियंत्रण में हैं और राजस्व के लिए विज्ञापनों पर अत्यधिक निर्भर हैं, जिससे कई बार संतुलित और निष्पक्ष रिपोर्टिंग बाधित होती है।
+
+TOPIC: SST - Civics: Rule of Law
+Q: 'कानून के शासन' (Rule of Law) की अवधारणा के मूल तत्व निम्नलिखित में से कौन-से हैं? (i) कानून की दृष्टि में सभी नागरिक समान हैं, चाहे उनका पद, जाति, धर्म या लिंग कुछ भी हो। (ii) देश का कोई भी व्यक्ति, यहाँ तक कि राष्ट्रपति भी कानून से ऊपर नहीं है। (iii) किसी भी अपराध के लिए एक निश्चित प्रक्रिया द्वारा ही दोष सिद्ध किया जा सकता है। सही कूट चुनिए: / Fundamental elements of 'Rule of Law': (i) All citizens are equal before law. (ii) No person, not even the President, is above the law. (iii) Guilt can only be established through a fixed legal procedure. Select the correct code:
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 2 और 3 / Only 2 and 3
+C) केवल 1 और 3 / Only 1 and 3
+D) 1, 2 और 3 / 1, 2 and 3
+ANS: D
+SOL: NCERT कक्षा 8 अध्याय 'कानूनों की समझ' के अनुसार 'कानून का शासन' यह स्थापित करता है कि स्वतंत्र भारत में कोई भी व्यक्ति कानून से ऊपर नहीं है। एक चपरासी से लेकर देश के राष्ट्रपति तक सभी एक ही कानून के अधीन हैं। कानून का उल्लंघन होने पर एक तय कानूनी प्रक्रिया के तहत ही सजा दी जा सकती है। अतः तीनों कथन सत्य हैं।
+
+TOPIC: SST - Pedagogy: Primary vs Secondary Sources
+Q: इतिहास शिक्षण में प्राथमिक स्रोत (Primary Source) का सबसे सटीक उदाहरण निम्नलिखित में से कौन-सा है? / Which of the following is the most accurate example of a Primary Source in History teaching?
+A) आधुनिक इतिहासकार द्वारा मौर्य साम्राज्य पर लिखी गई शोध पुस्तक / A research book written by a modern historian on the Mauryan Empire
+B) कक्षा 6 के लिए NCERT की इतिहास पाठ्यपुस्तक / NCERT History textbook for Class 6
+C) सम्राट अशोक का ब्राह्मी लिपि में उत्कीर्ण रुम्मिनदेई स्तंभ अभिलेख / The Rummindei Pillar Inscription of Emperor Ashoka engraved in Brahmi script
+D) 1857 के विद्रोह पर बनी एक समकालीन वृत्तचित्र (डॉक्यूमेंट्री फिल्म) / A contemporary documentary film made on the Revolt of 1857
+ANS: C
+SOL: प्राथमिक स्रोत वे मूल दस्तावेज, कलाकृतियां, शिलालेख या साक्ष्य होते हैं जो उस ऐतिहासिक घटना के प्रत्यक्षदर्शी या उसी समय के लोगों द्वारा रचे गए हों। अशोक का शिलालेख मौर्य काल का समकालीन प्राथमिक स्रोत है। जबकि आधुनिक इतिहासकारों की पुस्तकें, पाठ्यपुस्तकें और वृत्तचित्र द्वितीयक स्रोत (Secondary Sources) हैं।
+
+TOPIC: SST - Pedagogy: Primary vs Secondary Sources
+Q: निम्नलिखित में से कौन-सा युग्म 'स्रोत' और 'प्रकार' के संदर्भ में सही सुमेलित नहीं है? / Which of the following pairs is NOT correctly matched in terms of 'Source' and 'Type'?
+A) आईन-ए-अकबरी (अबुल फजल) - प्राथमिक स्रोत / Ain-i-Akbari (Abul Fazl) - Primary Source
+B) ह्वेनसांग का यात्रा वृत्तांत - प्राथमिक स्रोत / Travelogue of Xuanzang - Primary Source
+C) स्वतंत्रता संग्राम के सेनानी का मौखिक साक्षात्कार - प्राथमिक स्रोत / Oral interview of a freedom fighter - Primary Source
+D) एक आधुनिक पत्रिका में मुग़ल वास्तुकला पर छपा आलोचनात्मक आलेख - प्राथमिक स्रोत / A critical article on Mughal Architecture published in a modern magazine - Primary Source
+ANS: D
+SOL: किसी आधुनिक पत्रिका में पूर्व ऐतिहासिक काल पर प्रकाशित लेख द्वितीयक स्रोत (Secondary Source) होता है, क्योंकि यह लेखक द्वारा प्राथमिक स्रोतों के अध्ययन और विश्लेषण के बाद तैयार किया जाता है। अतः D गलत सुमेलित है।
+
+TOPIC: SST - Pedagogy: Historical Inquiry
+Q: सामाजिक विज्ञान के एक शिक्षक अपनी कक्षा में छात्रों को '1857 के विद्रोह' पर ऐतिहासिक जांच (Historical Inquiry) कौशल सिखाना चाहते हैं। सबसे उपयुक्त गतिविधि कौन-सी होगी? / A Social Science teacher wants to teach 'Historical Inquiry' skills to students on the 'Revolt of 1857'. Which would be the most appropriate activity?
+A) छात्रों को पाठ्यपुस्तक के सभी प्रश्न-उत्तर कॉपी में लिखकर याद करने के लिए कहना। / Asking students to copy and memorize all questions and answers from the textbook.
+B) छात्रों को 1857 के विद्रोह से संबंधित ब्रिटिश अधिकारियों के पत्रों और भारतीय स्वतंत्रता सेनानियों के बयानों की तुलना करने और निष्कर्ष निकालने को कहना। / Asking students to compare letters of British officials and statements of Indian freedom fighters related to the 1857 revolt and draw conclusions.
+C) शिक्षक द्वारा श्यामपट्ट पर विद्रोह की प्रमुख तिथियां लिखकर छात्रों से दोहराने को कहना। / The teacher writing major dates of the revolt on the blackboard and asking students to repeat them.
+D) छात्रों को 1857 के नेताओं के नाम वर्णानुक्रम में रटने का कार्य सौंपना। / Assigning students the task of memorizing the names of 1857 leaders alphabetically.
+ANS: B
+SOL: ऐतिहासिक जांच (Historical Inquiry) में विद्यार्थियों द्वारा विभिन्न दृष्टिकोणों वाले साक्ष्यों का विश्लेषण करना, पूर्वाग्रहों को पहचानना और तुलना करके तार्किक निष्कर्ष निकालना शामिल है। विभिन्न दृष्टिकोणों (जैसे ब्रिटिश दस्तावेज बनाम भारतीय स्वतंत्रता सेनानियों के संस्मरण) की तुलना करने से छात्रों में आलोचनात्मक ऐतिहासिक समझ विकसित होती है।
+
+TOPIC: SST - Pedagogy: Use of Timelines
+Q: इतिहास शिक्षण में 'समय-रेखा' (Timeline) का उपयोग मुख्य रूप से किस कौशल के विकास में सहायक होता है? / In History teaching, the use of a 'Timeline' primarily assists in the development of which skill?
+A) केवल मानचित्रों पर राजधानियों को चिह्नित करने का कौशल / Skill of merely marking capitals on maps
+B) ऐतिहासिक घटनाओं के कालानुक्रमिक अनुक्रम (Chronological sequence) और समय के साथ निरंतरता व परिवर्तन को समझने का कौशल / Skill of understanding the chronological sequence of historical events and continuity and change over time
+C) साहित्यिक ग्रंथों का सुंदर हस्तलेख में नकल करने का कौशल / Skill of copying literary texts in beautiful handwriting
+D) ऐतिहासिक राजाओं के पारिवारिक विवादों का नाटक करने का कौशल / Skill of dramatizing family disputes of historical kings
+ANS: B
+SOL: इतिहास में समय-रेखा (Timeline) का मुख्य उद्देश्य घटनाओं को कालक्रम (chronology) में व्यवस्थित करना है। इससे शिक्षार्थी यह स्पष्ट रूप से देख पाते हैं कि कौन-सी घटना पहले घटी, कौन-सी बाद में, तथा ऐतिहासिक युगों में सामाजिक-राजनीतिक बदलाव और निरंतरता (change and continuity) किस प्रकार घटित हुए।
+
+TOPIC: SST - Pedagogy: Use of Maps and Globes
+Q: एक शिक्षिका अपनी कक्षा 6 के छात्रों को पृथ्वी के वास्तविक त्रि-आयामी (3D) आकार, ध्रुवों के चपटेपन और महाद्वीपों व महासागरों के सही आकार-अनुपात को समझाना चाहती हैं। उनके लिए सबसे उपयुक्त शिक्षण-अधिगम सामग्री (TLM) कौन-सी होगी? / A teacher wants to explain the true three-dimensional (3D) shape of the Earth, flattening at the poles, and the correct relative sizes of continents and oceans to Class 6 students. Which would be the most appropriate TLM for her?
+A) भारत का राजनीतिक दीवार मानचित्र / Wall Political Map of India
+B) ग्लोब (Globe) / Globe
+C) विश्व का रूपरेखा मानचित्र (ब्लैंक आउटलाइन मैप) / Blank Outline Map of the World
+D) एक ऐतिहासिक एटलस / A Historical Atlas
+ANS: B
+SOL: NCERT कक्षा 6 भूगोल के अनुसार 'ग्लोब' पृथ्वी का लघु रूप में एक वास्तविक प्रतिरूप (true model) है। ग्लोब पर देशों, महाद्वीपों तथा महासागरों को उनके सही आकार और अनुपात में दिखाया जा सकता है, जो समतल मानचित्र पर प्रक्षेप विकृतियों के कारण पूरी तरह संभव नहीं होता।
+
+TOPIC: SST - Pedagogy: Field Visits
+Q: भूगोल शिक्षण में 'क्षेत्र भ्रमण' (Field Visit/Trip) आयोजित करने का सबसे उपयुक्त औचित्य क्या है? / What is the most appropriate justification for organizing a 'Field Visit/Trip' in Geography teaching?
+A) विद्यार्थियों को कक्षा की पढ़ाई से अवकाश देकर केवल पिकनिक का आनंद दिलाना / Providing students a break from classroom studies merely to enjoy a picnic
+B) अमूर्त भौगोलिक अवधारणाओं को प्रत्यक्ष वास्तविक अनुभवों और भू-दृश्यों से जोड़ना / Connecting abstract geographical concepts with direct real-world experiences and landscapes
+C) विद्यालय के वार्षिक परीक्षा परिणाम में शत-प्रतिशत उत्तीर्ण दर सुनिश्चित करना / Ensuring hundred percent pass rate in the school's annual examination results
+D) विद्यार्थियों को महंगे पर्यटन स्थलों के भ्रमण के लिए प्रेरित करना / Motivating students to visit expensive tourist destinations
+ANS: B
+SOL: भूगोल में क्षेत्र भ्रमण शिक्षार्थियों को प्रत्यक्ष अवलोकन (first-hand observation) प्रदान करता है। छात्र स्थलाकृतियों, मिट्टी के प्रकार, वनस्पति, नदी के कार्यों और मानव-पर्यावरण अंतःक्रिया को वास्तविक रूप में देखकर अमूर्त सिद्धांतों को मूर्त रूप में समझ पाते हैं।
+
+TOPIC: SST - Pedagogy: Critical Thinking in SST
+Q: सामाजिक विज्ञान की कक्षा में आलोचनात्मक चिंतन (Critical Thinking) को बढ़ावा देने के लिए एक शिक्षक को किस प्रकार के प्रश्न पूछने चाहिए? / To foster Critical Thinking in a Social Science classroom, what type of questions should a teacher ask?
+A) केवल तथ्य-आधारित और एक-शब्द वाले बंद-अंत (Close-ended) प्रश्न / Only fact-based and single-word close-ended questions
+B) खुले सिरे वाले (Open-ended) प्रश्न जो विभिन्न दृष्टिकोणों और साक्ष्यों के विश्लेषण की मांग करते हैं / Open-ended questions that demand analysis of multiple perspectives and evidence
+C) पाठ्यपुस्तक के अध्यायों से सीधे रटने पर आधारित प्रश्न / Questions based directly on rote memorization from textbook chapters
+D) केवल तिथियों और राजाओं के कालक्रम से संबंधित प्रश्न / Questions relating strictly to dates and chronology of kings
+ANS: B
+SOL: आलोचनात्मक चिंतन (Critical Thinking) खुले अंत वाले (Open-ended) प्रश्नों, बहु-दृष्टिकोणों की पड़ताल, मान्यताओं पर प्रश्न उठाने और साक्ष्यों के तार्किक मूल्यांकन से विकसित होता है। बंद सिरे वाले या स्मरण-आधारित प्रश्न केवल रटने को बढ़ावा देते हैं।
+
+TOPIC: SST - Pedagogy: Questioning Technique
+Q: कक्षा में सामाजिक मुद्दों पर चर्चा के दौरान शिक्षक द्वारा 'अनुवर्ती/खोजपूर्ण प्रश्न' (Probing Questions) पूछने का मुख्य उद्देश्य क्या होता है? / During classroom discussion on social issues, what is the primary purpose of a teacher asking 'Probing Questions'?
+A) छात्र को गलत उत्तर देने पर कक्षा में शर्मिंदा करना / Embarrassing the student before the class for giving a wrong answer
+B) छात्र की प्रारंभिक प्रतिक्रिया को और अधिक स्पष्ट, विस्तृत और तर्कसंगत बनाने के लिए प्रेरित करना / Prompting the student to clarify, elaborate, and justify their initial response
+C) कक्षा में सन्नाटा बनाए रखना और बातचीत को समाप्त करना / Maintaining pin-drop silence in class and ending the dialogue
+D) तुरंत सही उत्तर बताकर अगले अध्याय पर बढ़ जाना / Telling the correct answer immediately and moving to the next chapter
+ANS: B
+SOL: खोजपूर्ण या अनुवर्ती प्रश्न (Probing Questions) वे प्रश्न होते हैं जो छात्र के अधूरे या सतही उत्तर के बाद पूछे जाते हैं (जैसे- "आप ऐसा क्यों सोचते हैं?", "क्या आप इसका कोई उदाहरण दे सकते हैं?"). यह छात्रों को अपनी सोच को गहरा करने, आत्म-विश्लेषण करने और वैचारिक स्पष्टता प्राप्त करने के लिए प्रेरित करता है।
+
+TOPIC: SST - Pedagogy: Concept Maps
+Q: सामाजिक विज्ञान शिक्षण में 'अवधारणा मानचित्र' (Concept Map) का उपयोग करने का मुख्य लाभ क्या है? / What is the key advantage of using a 'Concept Map' in Social Science teaching?
+A) यह छात्रों को बिना समझे लंबी परिभाषाएं रटने में मदद करता है। / It helps students memorize long definitions without comprehension.
+B) यह अवधारणाओं के बीच पदानुक्रमित और तार्किक संबंधों को चित्रात्मक रूप से व्यवस्थित करने में सहायता करता है। / It helps visually organize hierarchical and logical relationships between concepts.
+C) यह केवल शिक्षकों द्वारा वार्षिक परीक्षा के प्रश्न पत्र तैयार करने के काम आता है। / It is useful only for teachers to set annual exam question papers.
+D) यह विद्यार्थियों में पाठ्यपुस्तक पढ़ने की रुचि को पूर्णतः समाप्त कर देता है। / It completely eliminates students' interest in reading textbooks.
+ANS: B
+SOL: अवधारणा मानचित्र (Concept Maps) ज्ञान का दृश्य-चित्रण (Visual Representation) है। यह केंद्रीय विचार से संबंधित उप-अवधारणाओं को जोड़कर उनके बीच कारण-प्रभाव या श्रेणीबद्ध संबंध प्रदर्शित करता है, जिससे विद्यार्थियों की सार्थक समझ और दीर्घकालिक स्मृति सुदृढ़ होती है।
+
+TOPIC: SST - Pedagogy: Project Work
+Q: सामाजिक विज्ञान में 'परियोजना कार्य' (Project Work) का मुख्य शैक्षणिक लाभ क्या है? / What is the primary pedagogical benefit of 'Project Work' in Social Science?
+A) यह छात्रों को स्वतंत्र अन्वेषण, सहयोग और वास्तविक जीवन के आंकड़ों के संकलन का अवसर देता है। / It provides students opportunities for independent inquiry, collaboration, and collection of real-world data.
+B) यह शिक्षक के शिक्षण कार्यभार को कम करने का सबसे आसान तरीका है। / It is the easiest way to reduce the teaching workload of the teacher.
+C) यह छात्रों को बिना किसी परिश्रम के परीक्षा में पूर्ण अंक प्राप्त करने में मदद करता है। / It helps students obtain full marks in examinations without any effort.
+D) यह केवल उच्च शैक्षणिक उपलब्धि वाले प्रतिभाशाली छात्रों के लिए ही उपयोगी है। / It is useful only for gifted students with high academic achievement.
+ANS: A
+SOL: NCF 2005 और NEP 2020 के अनुसार प्रोजेक्ट कार्य शिक्षार्थियों को सक्रिय रूप से ज्ञान निर्माण का अवसर देता है। यह समूह कार्य (collaboration), समस्या-समाधान, प्राथमिक स्रोतों व समुदाय से डेटा संकलन और वास्तविक जीवन के संदर्भों से जुड़ने में सहायता करता है।
+
+TOPIC: SST - Pedagogy: Mock Parliament / Role Play
+Q: सामाजिक एवं राजनीतिक जीवन के शिक्षण में 'संसदीय कार्यप्रणाली' को समझाने के लिए 'मॉक पार्लियामेंट' (युवा संसद/भूमिका निर्वहन) का आयोजन करना किस प्रकार शिक्षण में सहायक है? / How does organizing a 'Mock Parliament' (Role Play) assist in teaching the 'Functioning of Parliament' in Social and Political Life?
+A) यह केवल समय व्यतीत करने का एक मनोरंजक साधन है जिसका कोई शैक्षणिक महत्व नहीं है। / It is merely an entertaining pastime with no pedagogical value.
+B) यह छात्रों को लोकतांत्रिक प्रक्रियाओं, बहस, प्रश्नकाल और कानून निर्माण के चरणों का जीवंत व व्यावहारिक अनुभव प्रदान करता है। / It provides students with a living, experiential understanding of democratic processes, debates, question hour, and law-making stages.
+C) यह छात्रों को परीक्षा में रटने के तनाव से मुक्त कर बिना मूल्यांकन के पास कर देता है। / It frees students from the stress of rote exam preparation and passes them without evaluation.
+D) यह वास्तविक संसद की कार्यवाही में सीधे मतदान करने का अधिकार देता है। / It grants direct voting rights in actual parliamentary proceedings.
+ANS: B
+SOL: भूमिका निर्वहन (Role Play) और मॉक पार्लियामेंट अनुभवात्मक अधिगम (Experiential Learning) की सशक्त विधियां हैं। छात्र जब स्वयं सांसद, मंत्री या विपक्ष की भूमिका निभाते हैं, तो वे प्रश्नकाल, विधायी बहस, मतदान और जवाबदेही की सूक्ष्मताओं को गहराई और रुचि के साथ समझ पाते हैं।
+
+TOPIC: SST - Pedagogy: Community as a Learning Resource
+Q: सामाजिक विज्ञान शिक्षण में 'स्थानीय समुदाय' को एक महत्वपूर्ण शिक्षण संसाधन के रूप में उपयोग करने का सबसे बड़ा लाभ क्या है? / What is the greatest advantage of utilizing the 'Local Community' as an important learning resource in Social Science teaching?
+A) यह विद्यालय को शिक्षकों के वेतन पर होने वाले खर्च से बचाता है। / It saves the school from incurring expenses on teacher salaries.
+B) यह कक्षा के किताबी ज्ञान को शिक्षार्थियों के प्रत्यक्ष सामाजिक परिवेश और स्थानीय संदर्भों से जोड़ता है। / It bridges classroom textbook knowledge with learners' immediate social environment and local contexts.
+C) यह छात्रों को औपचारिक पाठ्यचर्या और पुस्तकों के पठन से पूरी तरह मुक्त करता है। / It completely frees students from reading formal curriculum and textbooks.
+D) यह केवल ग्रामीण विद्यालयों के लिए ही अनिवार्य है, शहरी विद्यालयों के लिए नहीं। / It is mandatory only for rural schools and not for urban schools.
+ANS: B
+SOL: NCF 2005 का मुख्य सूत्र है- "ज्ञान को स्कूल के बाहर के जीवन से जोड़ना"। स्थानीय कारीगरों, बुनकरों, ग्राम पंचायत सदस्यों या बुजुर्गों से संवाद करने से छात्र अपने स्थानीय इतिहास, भूगोल और नागरिक जीवन को पाठ्यपुस्तक के सिद्धांतों के साथ गहराई से जोड़ पाते हैं।
+
+TOPIC: SST - Pedagogy: Interdisciplinary Approach
+Q: सामाजिक विज्ञान के संदर्भ में 'अंतःविषयक उपागम' (Interdisciplinary Approach) का क्या महत्व है? / What is the significance of an 'Interdisciplinary Approach' in the context of Social Science?
+A) यह सभी विषयों की सीमाओं को कठोर बनाता है ताकि कोई विषय आपस में न मिले। / It makes disciplinary boundaries rigid so that no subjects overlap.
+B) यह सामाजिक मुद्दों को केवल एक संकीर्ण दृष्टिकोण से देखने के लिए विवश करता है। / It forces social issues to be viewed only from a single narrow perspective.
+C) यह छात्रों को इतिहास, भूगोल, नागरिक शास्त्र और अर्थशास्त्र के अंतर्संबंधों को समझकर सामाजिक वास्तविकताओं की समग्र समझ बनाने में मदद करता है। / It helps students develop a holistic understanding of social realities by grasping the interconnections between History, Geography, Civics, and Economics.
+D) यह इतिहास और भूगोल के अध्यापन को पाठ्यक्रम से हटाने की वकालत करता है। / It advocates eliminating the teaching of History and Geography from the curriculum.
+ANS: C
+SOL: सामाजिक विज्ञान की प्रकृति स्वभावतः अंतःविषयक है। समाज की किसी भी समस्या (जैसे गरीबी, जलवायु परिवर्तन या शहरीकरण) को केवल इतिहास, भूगोल या राजनीति के अलग-अलग खांचों में नहीं समझा जा सकता। अंतःविषयक उपागम विषयों के बीच परस्पर संबंधों को जोड़कर समग्र (holistic) और एकीकृत समझ विकसित करता है।
+
+TOPIC: SST - Pedagogy: Constructivist SST Classroom
+Q: एक रचनावादी (Constructivist) सामाजिक विज्ञान कक्षा-कक्ष की प्रमुख पहचान क्या है? / What is the prime hallmark of a Constructivist Social Science classroom?
+A) शिक्षक द्वारा निरंतर व्याख्यान दिया जाना और छात्रों द्वारा शांत बैठकर सुनना। / Continuous lecturing by the teacher while students sit silently listening.
+B) विद्यार्थियों द्वारा सक्रिय रूप से प्रश्न पूछना, पूर्व अनुभवों के आधार पर चर्चा करना और ज्ञान का सह-निर्माण करना। / Students actively asking questions, discussing based on prior experiences, and co-constructing knowledge.
+C) पाठ्यपुस्तक के हर पृष्ठ को जोर-जोर से पढ़कर कंठस्थ करना। / Reading aloud every page of the textbook and memorizing it verbatim.
+D) केवल वर्ष के अंत में ली जाने वाली बहुविकल्पीय परीक्षाओं पर पूर्ण निर्भरता। / Complete reliance exclusively on end-of-year multiple-choice examinations.
+ANS: B
+SOL: रचनावादी कक्षा में शिक्षार्थी ज्ञान के निष्क्रिय ग्राहक नहीं बल्कि सक्रिय निर्माता होते हैं। शिक्षक एक सुगमकर्ता (facilitator) के रूप में कार्य करता है जो छात्रों को पूछताछ करने, अपने पूर्व ज्ञान को नई जानकारियों से जोड़ने, समूह संवाद करने और सामाजिक यथार्थ पर अपने स्वयं के विचार विकसित करने के अवसर देता है।
+
+TOPIC: SST - Pedagogy: Evidence-based Arguments
+Q: सामाजिक विज्ञान के शिक्षण में 'साक्ष्य-आधारित तर्क' (Evidence-based Reasoning) को प्रोत्साहित करने के लिए निम्नलिखित में से कौन-सी रणनीति सबसे उपयुक्त है? / To encourage 'Evidence-based Reasoning' in Social Science teaching, which of the following strategies is most appropriate?
+A) छात्रों को यह सिखाना कि वे पाठ्यपुस्तक में लिखी प्रत्येक बात को बिना किसी प्रश्न के अंतिम सत्य मान लें। / Teaching students to accept everything written in the textbook as absolute truth without question.
+B) छात्रों को किसी सामाजिक दावे या ऐतिहासिक कथन के समर्थन में प्राथमिक व द्वितीयक साक्ष्य प्रस्तुत करने और उनका मूल्यांकन करने के लिए कहना। / Asking students to present and evaluate primary and secondary evidence to support any social claim or historical assertion.
+C) कक्षा में किसी भी प्रकार के साक्ष्य प्रस्तुत करने पर रोक लगाना। / Prohibiting the presentation of any kind of evidence in the classroom.
+D) छात्रों को केवल सोशल मीडिया पर प्रसारित सूचनाओं के आधार पर निबंध लिखने को कहना। / Asking students to write essays solely on the basis of unverified information circulating on social media.
+ANS: B
+SOL: सामाजिक विज्ञान केवल राय (opinions) या मान्यताओं का संग्रह नहीं है, बल्कि यह साक्ष्यों पर आधारित तर्कसंगत जांच है। छात्रों को किसी भी निष्कर्ष तक पहुँचने से पहले ऐतिहासिक अभिलेखों, सांख्यिकीय आंकड़ों, गजट या मौखिक साक्ष्यों की जांच करने के लिए प्रेरित करना साक्ष्य-आधारित वैज्ञानिक चिंतन का आधार है।
+
+TOPIC: SST - Pedagogy: Handling Stereotypes in Classroom
+Q: कक्षा में लैंगिक भूमिकाओं पर चर्चा करते समय एक छात्र कहता है, "महिलाएं स्वभाव से ही कमजोर होती हैं और वे सेना या पुलिस में कठोर निर्णय नहीं ले सकतीं।" एक समावेशी और प्रगतिशील शिक्षक के रूप में आपकी क्या प्रतिक्रिया होनी चाहिए? / While discussing gender roles in class, a student says, "Women are naturally weak and cannot take tough decisions in the military or police." As an inclusive and progressive teacher, what should be your response?
+A) छात्र को तुरंत डांटकर पूरी कक्षा के सामने अपमानित करना / Scold the student immediately and humiliate them before the entire class
+B) छात्र के इस विचार का समर्थन करना क्योंकि यह पारंपरिक मान्यता के अनुरूप है / Support the student's idea because it aligns with traditional beliefs
+C) महिला सैन्य अधिकारियों, अंतरिक्ष यात्रियों और पुलिस कमांडरों के वास्तविक उदाहरण और साक्ष्य प्रस्तुत करते हुए कक्षा में एक स्वस्थ विमर्श शुरू करना / Present real-life examples and evidence of women military officers, astronauts, and police commanders to initiate a healthy discourse
+D) विषय को तुरंत बदलकर भूगोल पढ़ाना शुरू कर देना / Change the subject immediately and start teaching geography
+ANS: C
+SOL: लैंगिक रूढ़िवादिता का मुकाबला केवल डांटने से नहीं बल्कि तार्किक साक्ष्यों और उदाहरणों (काउंटर-नैरेटिव्स) के माध्यम से किया जाता है। वास्तविक जीवन की प्रेरक महिलाओं के उदाहरण देकर तथा निष्पक्ष बहस आयोजित करके छात्रों की सोच को आलोचनात्मक और समतामूलक बनाया जा सकता है।
+
+TOPIC: SST - Pedagogy: Gender Stereotyping in Textbooks
+Q: सामाजिक विज्ञान की पाठ्यपुस्तकों का आलोचनात्मक विश्लेषण करते समय एक शिक्षक यह पाता है कि कृषि और उद्योगों के अध्यायों में चित्रों में केवल पुरुषों को हल चलाते या फैक्ट्रियों में मशीन चलाते दिखाया गया है, जबकि महिलाओं को केवल घरों में चाय बनाते या टोकरियां ढोते दिखाया गया है। यह दृश्य किस ओर संकेत करता है? / While critically analyzing Social Science textbooks, a teacher discovers that in chapters on agriculture and industries, illustrations show only men ploughing fields or operating machines in factories, while women are shown only making tea or carrying baskets at home. What does this depiction indicate?
+A) लैंगिक संवेदनशीलता और समानता / Gender sensitivity and equality
+B) जेंडर अदृश्यता और रूढ़िवादिता (Gender Invisibility and Stereotyping) / Gender invisibility and stereotyping
+C) श्रम का निष्पक्ष और वैज्ञानिक विभाजन / Fair and scientific division of labor
+D) भारतीय समाज का यथार्थवादी और आदर्शवादी चित्रण / Realistic and idealized depiction of Indian society
+ANS: B
+SOL: NCF सामाजिक विज्ञान पाठ्यपुस्तकों में महिलाओं के श्रम की अदृश्यता (invisibility) और लैंगिक रूढ़िवादिता पर गंभीर चिंता व्यक्त करता है। वास्तविक रूप में कृषि उत्पादन और श्रम में महिलाओं की 50% से अधिक भागीदारी होती है। पाठ्यपुस्तकों में उन्हें केवल घरेलू या गौण भूमिकाओं में दिखाना जेंडर रूढ़िवादिता को बढ़ावा देता है जिसे शिक्षकों द्वारा कक्षा में उजागर किया जाना चाहिए।
+
+TOPIC: SST - Pedagogy: Sensitive and Controversial Topics
+Q: सामाजिक विज्ञान की कक्षा में जाति, लिंग या सांप्रदायिक मुद्दों जैसे संवेदनशील और विवादास्पद विषयों को पढ़ाते समय एक शिक्षक की सर्वाधिक उपयुक्त भूमिका क्या होनी चाहिए? / While teaching sensitive and controversial issues such as caste, gender, or communal matters in a Social Science classroom, what should be the most appropriate role of a teacher?
+A) ऐसे मुद्दों पर कक्षा में किसी भी चर्चा से पूरी तरह बचना चाहिए क्योंकि इससे विवाद हो सकता है। / Avoid any discussion on such issues completely in class as it might spark controversy.
+B) संवैधानिक मूल्यों, मानवीय गरिमा और निष्पक्ष दृष्टिकोण के आधार पर खुली और गरिमापूर्ण चर्चा का संचालन करना। / Facilitate open and dignified discussions based on constitutional values, human dignity, and balanced perspectives.
+C) केवल बहुसंख्यक समुदाय के विचारों को ही सही मानकर छात्रों को चुप कराना। / Silence students by considering only the views of the majority community as correct.
+D) विद्यार्थियों पर अपने व्यक्तिगत और राजनीतिक विचार थोपना। / Impose one's personal and political views on the students.
+ANS: B
+SOL: NCF सामाजिक विज्ञान में संवेदनशील मुद्दों को दबाने के बजाय उन पर चर्चा करने की वकालत करता है। शिक्षक को एक निष्पक्ष मध्यस्थ की भूमिका निभानी चाहिए और चर्चा को भारतीय संविधान के मूल्यों (समानता, न्याय, बंधुत्व और मानवीय गरिमा) की कसौटी पर केंद्रित रखना चाहिए ताकि पूर्वाग्रह समाप्त हो सकें।
+
+TOPIC: SST - Pedagogy: Inclusive Pedagogy in SST
+Q: एक समावेशी सामाजिक विज्ञान कक्षा में जहाँ दृष्टिबाधित (Visually Impaired) छात्र भी उपस्थित हैं, शिक्षक को अपनी शिक्षण पद्धति में क्या परिवर्तन करना चाहिए? (i) मानचित्रों और ग्लोब के स्थान पर स्पर्शनीय (Tactile) मानचित्रों और मॉडलों का उपयोग करना। (ii) मौखिक विवरणों और समृद्ध शाब्दिक व्याख्याओं को अधिक विस्तार से प्रस्तुत करना। (iii) कक्षा में केवल मूक दृश्य प्रस्तुतियां दिखाना। सही कूट चुनिए: / In an inclusive Social Science classroom with visually impaired students, what adaptations should a teacher make? (i) Using tactile maps/models. (ii) Providing rich verbal explanations. (iii) Showing only silent visual slides. Select the correct code:
+A) केवल 1 और 2 / Only 1 and 2
+B) केवल 2 और 3 / Only 2 and 3
+C) केवल 1 और 3 / Only 1 and 3
+D) 1, 2 और 3 / 1, 2 and 3
+ANS: A
+SOL: समावेशी कक्षा में विशेष आवश्यकता वाले बच्चों (CWSN) के लिए अनुकूलन आवश्यक है। दृष्टिबाधित विद्यार्थियों के लिए स्पर्शनीय मानचित्र (tactile maps), उभरी हुई रेखाएं, ब्रेल सामग्री तथा शिक्षक द्वारा विस्तृत मौखिक व्याख्या (verbal description) अत्यंत प्रभावी होती है। मूक दृश्य प्रस्तुतियां उनके लिए बाधक होंगी। अतः केवल 1 और 2 सही हैं।
+
+TOPIC: SST - Pedagogy: Bloom's Taxonomy in SST
+Q: ब्लूम के संशोधित वर्गीकरण (Revised Bloom's Taxonomy) के अनुसार निम्नलिखित में से कौन-सा प्रश्न 'मूल्यांकन' (Evaluating) स्तर के संज्ञानात्मक उद्देश्य को दर्शाता है? / According to the Revised Bloom's Taxonomy, which of the following questions reflects the cognitive objective of 'Evaluating' level?
+A) भारतीय संविधान के प्रारूप समिति के अध्यक्ष कौन थे? / Who was the Chairman of the Drafting Committee of the Indian Constitution?
+B) 1857 के विद्रोह के प्रमुख कारणों की सूची बनाइए। / List the major causes of the Revolt of 1857.
+C) क्या ब्रिटिश सरकार द्वारा लागू की गई स्थायी बंदोबस्त व्यवस्था भारतीय किसानों के हित में थी? अपने उत्तर के पक्ष में साक्ष्य और तर्क दीजिए। / Was the Permanent Settlement system introduced by the British in the interest of Indian farmers? Provide evidence and reasoning to support your answer.
+D) सौर मंडल के सभी आठ ग्रहों के नाम उनके आकार के क्रम में लिखिए। / Write the names of all eight planets of the solar system in order of their size.
+ANS: C
+SOL: ब्लूम के संशोधित वर्गीकरण में 'मूल्यांकन' (Evaluating) उच्च-स्तरीय चिंतन (HOTS) है, जिसमें किसी विचार, नीति या सिद्धांत की उपयोगिता, वैधता या प्रभावशीलता पर साक्ष्यों और मानकों के आधार पर निर्णय (judgement) लेना होता है। विकल्प C में छात्र को व्यवस्था के गुण-दोषों का आलोचनात्मक परीक्षण कर अपना निर्णय देना है, अतः यह 'मूल्यांकन' है।
+
+TOPIC: SST - Pedagogy: Formative Assessment
+Q: सामाजिक विज्ञान में 'सीखने के लिए आकलन' (Assessment for Learning - रचनात्मक आकलन) का मुख्य उद्देश्य क्या है? / What is the primary objective of 'Assessment for Learning' (Formative Assessment) in Social Science?
+A) विद्यार्थियों को प्रथम, द्वितीय और तृतीय श्रेणियों में श्रेणीबद्ध करना। / Categorizing students into first, second, and third divisions.
+B) शिक्षण-अधिगम प्रक्रिया के दौरान ही छात्रों की अधिगम कठिनाइयों की पहचान कर समय पर सुधारात्मक प्रतिपुष्टि प्रदान करना। / Identifying students' learning difficulties during the teaching-learning process and providing timely corrective feedback.
+C) वर्ष के अंत में वार्षिक बोर्ड परीक्षा आयोजित कर अंक पत्र तैयार करना। / Conducting annual board exams at the end of the year to prepare mark sheets.
+D) कमजोर छात्रों को अनुत्तीर्ण घोषित कर उसी कक्षा में रोकना। / Failing weaker students and detaining them in the same class.
+ANS: B
+SOL: 'सीखने के लिए आकलन' (Formative Assessment) शिक्षण प्रक्रिया के दौरान निरंतर चलने वाला रचनात्मक आकलन है। इसका उद्देश्य विद्यार्थियों की प्रगति का अवलोकन करना, भ्रांतियों (misconceptions) को पहचानना और शिक्षक द्वारा अपनी शिक्षण शैली व छात्र द्वारा अपनी अधिगम रणनीतियों में सुधार करना है।
+
+TOPIC: SST - Pedagogy: Diagnostic Assessment
+Q: सामाजिक विज्ञान के एक शिक्षक यह पाते हैं कि अधिकांश छात्र 'ग्लोब पर समय की गणना' संबंधी प्रश्नों में बार-बार त्रुटियां करते हैं। इस विशिष्ट कमी के कारणों को जानने के लिए शिक्षक को किस प्रकार का परीक्षण करना चाहिए? / A Social Science teacher finds that most students repeatedly make errors in problems related to 'calculation of time on the globe'. What type of test should the teacher administer to diagnose the reasons for this specific deficiency?
+A) मानक-संदर्भित उपलब्धि परीक्षण (Norm-referenced Achievement Test) / Norm-referenced Achievement Test
+B) निदानात्मक परीक्षण (Diagnostic Test) / Diagnostic Test
+C) योगात्मक वार्षिक परीक्षा (Summative Annual Examination) / Summative Annual Examination
+D) अभिक्षमता परीक्षण (Aptitude Test) / Aptitude Test
+ANS: B
+SOL: निदानात्मक परीक्षण (Diagnostic Assessment/Testing) का विशिष्ट उद्देश्य यह पता लगाना होता है कि किसी विशेष अवधारणा में बच्चे की अधिगम बाधाएं, समझ के अंतराल (learning gaps) या भ्रांतियां क्या हैं। इसके आधार पर शिक्षक उपचारात्मक शिक्षण (Remedial Teaching) की योजना बनाता है।
+
+TOPIC: SST - Pedagogy: Rubrics in SST Assessment
+Q: सामाजिक विज्ञान में छात्रों के निबंधात्मक उत्तरों और प्रोजेक्ट रिपोर्टों के मूल्यांकन में 'रूब्रिक्स' (Rubrics) का उपयोग क्यों अनुशंसित किया जाता है? / Why is the use of 'Rubrics' recommended in the assessment of students' essay-type answers and project reports in Social Science?
+A) यह मूल्यांकनकर्ता के व्यक्तिगत पूर्वाग्रह को बढ़ाता है और अंकों को मनमाना बनाता है। / It increases the personal bias of the evaluator and makes scoring arbitrary.
+B) यह मूल्यांकन में स्पष्ट, पारदर्शी और पूर्व-निर्धारित मानदंड प्रदान कर वस्तुनिष्ठता सुनिश्चित करता है। / It ensures objectivity by providing clear, transparent, and pre-determined criteria in evaluation.
+C) यह केवल छात्रों को अनुत्तीर्ण करने के लिए बनाया जाता है। / It is designed solely to fail students.
+D) इससे शिक्षकों को विद्यार्थियों के काम की जांच करने की कोई आवश्यकता नहीं रहती। / It eliminates the need for teachers to inspect students' work.
+ANS: B
+SOL: रूब्रिक (Rubrics) प्रदर्शन मूल्यांकन का एक संरचित उपकरण है जिसमें किसी कार्य (जैसे निबंध या प्रोजेक्ट) के मूल्यांकन के लिए स्पष्ट मानदंड (Criteria) और गुणवत्ता के स्तर (Levels of performance) पहले से परिभाषित होते हैं। इससे मूल्यांकन में निष्पक्षता, पारदर्शिता और विश्वसनीयता बनी रहती है।
+
+TOPIC: Hindi - Gadyansh
+Q: नीचे दिए गए गद्यांश को पढ़कर प्रश्न का उत्तर दीजिए: "प्रकृति और मानव का संबंध आदिम काल से ही अविभाज्य रहा है। प्रकृति मानव की सहचरी रही है, धात्री रही है और उसने मानव के शारीरिक और आत्मिक विकास के लिए आवश्यक सभी साधन उदारतापूर्वक प्रदान किए हैं। किंतु आधुनिक औद्योगीकरण और अनियंत्रित भौतिक प्रगति की अंधी दौड़ ने इस संतुलन को छिन्न-भिन्न कर दिया है। मानव ने प्रकृति को दासी समझने की भूल की, जिसका दुष्परिणाम आज प्रदूषण, जलवायु परिवर्तन और प्राकृतिक आपदाओं के रूप में हमारे सामने उपस्थित है। यदि हम अपने अस्तित्व को सुरक्षित रखना चाहते हैं, तो हमें अपनी उपभोगवादी प्रवृत्ति पर अंकुश लगाना होगा और प्रकृति के साथ साहचर्य एवं सह-अस्तित्व की भावना को पुनर्जागृत करना होगा।" गद्यांश के अनुसार, आधुनिक समय में प्रकृति और मानव के बीच का संतुलन बिगड़ने का मुख्य कारण क्या है?
+A) जनसंख्या का अत्यधिक दबाव
+B) अनियंत्रित भौतिक प्रगति और अंधाधुंध औद्योगीकरण
+C) कृषि योग्य भूमि का विस्तार
+D) प्राकृतिक संसाधनों का समाप्त होना
+ANS: B
+SOL: गद्यांश में स्पष्ट उल्लेख है कि "आधुनिक औद्योगीकरण और अनियंत्रित भौतिक प्रगति की अंधी दौड़ ने इस संतुलन को छिन्न-भिन्न कर दिया है।" अतः विकल्प B सही उत्तर है।
+
+TOPIC: Hindi - Gadyansh
+Q: उपर्युक्त गद्यांश के संदर्भ में बताइए कि मानव ने प्रकृति के प्रति क्या भूल की है?
+A) प्रकृति की पूजा करना बंद कर दिया
+B) प्रकृति को दासी समझने की भूल की
+C) प्रकृति से पूरी तरह दूरी बना ली
+D) उद्योगों को बंद करने का प्रयास किया
+ANS: B
+SOL: गद्यांश की पंक्ति "मानव ने प्रकृति को दासी समझने की भूल की, जिसका दुष्परिणाम आज प्रदूषण, जलवायु परिवर्तन..." के अनुसार मानव ने प्रकृति को दासी समझने की भूल की है।
+
+TOPIC: Hindi - Gadyansh
+Q: गद्यांश के अनुसार अपने अस्तित्व की रक्षा के लिए मानव को क्या करना होगा?
+A) औद्योगिकीकरण को पूर्णतः बंद करना
+B) उपभोगवादी प्रवृत्ति पर अंकुश और प्रकृति के साथ सह-अस्तित्व की भावना विकसित करना
+C) जंगलों को काटकर नए नगर बसाना
+D) अंतरिक्ष में नए ग्रहों की खोज करना
+ANS: B
+SOL: गद्यांश के अंतिम वाक्य में स्पष्ट है: "यदि हम अपने अस्तित्व को सुरक्षित रखना चाहते हैं, तो हमें अपनी उपभोगवादी प्रवृत्ति पर अंकुश लगाना होगा और प्रकृति के साथ साहचर्य एवं सह-अस्तित्व की भावना को पुनर्जागृत करना होगा।"
+
+TOPIC: Hindi - Gadyansh
+Q: गद्यांश में प्रयुक्त शब्द 'सहचरी' का सही अर्थ क्या है?
+A) दासी
+B) साथ चलने वाली या संगिनी
+C) विरोधी
+D) पालन-पोषण करने वाली
+ANS: B
+SOL: 'सहचरी' शब्द 'सह' (साथ) और 'चर' (चलने वाला) से बना है, जिसका अर्थ 'साथ चलने वाली' या 'संगिनी/साथी' होता है।
+
+TOPIC: Hindi - Gadyansh (Vyakaran)
+Q: 'दुष्परिणाम' शब्द में कौन-सी संधि है तथा इसका सही संधि-विच्छेद क्या होगा?
+A) व्यंजन संधि: दुष् + परिणाम
+B) विसर्ग संधि: दुः + परिणाम
+C) स्वर संधि: दु + परिणाम
+D) विसर्ग संधि: दुर् + परिणाम
+ANS: B
+SOL: 'दुष्परिणाम' में विसर्ग संधि है। नियम के अनुसार, यदि विसर्ग से पहले 'इ' या 'उ' स्वर हो और बाद में 'क, ख, प, फ' हो, तो विसर्ग 'ष्' में बदल जाता है (दुः + परिणाम = दुष्परिणाम)।
+
+TOPIC: Hindi - Gadyansh (Vyakaran)
+Q: 'भौतिक' शब्द में कौन-सा प्रत्यय प्रयुक्त हुआ है और इसका मूल शब्द क्या है?
+A) भूत + इक
+B) भौतिक + क
+C) भौत + इक
+D) भूत + ईक
+ANS: A
+SOL: 'भूत' मूल शब्द में 'इक' तद्धित प्रत्यय जुड़ने पर पहले स्वर 'ऊ' की वृद्धि होकर 'औ' हो जाती है, जिससे शब्द 'भौतिक' बनता है।
+
+TOPIC: Hindi - Gadyansh (Vyakaran)
+Q: 'सह-अस्तित्व' शब्द में समास का कौन-सा भेद है?
+A) तत्पुरुष समास
+B) द्वंद्व समास
+C) कर्मधारय समास
+D) बहुव्रीहि समास
+ANS: A
+SOL: 'सह-अस्तित्व' का समास विग्रह 'सह (साथ) में अस्तित्व' या 'साथ का अस्तित्व' होता है, जो संबंध या अधिकरण तत्पुरुष समास का रूप है। व्यापक अर्थ में यह तत्पुरुष समास के अंतर्गत आता है।
+
+TOPIC: Hindi - Gadyansh (Vyakaran)
+Q: गद्यांश में प्रयुक्त शब्द 'अनियंत्रित' में उपसर्ग और मूल शब्द का सही विभाजन क्या है?
+A) अन + नियंत्रित
+B) अ + नियंत्रित
+C) अनि + यंत्रित
+D) अनियन् + त्रित
+ANS: B
+SOL: 'नियंत्रित' अपने आप में 'नि + यंत्र + इत' से बना शब्द है, जिसके आगे निषेधवाची 'अ' उपसर्ग लगाकर 'अनियंत्रित' (जिस पर नियंत्रण न हो) बनाया गया है। अतः 'अ' उपसर्ग और 'नियंत्रित' मूल शब्द है।
+
+TOPIC: Hindi - Gadyansh (Vyakaran)
+Q: "उसने मानव के विकास के लिए सभी साधन प्रदान किए हैं।" इस वाक्य में रेखांकित क्रिया 'प्रदान किए हैं' का काल क्या है?
+A) सामान्य वर्तमान काल
+B) आसन्न भूतकाल / पूर्ण वर्तमान काल
+C) संदिग्ध भूतकाल
+D) अपूर्ण भूतकाल
+ANS: B
+SOL: जब कोई क्रिया भूतकाल में समाप्त हो चुकी हो किन्तु उसका प्रभाव वर्तमान में बना रहता है (क्रिया + 'ए हैं/आ है'), तो उसे आसन्न भूतकाल या पूर्ण वर्तमान काल कहा जाता है।
+
+TOPIC: Hindi - Padyansh
+Q: नीचे दिए गए पद्यांश को पढ़कर प्रश्न का उत्तर दीजिए: "सच है, विपत्ति जब आती है, कायर को ही दहलाती है, सूरमा नहीं विचलित होते, क्षण एक नहीं धीरज खोते, विघ्नों को गले लगाते हैं, कांटों में राह बनाते हैं। मुख से न कभी उफ़ कहते हैं, संकट का चरण न गहते हैं, जो आ पड़ता सब सहते हैं, उद्योग-निरत नित रहते हैं, शूलों का मूल नसाने को, बढ़ खुद विपत्ति पर छाने को, है कौन विघ्न ऐसा जग में, टिक सके वीर नर के मग में?" पद्यांश के अनुसार, विपत्ति आने पर कौन विचलित नहीं होता और धीरज नहीं खोता?
+A) कायर पुरुष
+B) सूरमा (साहसी व्यक्ति)
+C) सामान्य मनुष्य
+D) भाग्यवादी मनुष्य
+ANS: B
+SOL: पद्यांश की पंक्ति "सूरमा नहीं विचलित होते, क्षण एक नहीं धीरज खोते" से स्पष्ट है कि विपत्ति आने पर वीर और साहसी पुरुष कभी विचलित नहीं होते।
+
+TOPIC: Hindi - Padyansh
+Q: 'कांटों में राह बनाते हैं' पंक्ति का लाक्षणिक भावार्थ क्या है?
+A) जंगल के कांटों को काटकर साफ करना
+B) कठिन से कठिन परिस्थितियों में भी मार्ग प्रशस्त करना
+C) सुंदर फूलों के पौधे लगाना
+D) यात्रा करते समय सावधानी बरतना
+ANS: B
+SOL: 'कांटों में राह बनाना' एक मुहावरेदार प्रयोग है जिसका भावार्थ घोर कठिनाइयों और विपरीत परिस्थितियों के बीच भी सफलता का रास्ता निकालना है।
+
+TOPIC: Hindi - Padyansh
+Q: उपर्युक्त पद्यांश में मुख्य रूप से किस काव्य रस की अभिव्यक्ति हुई है?
+A) करुण रस
+B) शांत रस
+C) वीर रस
+D) भयानक रस
+ANS: C
+SOL: इस पद्यांश में विपत्तियों का सामना करने, धीरज रखने और संकटों पर विजय पाने का उत्साहवर्धक वर्णन है, जिसका स्थायी भाव 'उत्साह' है। अतः यहाँ 'वीर रस' की प्रधानता है।
+
+TOPIC: Hindi - Padyansh
+Q: पद्यांश में प्रयुक्त शब्द 'शूल' का पर्यायवाची शब्द निम्नलिखित में से कौन-सा है?
+A) कांटा
+B) पुष्प
+C) पत्थर
+D) मार्ग
+ANS: A
+SOL: 'शूल' का शाब्दिक अर्थ कांटा, चुभन या पीड़ादायी नुकीली वस्तु होता है। अतः इसका सही पर्यायवाची 'कांटा' (कंटक) है।
+
+TOPIC: Hindi - Padyansh
+Q: 'कायर' शब्द का सही विलोम शब्द पद्यांश में कौन-सा आया है?
+A) उद्योगी
+B) सूरमा
+C) धीरज
+D) संकट
+ANS: B
+SOL: 'कायर' (डरपोक) का विलोम 'सूरमा' (वीर/शूरवीर) होता है, जो पद्यांश की तीसरी पंक्ति में प्रयुक्त हुआ है।
+
+TOPIC: Hindi - Padyansh (Vyakaran)
+Q: "है कौन विघ्न ऐसा जग में, टिक सके वीर नर के मग में?" इस पंक्ति में कौन-सा अलंकार है?
+A) यमक अलंकार
+B) प्रश्न अलंकार / आक्षेप
+C) उपमा अलंकार
+D) श्लेष अलंकार
+ANS: B
+SOL: जहाँ काव्य में किसी बात को दृढ़ता से कहने या प्रभाव उत्पन्न करने के लिए काव्यात्मक शैली में प्रश्न पूछा जाए और उसका उत्तर उसी में निहित हो, वहाँ 'प्रश्न अलंकार' होता है।
+
+TOPIC: Hindi - Pedagogy
+Q: भाषा अर्जन (Language Acquisition) और भाषा अधिगम (Language Learning) के संदर्भ में कौन-सा कथन सर्वाधिक उपयुक्त है?
+A) भाषा अर्जन एक सचेत और नियम-आधारित प्रक्रिया है।
+B) भाषा अर्जन सहज, स्वाभाविक और अनौपचारिक परिवेश में होता है, जबकि भाषा अधिगम एक सचेत और औपचारिक प्रक्रिया है।
+C) भाषा अधिगम केवल मातृभाषा में ही संभव है।
+D) भाषा अर्जन के लिए पाठ्यपुस्तकों और व्याकरण के नियमों की आवश्यकता होती है।
+ANS: B
+SOL: भाषा अर्जन स्वाभाविक, सहज और अचेतन रूप से बिना औपचारिक व्याकरण के सीखी जाने वाली प्रक्रिया है (जैसे मातृभाषा)। इसके विपरीत भाषा अधिगम औपचारिक विद्यालयी परिवेश में सचेतन रूप से नियमों के अभ्यास द्वारा होता है।
+
+TOPIC: Hindi - Pedagogy
+Q: उच्च प्राथमिक स्तर पर बच्चों की भाषा क्षमता का आकलन करते समय शिक्षक को किस बात पर सर्वाधिक बल देना चाहिए?
+A) व्याकरणिक नियमों के कंठस्थीकरण पर
+B) विभिन्न संदर्भों में भाषा प्रयोग की कुशलता और संप्रेषणीयता पर
+C) सुंदर लिखावट और वर्तनी की पूर्ण शुद्धता पर
+D) केवल औपचारिक परीक्षाओं में प्राप्त अंकों पर
+ANS: B
+SOL: उच्च प्राथमिक स्तर (कक्षा 6-8) पर भाषा शिक्षण का मुख्य उद्देश्य शिक्षार्थी को विभिन्न सामाजिक, व्यावहारिक और शैक्षणिक संदर्भों में भाषा का सार्थक, स्वतंत्र और प्रभावी प्रयोग करने में सक्षम बनाना है।
+
+TOPIC: Hindi - Pedagogy
+Q: नोआम चॉम्स्की के अनुसार बच्चों में भाषा सीखने की क्षमता के संदर्भ में कौन-सा विचार सही है?
+A) बच्चे भाषा केवल अनुकरण और पुनर्बलन से सीखते हैं।
+B) बच्चों में भाषा अर्जन की जन्मजात क्षमता (Language Acquisition Device - LAD) होती है।
+C) बच्चे समाज में बातचीत के बिना कोई भी भाषा नहीं सीख सकते।
+D) भाषा विकास पूरी तरह से बाह्य पुरस्कार पर निर्भर करता है।
+ANS: B
+SOL: नोआम चॉम्स्की के अनुसार मानव शिशुओं में भाषा अर्जन युक्ति (LAD) जन्मजात होती है और वे एक 'सार्वभौमिक व्याकरण' (Universal Grammar) के साथ पैदा होते हैं, जिससे वे वातावरण से इनपुट लेकर स्वतः व्याकरण के नियम गढ़ लेते हैं।
+
+TOPIC: Hindi - Pedagogy
+Q: बहुभाषिकता (Multilingualism) को भाषा शिक्षण में किस रूप में देखा जाना चाहिए?
+A) शिक्षण प्रक्रिया में एक जटिल बाधा
+B) कक्षा-कक्ष के लिए एक गंभीर समस्या
+C) एक समृद्ध संसाधन और संपदा के रूप में
+D) अन्य भाषाओं के अधिगम में रुकावट पैदा करने वाला कारक
+ANS: C
+SOL: NCF 2005 और NEP 2020 के अनुसार बहुभाषिकता कक्षा का एक मूल्यवान शैक्षणिक संसाधन (Resource) है। यह बच्चों के संज्ञानात्मक लचीलेपन, भाषाई सहिष्णुता और रचनात्मक चिंतन को समृद्ध करती है।
+
+TOPIC: Hindi - Pedagogy
+Q: उच्च प्राथमिक स्तर पर 'पठन कौशल' (Reading Skill) का प्रमुख उद्देश्य क्या होना चाहिए?
+A) केवल तेज गति से बिना अटके वाचन करना
+B) पाठ्यपुस्तक के कठिन शब्दों के अर्थ रटना
+C) लिखित सामग्री के निहितार्थ और गहरे अर्थ को समझकर पढ़ना
+D) विराम चिह्नों को अनदेखा करके पढ़ना
+ANS: C
+SOL: उच्च प्राथमिक स्तर पर केवल अक्षरों की पहचान या प्रवाहपूर्ण वाचन पर्याप्त नहीं होता; इसका मुख्य उद्देश्य 'पठन बोध' (Reading Comprehension) है, अर्थात पढ़कर अर्थ ग्रहण करना, आलोचनात्मक चिंतन करना और अंतर्निहित भाव समझना।
+
+TOPIC: Hindi - Pedagogy
+Q: भाषा शिक्षण में 'त्रुटियों' (Errors) को समकालीन शिक्षाशास्त्र में क्या माना जाता है?
+A) बच्चे की बौद्धिक हीनता का प्रतीक
+B) अधिगम प्रक्रिया का एक स्वाभाविक और अनिवार्य पड़ाव जो बच्चों के चिंतन को समझने में मदद करता है
+C) शिक्षक की अक्षमता का प्रत्यक्ष प्रमाण
+D) ऐसी अवांछित भूलें जिन्हें तुरंत दंडित किया जाना चाहिए
+ANS: B
+SOL: भाषा विकास में त्रुटियां एक प्राकृतिक हिस्सा (developmental milestones) हैं। त्रुटियां यह दर्शाती हैं कि बच्चा सक्रिय रूप से नियमों का सामान्यीकरण और भाषाई परिकल्पनाओं का परीक्षण कर रहा है।
+
+TOPIC: Hindi - Pedagogy
+Q: 'उपचारात्मक शिक्षण' (Remedial Teaching) का मुख्य उद्देश्य क्या होता है?
+A) छात्रों को कक्षा में अलग बिठाकर अपमानित करना
+B) निदानात्मक परीक्षण द्वारा पहचानी गई छात्रों की अधिगम कठिनाइयों और कमियों का निराकरण करना
+C) पाठ्यक्रम को निर्धारित समय से पहले समाप्त करना
+D) केवल मेधावी छात्रों को अतिरिक्त कार्य देना
+ANS: B
+SOL: निदानात्मक परीक्षण (Diagnostic Test) द्वारा जब विद्यार्थियों की समझ में रह गई विशिष्ट कमियों की पहचान हो जाती है, तब उन कठिनाइयों को दूर करने के लिए विशेष रणनीतियों से दिया जाने वाला शिक्षण 'उपचारात्मक शिक्षण' कहलाता है।
+
+TOPIC: Hindi - Pedagogy
+Q: लेखन के 'प्रक्रिया उपागम' (Process Approach to Writing) के सही चरणों का क्रम क्या है?
+A) संपादन -> प्रारूपण -> विचार-मंथन -> पुनरीक्षण
+B) विचार-मंथन (मस्तिष्क उद्वेलन) -> रूपरेखा निर्माण -> प्रारूपण (ड्राफ्टिंग) -> पुनरीक्षण -> संपादन
+C) सीधे अंतिम प्रति तैयार करना -> संपादन
+D) केवल वर्तनी सुधार -> विचार-मंथन
+ANS: B
+SOL: लेखन एक उत्पाद न होकर एक बहु-चरणीय प्रक्रिया है। इसके क्रमिक चरण हैं: पूर्व-लेखन (Brainstorming/Outline) -> प्रारूपण (Drafting) -> पुनरीक्षण (Revising) -> संपादन/प्रूफ़रीडिंग (Editing) -> प्रकाशन/साझा करना।
+
+TOPIC: Hindi - Pedagogy
+Q: सातवीं कक्षा की शिक्षिका छात्रों को किसी विषय पर बोलते समय उचित आरोह-अवरोह, गति और भाव का प्रयोग करने को सिखाती है। वह किस भाषाई कौशल का विकास कर रही है?
+A) श्रवण कौशल
+B) मौखिक अभिव्यक्ति (वाचन) कौशल
+C) पठन कौशल
+D) मौन वाचन कौशल
+ANS: B
+SOL: उचित स्वर, गति, हाव-भाव, आरोह-अवरोह और बलाघात के साथ अपने विचारों को अभिव्यक्त करना 'मौखिक अभिव्यक्ति कौशल' (Speaking Skill) का प्रमुख अंग है।
+
+TOPIC: Hindi - Pedagogy
+Q: 'पोर्टफोलियो' (Portfolio) भाषा आकलन में क्यों सर्वाधिक उपयोगी माना जाता है?
+A) यह केवल वर्ष के अंत में ली जाने वाली परीक्षा का अंकपत्र प्रस्तुत करता है।
+B) यह एक समयावधि में बच्चे के भाषाई विकास और सीखने की क्रमिक प्रगति का प्रामाणिक संचयी रिकॉर्ड प्रदान करता है।
+C) यह छात्रों के मध्य तुलना करने का सबसे आसान माध्यम है।
+D) इसमें केवल शिक्षक द्वारा दिए गए गृहकार्य ही रखे जाते हैं।
+ANS: B
+SOL: पोर्टफोलियो विद्यार्थी द्वारा निश्चित समयावधि में किए गए विविध कार्यों (जैसे निबंध, चित्र, परियोजना, स्वरचित कविताएं) का संकलित दस्तावेज होता है, जो उसकी क्रमिक भाषाई उन्नति का निरंतर और प्रामाणिक प्रमाण प्रस्तुत करता है।
+
+TOPIC: Hindi - Pedagogy
+Q: प्राथमिक और उच्च प्राथमिक स्तर पर व्याकरण शिक्षण की सबसे वैज्ञानिक और बाल-केंद्रित विधि कौन-सी मानी जाती है?
+A) निगमन विधि (Deductive Method)
+B) आगमन विधि (Inductive Method)
+C) सूत्र विधि
+D) पाठ्यपुस्तक वाचन विधि
+ANS: B
+SOL: आगमन विधि में पहले उदाहरण दिए जाते हैं, उन पर चर्चा और विश्लेषण के बाद बच्चे स्वयं सामान्य नियम निकालते हैं (उदाहरण से नियम की ओर, मूर्त से अमूर्त की ओर)। यह विधि बाल-केंद्रित और अर्थपूर्ण व्याकरण शिक्षण हेतु सर्वोत्तम मानी जाती है।
+
+TOPIC: Hindi - Pedagogy
+Q: जब एक शिक्षिका अपने छात्रों को किसी पाठ्यवस्तु में से कोई विशिष्ट सूचना या तथ्य (जैसे कोई तिथि, नाम या टेलीफोन नंबर) शीघ्रता से खोजने को कहती है, तो वह किस पठन रणनीति का प्रयोग करा रही है?
+A) सरसरी दृष्टि से पढ़ना (Skimming)
+B) गहन/बारीक पठन (Scanning)
+C) विस्तृत पठन (Extensive Reading)
+D) सस्वर पठन (Aloud Reading)
+ANS: B
+SOL: किसी लिखित सामग्री में से किसी विशिष्ट तथ्य, संख्या, नाम या सूचना को तुरंत ढूंढने के लिए किया जाने वाला पठन 'स्कैनिंग' (विशिष्ट पठन / बारीक अवलोकन) कहलाता है। सामान्य विचार जानने के लिए पढ़ना 'स्किमिंग' कहलाता है।
+
+TOPIC: Hindi - Pedagogy
+Q: कक्षा 8 के छात्रों में मौलिक और रचनात्मक लेखन क्षमता को प्रोत्साहित करने के लिए सबसे प्रभावी गतिविधि कौन-सी होगी?
+A) श्यामपट्ट पर लिखे निबंध को ज्यों-का-त्यों नकल करना
+B) किसी काल्पनिक अथवा वास्तविक संस्मरण/अनुभव पर अपनी भाषा में कहानी या डायरी लिखना
+C) व्याकरण के 20 नियमों को याद करके लिखना
+D) पाठ्यपुस्तक के पाठ के अंत में दिए गए अभ्यास प्रश्नों को रटना
+ANS: B
+SOL: स्वतंत्र, मुक्त और रचनात्मक लेखन तब विकसित होता है जब बच्चों को अपने निजी अनुभवों, भावनाओं और कल्पनाओं को बिना किसी पाबंदी के अपनी अभिव्यक्ति में ढालने का अवसर मिलता है (जैसे डायरी लेखन, स्वरचित कहानी आदि)।
+
+TOPIC: Hindi - Pedagogy
+Q: भाषा की कक्षा में 'साहित्य' (Literature) को शामिल करने का मुख्य औचित्य क्या है?
+A) यह छात्रों को व्याकरण की सभी परिभाषाएं कंठस्थ कराता है।
+B) यह छात्रों को भाषा की विविध छटाओं, सौंदर्यबोध और मानवीय संवेगों से परिचित कराकर आलोचनात्मक चिंतन को समृद्ध करता है।
+C) यह केवल मनोरंजन का साधन है।
+D) इससे शिक्षक को कक्षा में कम मेहनत करनी पड़ती है।
+ANS: B
+SOL: साहित्य भाषा का जीवंत और प्रामाणिक रूप है। यह शिक्षार्थियों में संवेदनशीलता, कल्पनाशक्ति, सौंदर्यबोध और भाषा की बहुआयामी शैलियों की समझ पैदा करता है।
+
+TOPIC: Hindi - Pedagogy
+Q: सतत एवं समग्र मूल्यांकन (CCE) के संदर्भ में 'समग्र' (Comprehensive) शब्द का क्या अर्थ है?
+A) केवल सभी पाठ्यपुस्तकों की लिखित परीक्षा लेना
+B) शिक्षार्थी के संज्ञानात्मक, भावात्मक और मनोगामक (सह-शैक्षणिक) सभी पक्षों का आकलन करना
+C) वर्ष में केवल एक बार व्यापक परीक्षा आयोजित करना
+D) केवल व्याकरण संबंधी ज्ञान की जांच करना
+ANS: B
+SOL: 'समग्र' (Comprehensive) का तात्पर्य विद्यार्थी के सर्वांगीण विकास से है। इसमें केवल शैक्षिक (Scholastic) क्षेत्र ही नहीं बल्कि सह-शैक्षिक (Co-scholastic) आयाम जैसे अभिवृत्तियाँ, मूल्य, जीवन कौशल, खेल और कलात्मक रुचियाँ भी शामिल होती हैं।
+
+TOPIC: English - Prose Passage 1
+Q: Read the following passage and answer the question: "The preservation of biodiversity is not merely an ethical imperative; it is essential for human survival. Tropical rainforests, often referred to as the 'lungs of the Earth', harbor more than half of the planet's terrestrial species despite covering only a tiny fraction of the land surface. These ecosystems provide vital services such as carbon sequestration, climate regulation, and the preservation of water cycles. Moreover, countless modern medicines owe their existence to bioactive compounds discovered in forest flora. However, rapid deforestation driven by commercial agriculture, logging, and infrastructure expansion threatens to cause irreversible disruptions. If immediate and concerted global actions are not taken to safeguard these habitats, humanity risks destroying the ecological foundation that sustains its own prosperity." According to the passage, why are tropical rainforests metaphorically called the 'lungs of the Earth'?
+A) Because they consume all the planet's atmospheric oxygen
+B) Because of their crucial role in carbon sequestration and maintaining ecological balance
+C) Because they are only found in human-inhabited areas
+D) Because they produce commercial lumber for global markets
+ANS: B
+SOL: As stated in the passage, rainforests perform vital services like carbon sequestration, climate regulation, and the preservation of water cycles, absorbing carbon dioxide and stabilizing the climate, thus acting as the lungs of the planet.
+
+TOPIC: English - Prose Passage 1
+Q: According to the passage, what is a direct medicinal benefit derived from rainforest ecosystems?
+A) Artificial chemical synthesis without plants
+B) Bioactive compounds found in forest flora that lead to modern pharmaceuticals
+C) Elimination of all global respiratory diseases
+D) Direct consumption of raw timber
+ANS: B
+SOL: The passage explicitly states: "Moreover, countless modern medicines owe their existence to bioactive compounds discovered in forest flora."
+
+TOPIC: English - Prose Passage 1
+Q: Which of the following is cited as a major driver of rapid deforestation?
+A) Ancient ethical beliefs
+B) Small-scale medicinal foraging
+C) Commercial agriculture, logging, and infrastructure expansion
+D) Natural carbon sequestration
+ANS: C
+SOL: The passage mentions: "However, rapid deforestation driven by commercial agriculture, logging, and infrastructure expansion threatens to cause irreversible disruptions."
+
+TOPIC: English - Prose Passage 1 (Vocabulary)
+Q: In the passage, what does the word 'imperative' most nearly mean in the sentence: "The preservation of biodiversity is not merely an ethical imperative..."?
+A) Optional preference
+B) Pressing necessity or duty
+C) Insignificant suggestion
+D) Destructive obstacle
+ANS: B
+SOL: In this context, an 'imperative' is an essential, urgent, or unavoidable obligation/necessity.
+
+TOPIC: English - Prose Passage 1 (Vocabulary)
+Q: Choose the word which is most opposite in meaning (Antonym) to the word 'Irreversible' as used in the text: "...threatens to cause irreversible disruptions."
+A) Permanent
+B) Irrevocable
+C) Rectifiable / Reversible
+D) Catastrophic
+ANS: C
+SOL: 'Irreversible' means incapable of being undone or restored. Therefore, its antonym is 'reversible' or 'rectifiable' (capable of being corrected or undone).
+
+TOPIC: English - Prose Passage 1 (Parts of Speech)
+Q: Identify the part of speech of the underlined word in the sentence from the passage: "These ecosystems provide vital services..."
+A) Noun
+B) Adjective
+C) Adverb
+D) Verb
+ANS: B
+SOL: In the phrase "vital services", the word 'services' is a noun, and 'vital' describes the nature or quality of those services (meaning extremely important). Thus, 'vital' functions as an Adjective.
+
+TOPIC: English - Prose Passage 1 (Parts of Speech)
+Q: In the sentence: "If immediate and concerted global actions are not taken to safeguard these habitats, humanity risks destroying the ecological foundation...", the word 'If' functions as a:
+A) Preposition
+B) Subordinating Conjunction
+C) Relative Pronoun
+D) Interjection
+ANS: B
+SOL: 'If' introduces a conditional subordinate clause connecting it to the main clause. Hence, it is a Subordinating Conjunction.
+
+TOPIC: English - Prose Passage 1 (Grammar)
+Q: Which of the following is the correct Passive Voice form of the sentence: "These ecosystems provide vital services."?
+A) Vital services were provided by these ecosystems.
+B) Vital services are provided by these ecosystems.
+C) Vital services are being provided by these ecosystems.
+D) Vital services have been provided by these ecosystems.
+ANS: B
+SOL: The active sentence is in the Simple Present Tense ('provide'). The passive voice structure for simple present is: Subject (Object of active) + is/am/are + Past Participle (V3) + by + agent -> "Vital services are provided by these ecosystems."
+
+TOPIC: English - Prose Passage 2
+Q: Read the following passage and answer the question: "True education is far more than the passive absorption of codified curricula; it is the ignition of an inquisitive spirit. In an age saturated with digital algorithms and automated data retrieval, mere retention of factual trivia is rendered obsolete. The genuine virtue of learning lies in cultivating the capacity to question dogmatic orthodoxies, analyze complex moral quandaries, and synthesize disparate viewpoints into coherent insight. When educational institutions prioritize mechanical compliance and high-stakes testing over creative exploration, they unwittingly forge conformists rather than autonomous, critical thinkers. To educate a mind without fostering intellectual courage and empathetic discernment is to build an ornate ship that lacks a compass." What is the primary central theme of the passage?
+A) The undeniable superiority of memorizing textbook formulas for standardized tests
+B) The urgent necessity of transforming education into a tool for critical inquiry and intellectual courage rather than passive compliance
+C) The absolute condemnation of digital computers and the internet in society
+D) The financial challenges associated with maintaining modern schools
+ANS: B
+SOL: The entire passage argues that education should foster inquisitive spirit, critical thinking, and intellectual courage rather than mere rote memorization and mechanical compliance.
+
+TOPIC: English - Prose Passage 2
+Q: According to the passage, why has the mere memorization of factual information become largely obsolete today?
+A) Because humans no longer have memory capacity
+B) Because of the proliferation of digital algorithms and instant automated data retrieval
+C) Because examinations have been entirely discontinued
+D) Because facts have ceased to exist
+ANS: B
+SOL: The passage states: "In an age saturated with digital algorithms and automated data retrieval, mere retention of factual trivia is rendered obsolete."
+
+TOPIC: English - Prose Passage 2
+Q: What unintended consequence occurs when schools exclusively emphasize rote compliance and test scores?
+A) Students develop deep ethical wisdom
+B) They produce conformists rather than self-directed, independent thinkers
+C) Students become expert navigators of ships
+D) All educational curricula disappear
+ANS: B
+SOL: The author notes: "When educational institutions prioritize mechanical compliance and high-stakes testing over creative exploration, they unwittingly forge conformists rather than autonomous, critical thinkers."
+
+TOPIC: English - Prose Passage 2 (Inference & Tone)
+Q: What is the author's tone throughout the passage?
+A) Humorous and flippant
+B) Critical and reflective / exhortative
+C) Sarcastic and cynical
+D) Indifferent and detached
+ANS: B
+SOL: The author evaluates the flaws of modern mechanical schooling seriously and passionately advocates for genuine intellectual inquiry and empathy, making the tone critical, reflective, and exhortative.
+
+TOPIC: English - Prose Passage 2 (Figurative Language)
+Q: What literary/rhetorical device is employed in the concluding line: "...to build an ornate ship that lacks a compass."?
+A) Metaphor
+B) Personification
+C) Hyperbole
+D) Alliteration
+ANS: A
+SOL: The author draws a direct implicit comparison between educating a mind without empathy/intellectual courage and building an ornate ship without a compass, without using 'like' or 'as'. This is a classic Metaphor.
+
+TOPIC: English - Prose Passage 2 (Vocabulary)
+Q: Which word from the passage means "stubbornly adhered beliefs or traditional practices that are accepted without challenge"?
+A) Disparate
+B) Quandaries
+C) Orthodoxies
+D) Compasses
+ANS: C
+SOL: 'Orthodoxies' refers to accepted doctrines, beliefs, or customary norms that are conventionally held and often accepted without question.
+
+TOPIC: English - Prose Passage 2 (Grammar)
+Q: In the sentence: "The genuine virtue of learning lies in cultivating the capacity...", the word 'cultivating' functions as a:
+A) Finite Verb
+B) Gerund (Verbal Noun)
+C) Coordinating Conjunction
+D) Predicative Adjective
+ANS: B
+SOL: In the prepositional phrase "in cultivating", the '-ing' word follows the preposition 'in' and serves as its object, functioning as a verbal noun (Gerund).
+
+TOPIC: English - Pedagogy
+Q: According to Stephen Krashen's Second Language Acquisition theory, what does the 'Comprehensible Input' (i + 1) hypothesis postulate?
+A) Learners must be taught abstract grammatical rules before attempting conversation.
+B) Acquisition occurs when learners are exposed to language that is slightly beyond their current level of competence but still understandable within context.
+C) Second language learning is impossible after the critical period of puberty.
+D) Only drill and repetitive imitation lead to target language mastery.
+ANS: B
+SOL: Krashen's Input Hypothesis claims that language acquisition happens when the learner understands linguistic input containing structures just one step ahead of their current proficiency level (represented as 'i + 1').
+
+TOPIC: English - Pedagogy
+Q: Which of the following statements correctly distinguishes between 'Language Acquisition' and 'Language Learning'?
+A) Language acquisition is an explicit, rule-driven classroom process.
+B) Language acquisition is a subconscious, natural process picking up language from meaningful communication, whereas language learning is a conscious study of linguistic rules.
+C) Both terms mean exactly the same thing and can be used interchangeably.
+D) Language learning always precedes language acquisition in childhood.
+ANS: B
+SOL: Language acquisition is subconscious and natural through immersion in meaningful interaction (like a first language), while language learning is a formal, conscious process involving grammar rules and deliberate study (typical of classroom second language instruction).
+
+TOPIC: English - Pedagogy
+Q: A teacher asks students to quickly read a newspaper editorial just to grasp the overall gist or central message without getting bogged down by unfamiliar vocabulary. Which reading sub-skill is being practiced?
+A) Scanning
+B) Skimming
+C) Critical proofreading
+D) Phonetic transcription
+ANS: B
+SOL: 'Skimming' is a fast-reading strategy used to get the general idea, overview, or gist of a text quickly, ignoring minor details. 'Scanning' is looking for specific isolated facts.
+
+TOPIC: English - Pedagogy
+Q: In the 'Process Approach to Writing', what should a learner do during the 'Revising' stage?
+A) Only check for punctuation marks and spelling mistakes
+B) Review and reorganize content, clarify ideas, and refine structure and coherence
+C) Copy the finalized draft into the fair notebook
+D) Memorize model essays written by the teacher
+ANS: B
+SOL: In writing pedagogy, 'Revising' focuses on macro-level improvements (ideas, clarity, organization, adding or deleting information, paragraph structure), whereas micro-level corrections (spelling, grammar, punctuation) occur during the 'Editing/Proofreading' stage.
+
+TOPIC: English - Pedagogy
+Q: BICS and CALP are concepts formulated by Jim Cummins. What does CALP stand for and refer to?
+A) Basic Interpersonal Communication Skills used in daily chit-chat
+B) Cognitive Academic Language Proficiency, referring to the formal academic language required for scholarly learning and abstract thinking
+C) Creative Art and Literature Pedagogy
+D) Cultural Association of Language Programs
+ANS: B
+SOL: CALP stands for Cognitive Academic Language Proficiency. It refers to the formal, complex, and context-reduced language needed to understand academic subjects, contrastive analysis, and theoretical concepts in school.
+
+TOPIC: English - Pedagogy
+Q: Which of the following is considered an authentic material / authentic task in second language pedagogy?
+A) A specially constructed artificial grammar drill in a workbook
+B) A real train schedule, restaurant menu, or genuine newspaper clipping used for communication tasks
+C) A vocabulary list stripped of all sentence context
+D) Rote memorization of phonetic symbols
+ANS: B
+SOL: Authentic materials are texts and realia produced for native speakers in everyday real-world contexts (e.g., brochures, timetables, actual news stories) rather than contrived solely for classroom language drills.
+
+TOPIC: English - Pedagogy
+Q: A student frequently writes "I goed to the market yesterday" and "She has two childs". What does this linguistic error indicate to a language educator?
+A) The child has a permanent cognitive learning disability.
+B) The child is careless and lacks motivation to study English.
+C) The child is actively applying overgeneralization of regular grammatical rules, which is an organic stage in interlanguage development.
+D) The teacher has failed to teach past tense rules.
+ANS: C
+SOL: 'Overgeneralization' occurs when learners internalize a regular linguistic pattern (e.g., adding '-ed' for past tense or '-s' for plural) and apply it logically to irregular forms (e.g., 'goed', 'childs'). It shows active hypothesis-testing and cognitive processing, representing healthy progress in their interlanguage.
+
+TOPIC: English - Pedagogy
+Q: In teaching English poetry at the elementary/middle school level, what is the primary pedagogical goal?
+A) To make learners memorize the poet's biography and date of birth
+B) To foster aesthetic appreciation, imaginative enjoyment, and sensitivity to the musicality and rhythm of language
+C) To dissect every line solely for grammatical syntax drills
+D) To test spelling and punctuation in formal writing
+ANS: B
+SOL: The main objective of teaching poetry is appreciation, aesthetic delight, cultivating imagination, and developing sensitivity to poetic rhythm and sound patterns, not mechanical grammar parsing.
+
+TOPIC: English - Pedagogy
+Q: What does 'Formative Assessment' in an English language classroom primarily emphasize?
+A) Ranking students based on percentage and publishing a merit list
+B) Conducting a high-stakes three-hour annual written examination
+C) Providing continuous, qualitative feedback during the learning process to adapt instructional methods and enhance student progress
+D) Assigning detentions to low-performing learners
+ANS: C
+SOL: Formative assessment is developmental and diagnostic. It occurs throughout the instructional process, focusing on learning gaps and providing descriptive feedback to both students and teachers to improve ongoing learning.
+
+TOPIC: English - Pedagogy
+Q: A teacher designs an activity where Student A has a map with missing route markers, and Student B has the complete route directions. They must converse in English without looking at each other's sheets to complete the map. What is this communicative activity called?
+A) Information-Gap Activity
+B) Grammar-Translation Drill
+C) Structural Substitution Drill
+D) Choral Recitation
+ANS: A
+SOL: An 'Information-Gap Activity' is a communicative language teaching (CLT) task where one learner possesses information that another learner lacks, creating a real communicative need to negotiate meaning, ask questions, and share details.
+
+TOPIC: English - Pedagogy
+Q: Which method of English language teaching strictly prohibits the use of the learner's mother tongue and focuses on direct immersion and question-answer exchanges?
+A) Grammar-Translation Method (GTM)
+B) Direct Method (Natural Method)
+C) Bilingual Method
+D) Audiolingual Method with L1 translation
+ANS: B
+SOL: The Direct Method (often called the Natural Method) establishes a direct bond between words and thoughts/objects without the mediation of the mother tongue. Translation into L1 is strictly banned in the classroom.
+
+TOPIC: English - Pedagogy
+Q: What is the main objective of 'Remedial Teaching' in English?
+A) Teaching the advanced syllabus to gifted students ahead of time
+B) Diagnosing and rectifying specific conceptual gaps and instructional weaknesses of learners lagging behind
+C) Preparing students exclusively for entrance exams
+D) Punishing students who fail to complete homework
+ANS: B
+SOL: Remedial teaching is a targeted instructional intervention designed to help students who have fallen behind by identifying their specific learning difficulties through diagnosis and re-teaching those concepts using differentiated strategies.
+
+TOPIC: English - Pedagogy
+Q: In language acquisition, Chomsky's hypothesis of 'Universal Grammar' (UG) suggests that:
+A) All children must travel globally to acquire foreign language syntax.
+B) All human languages share underlying structural principles that are hardwired into the human brain at birth.
+C) Grammar can only be acquired through conscious memorization of printed rulebooks.
+D) Language is purely an environmental construct learned via conditioning.
+ANS: B
+SOL: Noam Chomsky proposed that all human beings possess an innate, genetically determined blueprint called Universal Grammar (UG), which accounts for the underlying grammatical principles common to all human languages.
+
+TOPIC: English - Pedagogy
+Q: Which type of listening involves listening attentively to take detailed notes, critically analyze the speaker's arguments, and detect logical fallacies?
+A) Appreciative listening
+B) Casual/Passive listening
+C) Critical / Evaluative listening
+D) Marginal listening
+ANS: C
+SOL: Critical or Evaluative listening involves deep cognitive engagement where the listener evaluates the message, judges the credibility of evidence, analyzes arguments, and draws reasoned conclusions.
+
+TOPIC: English - Pedagogy
+Q: According to NEP 2020 and progressive pedagogy, how should the child's home language (mother tongue) be viewed in an English language classroom?
+A) As a persistent impediment to mastering English pronunciation
+B) As a scaffold, valuable resource, and cognitive bridge for acquiring the second language
+C) As a prohibited interference that must be penalized
+D) As a medium of instruction only for sports and physical education
+ANS: B
+SOL: NEP 2020 strongly advocates multilingualism, recognizing the child's home language/mother tongue not as a handicap, but as a rich cognitive bridge, scaffolding tool, and cultural asset that supports the acquisition of second and third languages.
