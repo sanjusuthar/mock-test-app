@@ -283,13 +283,29 @@ object ResumeStorage {
 // ==================== 7. GITHUB CLOUD SYNC & ADMIN PUBLISHER / DELETER ====================
 object GitHubCloudService {
     suspend fun fetchOnlineQuizzes(): List<OnlineQuizMeta> = withContext(Dispatchers.IO) {
-        val urlStr = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/quizzes/index.json?t=${System.currentTimeMillis()}"
-        val conn = URL(urlStr).openConnection() as HttpURLConnection
-        conn.connectTimeout = 10000
-        conn.readTimeout = 10000
-        if (conn.responseCode != 200) return@withContext emptyList()
+        // GitHub API gives instant 0-second updates (no 5-minute raw.githubusercontent.com CDN cache)
+        val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/quizzes/index.json?ref=$GITHUB_BRANCH&t=${System.currentTimeMillis()}"
+        val apiConn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
+            connectTimeout = 10000
+            readTimeout = 10000
+            useCaches = false
+            setRequestProperty("Accept", "application/vnd.github.raw+json")
+            setRequestProperty("Cache-Control", "no-cache")
+        }
 
-        val jsonText = conn.inputStream.bufferedReader().use { it.readText() }
+        val jsonText = if (apiConn.responseCode == 200) {
+            apiConn.inputStream.bufferedReader().use { it.readText() }
+        } else {
+            val rawUrl = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/quizzes/index.json?t=${System.currentTimeMillis()}"
+            val rawConn = (URL(rawUrl).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 10000
+                readTimeout = 10000
+                useCaches = false
+                setRequestProperty("Cache-Control", "no-cache")
+            }
+            if (rawConn.responseCode != 200) return@withContext emptyList()
+            rawConn.inputStream.bufferedReader().use { it.readText() }
+        }
         val arr = JSONArray(jsonText)
         val list = mutableListOf<OnlineQuizMeta>()
         for (i in 0 until arr.length()) {
