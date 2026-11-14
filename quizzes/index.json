@@ -1,5 +1,18 @@
 [
   {
+    "id": "quiz_1794675349877",
+    "title": "CTET PAPER 2",
+    "subtitle": "Target Preparation & Revision Test",
+    "subject": "CTET",
+    "timeMinutes": 150,
+    "marksPerCorrect": 1,
+    "negativeMark": 0,
+    "questionCount": 160,
+    "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/ctet\/quiz_1794675349877.enc",
+    "repoPath": "quizzes\/ctet\/quiz_1794675349877.enc",
+    "publishedDate": "14 Nov 2026"
+  },
+  {
     "id": "quiz_1794674541899",
     "title": "Rajasthan SET & UGC NET Mock Test",
     "subtitle": "Target Preparation & Revision Test",
