@@ -10,12 +10,14 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -23,6 +25,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -58,12 +61,11 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 // ==================== 1. GITHUB CONFIGURATION ====================
-// यहाँ अपना GitHub Username और Repository नाम लिखें:
 const val GITHUB_OWNER = "sanjusuthar"
 const val GITHUB_REPO = "mock-test-app"
 const val GITHUB_BRANCH = "main"
 
-// ==================== 2. EXACT THEME COLORS FROM dynamicTest1.html ====================
+// ==================== 2. CLEAN COACHING UI THEME COLORS ====================
 val BgDark = Color(0xFF09090B)
 val CardDark = Color(0xFF18181B)
 val HomeBgTop = Color(0xFF0F172A)
@@ -79,6 +81,7 @@ val OptionBg = Color(0xFF1F2937)
 val CorrectGreen = Color(0xFF10B981)
 val WrongRed = Color(0xFFEF4444)
 val SkippedPurple = Color(0xFF8B5CF6)
+val AmberGold = Color(0xFFF59E0B)
 
 // ==================== 3. DATA MODELS ====================
 data class Question(
@@ -90,17 +93,19 @@ data class Question(
 )
 
 data class TestConfig(
-    val title: String = "Rajasthan SET & UGC NET Mock Test",
+    val title: String = "Online Mock Test",
     val subtitle: String = "Target Preparation & Revision Test",
+    val subject: String = "General",
     val timeMinutes: Int = 60,
     val marksPerCorrect: Double = 2.0,
-    val negativeMark: Double = 0.66
+    val negativeMark: Double = 0.0
 )
 
 data class OnlineQuizMeta(
     val id: String,
     val title: String,
     val subtitle: String,
+    val subject: String,
     val timeMinutes: Int,
     val marksPerCorrect: Double,
     val negativeMark: Double,
@@ -109,9 +114,9 @@ data class OnlineQuizMeta(
     val publishedDate: String
 )
 
-enum class AppScreen { HOME, TEST, RESULT }
+enum class AppScreen { HOME, SUBJECT_TESTS, TEST, RESULT }
 
-// ==================== 4. TXT QUESTION PARSER (Exact Match to JS Parser) ====================
+// ==================== 4. TXT QUESTION PARSER ====================
 object TxtQuestionParser {
     fun parse(rawText: String): List<Question> {
         val parsed = mutableListOf<Question>()
@@ -179,11 +184,13 @@ object GitHubCloudService {
         val list = mutableListOf<OnlineQuizMeta>()
         for (i in 0 until arr.length()) {
             val obj = arr.getJSONObject(i)
+            val rawSubject = obj.optString("subject", "").trim()
             list.add(
                 OnlineQuizMeta(
                     id = obj.optString("id", "quiz_$i"),
                     title = obj.optString("title", "Mock Test"),
                     subtitle = obj.optString("subtitle", "Online Practice Test"),
+                    subject = if (rawSubject.isNotEmpty()) rawSubject else "General Tests",
                     timeMinutes = obj.optInt("timeMinutes", 60),
                     marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
                     negativeMark = obj.optDouble("negativeMark", 0.0),
@@ -202,11 +209,11 @@ object GitHubCloudService {
         conn.inputStream.bufferedReader().use { it.readText() }
     }
 
-    // आपके डिवाइस से सीधे GitHub पर नया टेस्ट पब्लिश करने का फंक्शन
     suspend fun publishQuizToGitHub(
         token: String,
         title: String,
         subtitle: String,
+        subject: String,
         timeMinutes: Int,
         marks: Double,
         neg: Double,
@@ -214,18 +221,22 @@ object GitHubCloudService {
         questionCount: Int
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val fileId = "quiz_${System.currentTimeMillis()}"
-            val txtPath = "quizzes/$fileId.txt"
+            val safeFolder = subject.trim()
+                .lowercase(Locale.ENGLISH)
+                .replace(Regex("[^a-z0-9]+"), "_")
+                .trim('_')
+                .ifEmpty { "general" }
 
-            // Step 1: Upload the .txt question file to GitHub Repo
+            val fileId = "quiz_${System.currentTimeMillis()}"
+            val txtPath = "quizzes/$safeFolder/$fileId.txt"
+
             putFileToGitHub(
                 token = token,
                 path = txtPath,
                 content = rawTxtContent,
-                commitMsg = "Publish quiz: $title"
+                commitMsg = "Publish [$subject] quiz: $title"
             )
 
-            // Step 2: Fetch existing quizzes/index.json & its SHA
             val indexPath = "quizzes/index.json"
             val existingFile = getFileFromGitHub(token, indexPath)
             val currentArray = if (existingFile != null) JSONArray(existingFile.first) else JSONArray()
@@ -237,6 +248,7 @@ object GitHubCloudService {
                 put("id", fileId)
                 put("title", title)
                 put("subtitle", subtitle)
+                put("subject", subject.trim().ifEmpty { "General Tests" })
                 put("timeMinutes", timeMinutes)
                 put("marksPerCorrect", marks)
                 put("negativeMark", neg)
@@ -245,23 +257,21 @@ object GitHubCloudService {
                 put("publishedDate", today)
             }
 
-            // नए टेस्ट को सबसे ऊपर जोड़ें
             val updatedArray = JSONArray()
             updatedArray.put(newEntry)
             for (i in 0 until currentArray.length()) {
                 updatedArray.put(currentArray.getJSONObject(i))
             }
 
-            // Step 3: Commit updated quizzes/index.json
             putFileToGitHub(
                 token = token,
                 path = indexPath,
                 content = updatedArray.toString(2),
-                commitMsg = "Update index.json with $title",
+                commitMsg = "Update index.json: $subject - $title",
                 sha = existingFile?.second
             )
 
-            Result.success("टेस्ट सफलतापूर्वक ऑनलाइन पब्लिश हो गया! अब सभी स्टूडेंट्स को होम पेज पर दिखेगा।")
+            Result.success("टेस्ट '$subject' फोल्डर में सफलतापूर्वक पब्लिश हो गया!")
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -315,7 +325,7 @@ object GitHubCloudService {
     }
 }
 
-// ==================== 6. MAIN ACTIVITY & UI ====================
+// ==================== 6. MAIN ACTIVITY ====================
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -341,9 +351,13 @@ fun MockTestAppRoot() {
     val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
 
     var currentScreen by remember { mutableStateOf(AppScreen.HOME) }
+    var previousScreenBeforeTest by remember { mutableStateOf(AppScreen.HOME) }
+    var selectedSubjectFolder by remember { mutableStateOf("") }
+
     var testConfig by remember { mutableStateOf(TestConfig()) }
     var questions by remember { mutableStateOf<List<Question>>(emptyList()) }
-    var candidateName by remember { mutableStateOf("") }
+    var candidateName by remember { mutableStateOf(prefs.getString("student_name", "") ?: "") }
+    var hasCustomSavedQuiz by remember { mutableStateOf(false) }
 
     // Test Active State
     var currentQIndex by remember { mutableStateOf(0) }
@@ -351,26 +365,110 @@ fun MockTestAppRoot() {
     var remainingSeconds by remember { mutableStateOf(0) }
     var showPaletteSheet by remember { mutableStateOf(false) }
     var showSubmitConfirm by remember { mutableStateOf(false) }
+    var showExitTestConfirm by remember { mutableStateOf(false) }
 
-    // Modals for Custom Local Quiz & Admin Online Publish
+    // Modals
     var showCustomQuizModal by remember { mutableStateOf(false) }
     var showAdminPublishModal by remember { mutableStateOf(false) }
+    var showNamePromptDialog by remember { mutableStateOf(false) }
+    var pendingQuizToStart by remember { mutableStateOf<OnlineQuizMeta?>(null) }
 
     // Online Quizzes State
     var onlineQuizzes by remember { mutableStateOf<List<OnlineQuizMeta>>(emptyList()) }
     var isLoadingOnline by remember { mutableStateOf(false) }
+    var isDownloadingQuiz by remember { mutableStateOf(false) }
 
-    // Load saved local custom quiz & fetch online quizzes on startup
+    // Double-back to exit on Home
+    var lastBackPressTime by remember { mutableStateOf(0L) }
+
+    // ==================== PROPER ANDROID BACK NAVIGATION ====================
+    BackHandler(enabled = true) {
+        when (currentScreen) {
+            AppScreen.TEST -> {
+                if (showPaletteSheet) {
+                    showPaletteSheet = false
+                } else {
+                    showExitTestConfirm = true
+                }
+            }
+            AppScreen.RESULT -> {
+                currentScreen = previousScreenBeforeTest
+            }
+            AppScreen.SUBJECT_TESTS -> {
+                currentScreen = AppScreen.HOME
+            }
+            AppScreen.HOME -> {
+                if (showCustomQuizModal) {
+                    showCustomQuizModal = false
+                } else if (showAdminPublishModal) {
+                    showAdminPublishModal = false
+                } else {
+                    val now = System.currentTimeMillis()
+                    if (now - lastBackPressTime < 2000L) {
+                        (context as? ComponentActivity)?.finish()
+                    } else {
+                        lastBackPressTime = now
+                        Toast.makeText(context, "ऐप बंद करने के लिए दोबारा Back दबाएं", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    // Helper to start any online quiz directly
+    fun launchOnlineQuiz(meta: OnlineQuizMeta) {
+        if (candidateName.isBlank()) {
+            pendingQuizToStart = meta
+            showNamePromptDialog = true
+            return
+        }
+        prefs.edit().putString("student_name", candidateName.trim()).apply()
+        scope.launch {
+            isDownloadingQuiz = true
+            try {
+                val rawTxt = GitHubCloudService.downloadQuizText(meta.fileUrl)
+                val parsed = TxtQuestionParser.parse(rawTxt)
+                if (parsed.isNotEmpty()) {
+                    questions = parsed
+                    testConfig = TestConfig(
+                        title = meta.title,
+                        subtitle = meta.subtitle,
+                        subject = meta.subject,
+                        timeMinutes = meta.timeMinutes,
+                        marksPerCorrect = meta.marksPerCorrect,
+                        negativeMark = meta.negativeMark
+                    )
+                    userAnswers = List(parsed.size) { null }
+                    currentQIndex = 0
+                    remainingSeconds = meta.timeMinutes * 60
+                    previousScreenBeforeTest = currentScreen
+                    currentScreen = AppScreen.TEST
+                } else {
+                    Toast.makeText(context, "टेस्ट फाइल में कोई प्रश्न नहीं मिला।", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "टेस्ट लोड नहीं हो सका: इंटरनेट कनेक्शन जांचें", Toast.LENGTH_LONG).show()
+            } finally {
+                isDownloadingQuiz = false
+            }
+        }
+    }
+
+    // Initial load
     LaunchedEffect(Unit) {
         val savedTxt = prefs.getString("saved_custom_txt", null)
-        val savedTitle = prefs.getString("saved_title", "Rajasthan SET & UGC NET Mock Test") ?: "Mock Test"
-        val savedTime = prefs.getInt("saved_time", 60)
-        val savedMarks = prefs.getFloat("saved_marks", 2.0f).toDouble()
-        val savedNeg = prefs.getFloat("saved_neg", 0.0f).toDouble()
-
         if (!savedTxt.isNullOrBlank()) {
-            questions = TxtQuestionParser.parse(savedTxt)
-            testConfig = TestConfig(title = savedTitle, timeMinutes = savedTime, marksPerCorrect = savedMarks, negativeMark = savedNeg)
+            val parsed = TxtQuestionParser.parse(savedTxt)
+            if (parsed.isNotEmpty()) {
+                questions = parsed
+                hasCustomSavedQuiz = true
+                testConfig = TestConfig(
+                    title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                    timeMinutes = prefs.getInt("saved_time", 60),
+                    marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
+                    negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
+                )
+            }
         }
 
         isLoadingOnline = true
@@ -382,7 +480,7 @@ fun MockTestAppRoot() {
         }
     }
 
-    // Countdown Timer Effect when on TEST screen
+    // Timer
     LaunchedEffect(currentScreen, remainingSeconds) {
         if (currentScreen == AppScreen.TEST && remainingSeconds > 0) {
             delay(1000L)
@@ -393,20 +491,30 @@ fun MockTestAppRoot() {
         }
     }
 
+    val groupedBySubject = remember(onlineQuizzes) {
+        onlineQuizzes.groupBy { it.subject }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(BgDark)
+            .systemBarsPadding()
     ) {
         when (currentScreen) {
             AppScreen.HOME -> {
                 HomeScreenUI(
-                    testConfig = testConfig,
-                    questionCount = questions.size,
                     candidateName = candidateName,
-                    onCandidateNameChange = { candidateName = it },
-                    onlineQuizzes = onlineQuizzes,
+                    onCandidateNameChange = {
+                        candidateName = it
+                        prefs.edit().putString("student_name", it.trim()).apply()
+                    },
+                    groupedSubjects = groupedBySubject,
+                    totalOnlineTests = onlineQuizzes.size,
                     isLoadingOnline = isLoadingOnline,
+                    hasCustomSavedQuiz = hasCustomSavedQuiz,
+                    customQuizTitle = testConfig.title,
+                    customQuizCount = questions.size,
                     onRefreshOnline = {
                         scope.launch {
                             isLoadingOnline = true
@@ -417,42 +525,45 @@ fun MockTestAppRoot() {
                             isLoadingOnline = false
                         }
                     },
-                    onSelectOnlineQuiz = { meta ->
-                        scope.launch {
-                            try {
-                                Toast.makeText(context, "टेस्ट डाउनलोड हो रहा है...", Toast.LENGTH_SHORT).show()
-                                val rawTxt = GitHubCloudService.downloadQuizText(meta.fileUrl)
-                                val parsed = TxtQuestionParser.parse(rawTxt)
-                                if (parsed.isNotEmpty()) {
-                                    questions = parsed
-                                    testConfig = TestConfig(
-                                        title = meta.title,
-                                        subtitle = meta.subtitle,
-                                        timeMinutes = meta.timeMinutes,
-                                        marksPerCorrect = meta.marksPerCorrect,
-                                        negativeMark = meta.negativeMark
-                                    )
-                                    Toast.makeText(context, "'${meta.title}' लोड हो गया! अपना नाम लिखकर शुरू करें।", Toast.LENGTH_LONG).show()
-                                }
-                            } catch (e: Exception) {
-                                Toast.makeText(context, "टेस्ट लोड करने में त्रुटि: इंटरनेट जांचें", Toast.LENGTH_LONG).show()
-                            }
-                        }
+                    onOpenSubjectFolder = { subjectName ->
+                        selectedSubjectFolder = subjectName
+                        currentScreen = AppScreen.SUBJECT_TESTS
                     },
-                    onStartTest = {
-                        if (questions.isEmpty()) {
-                            Toast.makeText(context, "कृपया पहले नीचे से कोई ऑनलाइन टेस्ट चुनें या Custom .txt फाइल लोड करें!", Toast.LENGTH_LONG).show()
-                        } else if (candidateName.isBlank()) {
-                            Toast.makeText(context, "कृपया टेस्ट शुरू करने से पहले अपना नाम लिखें!", Toast.LENGTH_SHORT).show()
+                    onStartCustomQuiz = {
+                        if (candidateName.isBlank()) {
+                            Toast.makeText(context, "कृपया पहले ऊपर अपना नाम लिखें!", Toast.LENGTH_SHORT).show()
                         } else {
-                            userAnswers = List(questions.size) { null }
-                            currentQIndex = 0
-                            remainingSeconds = testConfig.timeMinutes * 60
-                            currentScreen = AppScreen.TEST
+                            val savedTxt = prefs.getString("saved_custom_txt", "") ?: ""
+                            val parsed = TxtQuestionParser.parse(savedTxt)
+                            if (parsed.isNotEmpty()) {
+                                questions = parsed
+                                testConfig = TestConfig(
+                                    title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                                    timeMinutes = prefs.getInt("saved_time", 60),
+                                    marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
+                                    negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
+                                )
+                                userAnswers = List(parsed.size) { null }
+                                currentQIndex = 0
+                                remainingSeconds = testConfig.timeMinutes * 60
+                                previousScreenBeforeTest = AppScreen.HOME
+                                currentScreen = AppScreen.TEST
+                            }
                         }
                     },
                     onOpenCustomModal = { showCustomQuizModal = true },
                     onOpenAdminModal = { showAdminPublishModal = true }
+                )
+            }
+
+            AppScreen.SUBJECT_TESTS -> {
+                val folderTests = groupedBySubject[selectedSubjectFolder] ?: emptyList()
+                SubjectTestsScreenUI(
+                    subjectName = selectedSubjectFolder,
+                    tests = folderTests,
+                    isDownloading = isDownloadingQuiz,
+                    onBack = { currentScreen = AppScreen.HOME },
+                    onStartTest = { meta -> launchOnlineQuiz(meta) }
                 )
             }
 
@@ -464,6 +575,7 @@ fun MockTestAppRoot() {
                     currentQIndex = currentQIndex,
                     userAnswers = userAnswers,
                     remainingSeconds = remainingSeconds,
+                    onBackClick = { showExitTestConfirm = true },
                     onSelectOption = { optIdx ->
                         val mutable = userAnswers.toMutableList()
                         mutable[currentQIndex] = optIdx
@@ -490,6 +602,7 @@ fun MockTestAppRoot() {
                     questions = questions,
                     userAnswers = userAnswers,
                     timeSpentSeconds = (testConfig.timeMinutes * 60) - remainingSeconds,
+                    onBackHome = { currentScreen = previousScreenBeforeTest },
                     onPrintPdf = {
                         printExactA4ResultPdf(
                             context = context,
@@ -499,19 +612,45 @@ fun MockTestAppRoot() {
                             userAnswers = userAnswers
                         )
                     },
-                    onRetake = { currentScreen = AppScreen.HOME }
+                    onRetake = {
+                        userAnswers = List(questions.size) { null }
+                        currentQIndex = 0
+                        remainingSeconds = testConfig.timeMinutes * 60
+                        currentScreen = AppScreen.TEST
+                    }
                 )
             }
         }
 
-        // Question Palette Bottom Dialog
+        // Loading overlay while downloading quiz
+        if (isDownloadingQuiz) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .clickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(CardDark)
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(color = PrimaryRose)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("टेस्ट लोड हो रहा है...", color = TextMain, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        // Question Palette Dialog
         if (showPaletteSheet && currentScreen == AppScreen.TEST) {
             AlertDialog(
                 onDismissRequest = { showPaletteSheet = false },
                 containerColor = CardDark,
-                title = {
-                    Text("Question Palette", color = TextMain, fontWeight = FontWeight.Bold)
-                },
+                title = { Text("Question Palette", color = TextMain, fontWeight = FontWeight.Bold) },
                 text = {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(5),
@@ -556,6 +695,32 @@ fun MockTestAppRoot() {
             )
         }
 
+        // Exit Test Confirmation Dialog (on Back press during exam)
+        if (showExitTestConfirm) {
+            AlertDialog(
+                onDismissRequest = { showExitTestConfirm = false },
+                containerColor = CardDark,
+                title = { Text("परीक्षा से बाहर जाएं?", color = TextMain, fontWeight = FontWeight.Bold) },
+                text = { Text("अगर आप अभी वापस जाएंगे तो आपकी चल रही परीक्षा का समय और उत्तर सेव नहीं होंगे।", color = TextMuted) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showExitTestConfirm = false
+                            currentScreen = previousScreenBeforeTest
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = WrongRed)
+                    ) {
+                        Text("हाँ, बाहर जाएं", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = { showExitTestConfirm = false }) {
+                        Text("परीक्षा जारी रखें", color = TextMain)
+                    }
+                }
+            )
+        }
+
         // Submit Confirmation Dialog
         if (showSubmitConfirm) {
             AlertDialog(
@@ -582,7 +747,48 @@ fun MockTestAppRoot() {
             )
         }
 
-        // Modal 1: Local Custom Quiz Builder (For Students & Teacher)
+        // Student Name Prompt if they tap a test without entering name
+        if (showNamePromptDialog && pendingQuizToStart != null) {
+            var tempName by remember { mutableStateOf(candidateName) }
+            AlertDialog(
+                onDismissRequest = { showNamePromptDialog = false },
+                containerColor = CardDark,
+                title = { Text("अपना नाम लिखें", color = TextMain, fontWeight = FontWeight.Bold) },
+                text = {
+                    OutlinedTextField(
+                        value = tempName,
+                        onValueChange = { tempName = it },
+                        placeholder = { Text("उदा. राहुल शर्मा", color = TextMuted) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (tempName.isNotBlank()) {
+                                candidateName = tempName.trim()
+                                prefs.edit().putString("student_name", candidateName).apply()
+                                val meta = pendingQuizToStart!!
+                                showNamePromptDialog = false
+                                pendingQuizToStart = null
+                                launchOnlineQuiz(meta)
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose)
+                    ) {
+                        Text("शुरू करें", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showNamePromptDialog = false }) {
+                        Text("रद्द करें", color = TextMuted)
+                    }
+                }
+            )
+        }
+
+        // Custom Local Quiz Modal
         if (showCustomQuizModal) {
             CustomQuizDialog(
                 initialConfig = testConfig,
@@ -590,6 +796,7 @@ fun MockTestAppRoot() {
                 onSaveCustomQuiz = { newCfg, rawTxt, parsedList ->
                     testConfig = newCfg
                     questions = parsedList
+                    hasCustomSavedQuiz = true
                     prefs.edit()
                         .putString("saved_custom_txt", rawTxt)
                         .putString("saved_title", newCfg.title)
@@ -598,15 +805,16 @@ fun MockTestAppRoot() {
                         .putFloat("saved_neg", newCfg.negativeMark.toFloat())
                         .apply()
                     showCustomQuizModal = false
-                    Toast.makeText(context, "Custom Quiz लोड हो गया (${parsedList.size} प्रश्न)!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Custom Quiz सेव हो गया (${parsedList.size} प्रश्न)!", Toast.LENGTH_SHORT).show()
                 }
             )
         }
 
-        // Modal 2: Admin Online Quiz Publisher (Push directly from your device to GitHub)
+        // Teacher Admin Online Publish Modal (With Subject Folder Selection)
         if (showAdminPublishModal) {
             AdminPublishDialog(
                 savedToken = prefs.getString("gh_pat_token", "") ?: "",
+                existingSubjects = groupedBySubject.keys.toList(),
                 onDismiss = { showAdminPublishModal = false },
                 onPublishedSuccess = { tokenUsed ->
                     prefs.edit().putString("gh_pat_token", tokenUsed).apply()
@@ -625,18 +833,20 @@ fun MockTestAppRoot() {
     }
 }
 
-// ==================== 7. HOME SCREEN UI (With Online Published Quizzes + Custom Builder) ====================
+// ==================== 7. CLEAN COACHING HOME SCREEN (WELCOME + SUBJECT FOLDERS) ====================
 @Composable
 fun HomeScreenUI(
-    testConfig: TestConfig,
-    questionCount: Int,
     candidateName: String,
     onCandidateNameChange: (String) -> Unit,
-    onlineQuizzes: List<OnlineQuizMeta>,
+    groupedSubjects: Map<String, List<OnlineQuizMeta>>,
+    totalOnlineTests: Int,
     isLoadingOnline: Boolean,
+    hasCustomSavedQuiz: Boolean,
+    customQuizTitle: String,
+    customQuizCount: Int,
     onRefreshOnline: () -> Unit,
-    onSelectOnlineQuiz: (OnlineQuizMeta) -> Unit,
-    onStartTest: () -> Unit,
+    onOpenSubjectFolder: (String) -> Unit,
+    onStartCustomQuiz: () -> Unit,
     onOpenCustomModal: () -> Unit,
     onOpenAdminModal: () -> Unit
 ) {
@@ -645,182 +855,345 @@ fun HomeScreenUI(
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(HomeBgTop, HomeBgBot)))
             .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 18.dp, vertical = 16.dp)
     ) {
-        // Brand Header
-        Text(
-            text = testConfig.title.uppercase(),
-            color = PrimaryRose,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Black,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = "ONLINE PRACTICE EXAM PORTAL",
-            color = Color(0xFFE2E8F0),
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 1.5.sp,
-            modifier = Modifier.padding(top = 4.dp, bottom = 20.dp)
-        )
-
-        // Main Active Test Card
+        // 1. Coaching Brand & Welcome Card
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(18.dp))
                 .background(HomeCard)
-                .border(1.dp, PrimaryRose.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .border(1.dp, PrimaryRose.copy(alpha = 0.25f), RoundedCornerShape(18.dp))
+                .padding(18.dp)
         ) {
-            Text(
-                text = testConfig.title,
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = testConfig.subtitle,
-                color = Color(0xFFCBD5E1),
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
-            )
-
-            // 2x2 Info Grid
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatInfoBox(Modifier.weight(1f), "$questionCount", "QUESTIONS", PrimaryRose)
-                StatInfoBox(Modifier.weight(1f), "${testConfig.timeMinutes} Min", "DURATION", PrimaryRose)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (candidateName.isNotBlank()) "नमस्ते, ${candidateName.trim()}! 👋" else "स्वागत है! 👋",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "अपनी तैयारी को परखें और रोज़ाना नए मॉक टेस्ट दें",
+                        color = TextMuted,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 3.dp)
+                    )
+                }
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(PrimaryRose.copy(alpha = 0.15f))
+                ) {
+                    Text("🎓", fontSize = 20.sp)
+                }
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatInfoBox(Modifier.weight(1f), "+%.2f".format(testConfig.marksPerCorrect), "MARKS/QN", CorrectGreen)
-                val negStr = if (testConfig.negativeMark > 0) "-%.2f".format(testConfig.negativeMark) else "0.00"
-                StatInfoBox(Modifier.weight(1f), negStr, "NEGATIVE", WrongRed)
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Candidate Name Input
+            // Student Name Input (Saved Automatically)
             OutlinedTextField(
                 value = candidateName,
                 onValueChange = onCandidateNameChange,
-                placeholder = { Text("यहाँ अपना नाम लिखें...", color = TextMuted) },
+                placeholder = { Text("यहाँ अपना नाम लिखें (रिजल्ट के लिए)...", color = TextMuted, fontSize = 13.sp) },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(HomeBgTop, RoundedCornerShape(10.dp)),
+                    .background(HomeBgTop, RoundedCornerShape(12.dp)),
+                shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryRose,
-                    unfocusedBorderColor = PrimaryRose,
+                    unfocusedBorderColor = BorderColor,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White
                 )
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Start Exam Button
-            Button(
-                onClick = onStartTest,
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                Text("▶|| परीक्षा शुरू करें", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Custom Local Quiz Button
-            OutlinedButton(
-                onClick = onOpenCustomModal,
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("⚙️ Create Custom Quiz / Upload .TXT File", color = TextMain, fontSize = 12.sp)
+            // Quick Summary Pills
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                StatInfoBox(Modifier.weight(1f), "${groupedSubjects.size}", "SUBJECTS", SecondarySky)
+                StatInfoBox(Modifier.weight(1f), "$totalOnlineTests", "LIVE TESTS", PrimaryRose)
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(22.dp))
 
-        // ==================== ONLINE PUBLISHED QUIZZES SECTION ====================
+        // 2. Subject-Wise Folders Header (Fixed Refresh Alignment!)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "🌐 ऑनलाइन पब्लिश किए गए टेस्ट (Live Tests)",
-                color = PrimaryRose,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
+                text = "📚 विषय के अनुसार टेस्ट (Subjects)",
+                color = TextMain,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
             )
-            TextButton(onClick = onRefreshOnline) {
-                Text(if (isLoadingOnline) "Loading..." else "🔄 Refresh", color = SecondarySky, fontSize = 12.sp)
+            TextButton(
+                onClick = onRefreshOnline,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = if (isLoadingOnline) "Loading..." else "🔄 Refresh",
+                    color = SecondarySky,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    softWrap = false
+                )
             }
         }
 
-        if (onlineQuizzes.isEmpty() && !isLoadingOnline) {
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Subject Folders List
+        if (isLoadingOnline && groupedSubjects.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(14.dp))
                     .background(HomeCard)
-                    .padding(16.dp),
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryRose, modifier = Modifier.size(28.dp))
+            }
+        } else if (groupedSubjects.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(HomeCard)
+                    .padding(20.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "अभी कोई ऑनलाइन टेस्ट उपलब्ध नहीं है या GitHub Username सेट नहीं किया गया है।",
+                    text = "अभी कोई ऑनलाइन टेस्ट उपलब्ध नहीं है। ऊपर Refresh दबाएं।",
                     color = TextMuted,
-                    fontSize = 12.sp,
+                    fontSize = 13.sp,
                     textAlign = TextAlign.Center
                 )
             }
         } else {
-            onlineQuizzes.forEach { quiz ->
+            val folderColors = listOf(PrimaryRose, SecondarySky, CorrectGreen, AmberGold, SkippedPurple)
+            groupedSubjects.entries.forEachIndexed { index, (subjectName, testList) ->
+                val accent = folderColors[index % folderColors.size]
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 5.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(14.dp))
                         .background(HomeCard)
-                        .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
-                        .clickable { onSelectOnlineQuiz(quiz) }
-                        .padding(14.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
+                        .clickable { onOpenSubjectFolder(subjectName) }
+                        .padding(15.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(accent.copy(alpha = 0.16f))
+                    ) {
+                        Text("📁", fontSize = 22.sp)
+                    }
+                    Spacer(modifier = Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(quiz.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Text(
-                            "${quiz.questionCount} प्रश्न • ${quiz.timeMinutes} Min • ${quiz.publishedDate}",
+                            text = subjectName,
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${testList.size} मॉक टेस्ट उपलब्ध",
                             color = TextMuted,
-                            fontSize = 11.sp,
-                            modifier = Modifier.padding(top = 3.dp)
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 2.dp)
                         )
                     }
+                    Text(
+                        text = "खोलें ›",
+                        color = accent,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(22.dp))
+
+        // 3. Custom Local .TXT Quiz Card
+        Text(
+            text = "📂 खुद का कस्टम टेस्ट (.TXT फाइल से)",
+            color = TextMain,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(HomeCard)
+                .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
+                .padding(15.dp)
+        ) {
+            if (hasCustomSavedQuiz) {
+                Text(
+                    text = "सेव किया गया टेस्ट: $customQuizTitle ($customQuizCount प्रश्न)",
+                    color = TextMain,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        onClick = { onSelectOnlineQuiz(quiz) },
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        onClick = onStartCustomQuiz,
+                        colors = ButtonDefaults.buttonColors(containerColor = CorrectGreen),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Text("Load Test", fontSize = 12.sp, color = Color.White)
+                        Text("▶ टेस्ट शुरू करें", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
+                    OutlinedButton(
+                        onClick = onOpenCustomModal,
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("बदलें", color = TextMain, fontSize = 13.sp)
+                    }
+                }
+            } else {
+                Text(
+                    text = "अपने फोन की किसी भी .txt फाइल से तुरंत ऑफलाइन टेस्ट बनाएं और अभ्यास करें।",
+                    color = TextMuted,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                OutlinedButton(
+                    onClick = onOpenCustomModal,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("⚙️ Create Custom Quiz / Upload .TXT", color = TextMain, fontSize = 13.sp)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Teacher / Admin Publish Button
-        TextButton(onClick = onOpenAdminModal) {
-            Text("🔒 Teacher Admin: Publish New Quiz Online", color = TextMuted, fontSize = 12.sp)
+        // 4. Teacher Admin Button
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            TextButton(onClick = onOpenAdminModal) {
+                Text("🔒 Teacher Admin: Publish New Quiz Online", color = TextMuted, fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+// ==================== 8. SUBJECT FOLDER TESTS SCREEN (WITH BACK BUTTON) ====================
+@Composable
+fun SubjectTestsScreenUI(
+    subjectName: String,
+    tests: List<OnlineQuizMeta>,
+    isDownloading: Boolean,
+    onBack: () -> Unit,
+    onStartTest: (OnlineQuizMeta) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(HomeBgTop, HomeBgBot)))
+    ) {
+        // Top App Bar with Back Button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(CardDark)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(
+                onClick = onBack,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text("← Back", color = PrimaryRose, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.width(6.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "📁 $subjectName",
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${tests.size} उपलब्ध टेस्ट",
+                    color = TextMuted,
+                    fontSize = 11.sp
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(tests) { quiz ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(HomeCard)
+                        .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
+                        .padding(16.dp)
+                ) {
+                    Text(quiz.title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    if (quiz.subtitle.isNotBlank()) {
+                        Text(quiz.subtitle, color = TextMuted, fontSize = 12.sp, modifier = Modifier.padding(top = 3.dp))
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val negStr = if (quiz.negativeMark > 0) "-${quiz.negativeMark}" else "No Neg"
+                        Text(
+                            text = "${quiz.questionCount} प्रश्न • ${quiz.timeMinutes} Min • $negStr",
+                            color = SecondarySky,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Button(
+                            enabled = !isDownloading,
+                            onClick = { onStartTest(quiz) },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text("▶ Start Test", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -831,7 +1204,7 @@ fun StatInfoBox(modifier: Modifier, value: String, label: String, valueColor: Co
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .background(HomeBox)
-            .padding(vertical = 12.dp, horizontal = 8.dp),
+            .padding(vertical = 10.dp, horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(value, color = valueColor, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
@@ -839,7 +1212,7 @@ fun StatInfoBox(modifier: Modifier, value: String, label: String, valueColor: Co
     }
 }
 
-// ==================== 8. TEST SCREEN UI ====================
+// ==================== 9. TEST SCREEN UI (WITH TOP BACK BUTTON) ====================
 @Composable
 fun TestScreenUI(
     testConfig: TestConfig,
@@ -848,6 +1221,7 @@ fun TestScreenUI(
     currentQIndex: Int,
     userAnswers: List<Int?>,
     remainingSeconds: Int,
+    onBackClick: () -> Unit,
     onSelectOption: (Int) -> Unit,
     onPrev: () -> Unit,
     onNext: () -> Unit,
@@ -860,16 +1234,21 @@ fun TestScreenUI(
     val letters = listOf("A", "B", "C", "D", "E")
 
     Column(modifier = Modifier.fillMaxSize().background(BgDark)) {
-        // Top Header
+        // Top Header with Back Button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(CardDark)
-                .padding(horizontal = 15.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = 10.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            TextButton(
+                onClick = onBackClick,
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text("←", color = TextMain, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+            Column(modifier = Modifier.weight(1f).padding(horizontal = 6.dp)) {
                 Text(
                     text = testConfig.title.uppercase(),
                     color = PrimaryRose,
@@ -906,7 +1285,6 @@ fun TestScreenUI(
             }
         }
 
-        // Progress Bar
         LinearProgressIndicator(
             progress = { (currentQIndex + 1).toFloat() / questions.size.toFloat() },
             color = PrimaryRose,
@@ -914,7 +1292,6 @@ fun TestScreenUI(
             modifier = Modifier.fillMaxWidth().height(3.dp)
         )
 
-        // Sub-Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -926,7 +1303,6 @@ fun TestScreenUI(
             Text("उत्तर दिए: $answeredCount", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
 
-        // Question Area
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -973,7 +1349,6 @@ fun TestScreenUI(
                     modifier = Modifier.padding(bottom = 15.dp)
                 )
 
-                // Options List
                 q.options.forEachIndexed { idx, optText ->
                     val isSelected = userAnswers[currentQIndex] == idx
                     Row(
@@ -1012,7 +1387,6 @@ fun TestScreenUI(
             }
         }
 
-        // Bottom Actions Bar
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1074,7 +1448,7 @@ fun TestScreenUI(
     }
 }
 
-// ==================== 9. RESULT SCREEN UI ====================
+// ==================== 10. RESULT SCREEN UI (WITH BACK BUTTON) ====================
 @Composable
 fun ResultScreenUI(
     testConfig: TestConfig,
@@ -1082,6 +1456,7 @@ fun ResultScreenUI(
     questions: List<Question>,
     userAnswers: List<Int?>,
     timeSpentSeconds: Int,
+    onBackHome: () -> Unit,
     onPrintPdf: () -> Unit,
     onRetake: () -> Unit
 ) {
@@ -1101,148 +1476,165 @@ fun ResultScreenUI(
     val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).roundToInt() else 0
     val letters = listOf("A", "B", "C", "D", "E")
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BgDark)
-            .padding(15.dp)
-    ) {
-        item {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text("EXAM RESULT", color = PrimaryRose, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("$candidateName | ${testConfig.title}", color = TextMuted, fontSize = 12.sp)
+    Column(modifier = Modifier.fillMaxSize().background(BgDark)) {
+        // Top Bar with Back Button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(CardDark)
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(onClick = onBackHome) {
+                Text("← Back", color = PrimaryRose, fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
-            Spacer(modifier = Modifier.height(15.dp))
-
-            // Score Card
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(CardDark)
-                    .border(1.dp, PrimaryRose, RoundedCornerShape(12.dp))
-                    .padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "%.2f / %.2f".format(totalMarks, maxMarks),
-                    color = Color.White,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-                val negInfo = if (testConfig.negativeMark > 0) "-%.2f Negative".format(testConfig.negativeMark) else "No Negative"
-                Text("Total Marks ($negInfo)", color = TextMuted, fontSize = 12.sp)
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 6 Stats Grid
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatInfoBox(Modifier.weight(1f), "$correct", "सही", CorrectGreen)
-                StatInfoBox(Modifier.weight(1f), "$wrong", "गलत", WrongRed)
-                StatInfoBox(Modifier.weight(1f), "$skipped", "छूटे", SkippedPurple)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            val mins = timeSpentSeconds / 60
-            val secs = timeSpentSeconds % 60
-            val avgSec = if (questions.isNotEmpty()) timeSpentSeconds / questions.size else 0
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatInfoBox(Modifier.weight(1f), "$accuracy%", "सटीकता", PrimaryRose)
-                StatInfoBox(Modifier.weight(1f), "${mins}m ${secs}s", "समय", PrimaryRose)
-                StatInfoBox(Modifier.weight(1f), "${avgSec}s", "औसत/प्रश्न", PrimaryRose)
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            // Print PDF & Retake Buttons
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = onPrintPdf,
-                    colors = ButtonDefaults.buttonColors(containerColor = SecondarySky),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.weight(1f).height(46.dp)
-                ) {
-                    Text("🖨️ Print PDF", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-                Button(
-                    onClick = onRetake,
-                    colors = ButtonDefaults.buttonColors(containerColor = WrongRed),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.weight(1f).height(46.dp)
-                ) {
-                    Text("🔄 Retake Test", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "📝 विस्तृत हल (Solutions & Explanations)",
-                color = PrimaryRose,
-                fontSize = 15.sp,
+                text = "EXAM RESULT",
+                color = TextMain,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 10.dp)
+                modifier = Modifier.padding(start = 6.dp)
             )
         }
 
-        itemsIndexed(questions) { idx, q ->
-            val uAns = userAnswers.getOrNull(idx)
-            val statusColor = when (uAns) {
-                null -> WrongRed
-                q.correctAnswer -> CorrectGreen
-                else -> WrongRed
-            }
-            val statusText = when (uAns) {
-                null -> "अनुत्तरित (SKIPPED)"
-                q.correctAnswer -> "सही (CORRECT)"
-                else -> "गलत (INCORRECT)"
-            }
-            val uAnsText = if (uAns != null) "(${letters.getOrElse(uAns) { "" }}) ${q.options.getOrElse(uAns) { "" }}" else "कोई नहीं"
-            val cAnsText = "(${letters.getOrElse(q.correctAnswer) { "" }}) ${q.options.getOrElse(q.correctAnswer) { "" }}"
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(CardDark)
-                    .padding(15.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Q${idx + 1}.", color = PrimaryRose, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(PrimaryRose)
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                    ) {
-                        Text(q.topic, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(15.dp)
+        ) {
+            item {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Text("$candidateName | ${testConfig.title}", color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
                 }
-                Text(q.text, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-                Text("आपका उत्तर: $uAnsText", color = statusColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                Text("सही उत्तर: $cAnsText", color = CorrectGreen, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                Text(statusText, color = statusColor, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 10.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(PrimaryRose.copy(alpha = 0.08f))
-                        .padding(10.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(CardDark)
+                        .border(1.dp, PrimaryRose, RoundedCornerShape(12.dp))
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("💡 व्याख्या (Solution):", color = PrimaryRose, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(q.solution, color = Color(0xFFE2E8F0), fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                    Text(
+                        text = "%.2f / %.2f".format(totalMarks, maxMarks),
+                        color = Color.White,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    val negInfo = if (testConfig.negativeMark > 0) "-%.2f Negative".format(testConfig.negativeMark) else "No Negative"
+                    Text("Total Marks ($negInfo)", color = TextMuted, fontSize = 12.sp)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StatInfoBox(Modifier.weight(1f), "$correct", "सही", CorrectGreen)
+                    StatInfoBox(Modifier.weight(1f), "$wrong", "गलत", WrongRed)
+                    StatInfoBox(Modifier.weight(1f), "$skipped", "छूटे", SkippedPurple)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                val mins = timeSpentSeconds / 60
+                val secs = timeSpentSeconds % 60
+                val avgSec = if (questions.isNotEmpty()) timeSpentSeconds / questions.size else 0
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StatInfoBox(Modifier.weight(1f), "$accuracy%", "सटीकता", PrimaryRose)
+                    StatInfoBox(Modifier.weight(1f), "${mins}m ${secs}s", "समय", PrimaryRose)
+                    StatInfoBox(Modifier.weight(1f), "${avgSec}s", "औसत/प्रश्न", PrimaryRose)
+                }
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(
+                        onClick = onPrintPdf,
+                        colors = ButtonDefaults.buttonColors(containerColor = SecondarySky),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f).height(46.dp)
+                    ) {
+                        Text("🖨️ Print PDF", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                    Button(
+                        onClick = onRetake,
+                        colors = ButtonDefaults.buttonColors(containerColor = WrongRed),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f).height(46.dp)
+                    ) {
+                        Text("🔄 Retake Test", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "📝 विस्तृत हल (Solutions & Explanations)",
+                    color = PrimaryRose,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+            }
+
+            itemsIndexed(questions) { idx, q ->
+                val uAns = userAnswers.getOrNull(idx)
+                val statusColor = when (uAns) {
+                    null -> WrongRed
+                    q.correctAnswer -> CorrectGreen
+                    else -> WrongRed
+                }
+                val statusText = when (uAns) {
+                    null -> "अनुत्तरित (SKIPPED)"
+                    q.correctAnswer -> "सही (CORRECT)"
+                    else -> "गलत (INCORRECT)"
+                }
+                val uAnsText = if (uAns != null) "(${letters.getOrElse(uAns) { "" }}) ${q.options.getOrElse(uAns) { "" }}" else "कोई नहीं"
+                val cAnsText = "(${letters.getOrElse(q.correctAnswer) { "" }}) ${q.options.getOrElse(q.correctAnswer) { "" }}"
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(CardDark)
+                        .padding(15.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Q${idx + 1}.", color = PrimaryRose, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(PrimaryRose)
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(q.topic, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Text(q.text, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+                    Text("आपका उत्तर: $uAnsText", color = statusColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text("सही उत्तर: $cAnsText", color = CorrectGreen, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(statusText, color = statusColor, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(PrimaryRose.copy(alpha = 0.08f))
+                            .padding(10.dp)
+                    ) {
+                        Text("💡 व्याख्या (Solution):", color = PrimaryRose, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(q.solution, color = Color(0xFFE2E8F0), fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                    }
                 }
             }
         }
     }
 }
 
-// ==================== 10. CUSTOM LOCAL QUIZ MODAL (.TXT FILE PICKER) ====================
+// ==================== 11. CUSTOM LOCAL QUIZ MODAL ====================
 @Composable
 fun CustomQuizDialog(
     initialConfig: TestConfig,
@@ -1345,16 +1737,18 @@ fun CustomQuizDialog(
     )
 }
 
-// ==================== 11. TEACHER ADMIN ONLINE PUBLISH MODAL ====================
+// ==================== 12. TEACHER ADMIN ONLINE PUBLISH MODAL (WITH SUBJECT FOLDER) ====================
 @Composable
 fun AdminPublishDialog(
     savedToken: String,
+    existingSubjects: List<String>,
     onDismiss: () -> Unit,
     onPublishedSuccess: (String) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var token by remember { mutableStateOf(savedToken) }
+    var subject by remember { mutableStateOf(existingSubjects.firstOrNull() ?: "Computer Science") }
     var title by remember { mutableStateOf("Rajasthan SET & UGC NET Mock Test") }
     var subtitle by remember { mutableStateOf("Target Preparation & Revision Test") }
     var timeStr by remember { mutableStateOf("60") }
@@ -1376,11 +1770,11 @@ fun AdminPublishDialog(
     AlertDialog(
         onDismissRequest = { if (!isPublishing) onDismiss() },
         containerColor = CardDark,
-        title = { Text("🌐 Publish Quiz Online (GitHub)", color = PrimaryRose, fontWeight = FontWeight.Black, fontSize = 17.sp) },
+        title = { Text("🌐 Publish Quiz Online", color = PrimaryRose, fontWeight = FontWeight.Black, fontSize = 17.sp) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(
-                    "यहाँ से पब्लिश किया गया टेस्ट सभी स्टूडेंट्स के ऐप की होम स्क्रीन पर तुरंत दिखाई देगा।",
+                    "जिस Subject का नाम लिखेंगे, होम स्क्रीन पर उसका फोल्डर अपने आप बन जाएगा।",
                     color = TextMuted,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 10.dp)
@@ -1388,11 +1782,40 @@ fun AdminPublishDialog(
                 OutlinedTextField(
                     value = token,
                     onValueChange = { token = it },
-                    label = { Text("GitHub Personal Access Token (PAT)") },
+                    label = { Text("GitHub PAT Token") },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = subject,
+                    onValueChange = { subject = it },
+                    label = { Text("Subject / Folder Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (existingSubjects.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        existingSubjects.forEach { sub ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(HomeBox)
+                                    .clickable { subject = sub }
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(sub, color = TextMain, fontSize = 11.sp)
+                            }
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = title,
@@ -1404,7 +1827,7 @@ fun AdminPublishDialog(
                 OutlinedTextField(
                     value = subtitle,
                     onValueChange = { subtitle = it },
-                    label = { Text("Subtitle / Subject") },
+                    label = { Text("Subtitle / Description") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -1412,7 +1835,7 @@ fun AdminPublishDialog(
                     OutlinedTextField(
                         value = timeStr,
                         onValueChange = { timeStr = it },
-                        label = { Text("Time (Min)") },
+                        label = { Text("Time") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f)
                     )
@@ -1426,7 +1849,7 @@ fun AdminPublishDialog(
                     OutlinedTextField(
                         value = negStr,
                         onValueChange = { negStr = it },
-                        label = { Text("Negative") },
+                        label = { Text("Neg") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f)
                     )
@@ -1465,6 +1888,7 @@ fun AdminPublishDialog(
                             token = token.trim(),
                             title = title.trim(),
                             subtitle = subtitle.trim(),
+                            subject = subject.trim().ifEmpty { "General Tests" },
                             timeMinutes = timeStr.toIntOrNull() ?: 60,
                             marks = marksStr.toDoubleOrNull() ?: 2.0,
                             neg = negStr.toDoubleOrNull() ?: 0.0,
@@ -1491,7 +1915,7 @@ fun AdminPublishDialog(
     )
 }
 
-// ==================== 12. EXACT A4 WATERMARK PDF PRINT HELPER ====================
+// ==================== 13. EXACT A4 WATERMARK PDF PRINT HELPER ====================
 fun printExactA4ResultPdf(
     context: Context,
     config: TestConfig,
