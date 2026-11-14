@@ -55,15 +55,23 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
+import java.security.SecureRandom
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-// ==================== 1. GITHUB CONFIGURATION ====================
+// ==================== 1. GITHUB & ENCRYPTION CONFIGURATION ====================
 const val GITHUB_OWNER = "sanjusuthar"
 const val GITHUB_REPO = "mock-test-app"
 const val GITHUB_BRANCH = "main"
+
+// यह गुप्त कुंजी (Secret Key) GitHub पर अपलोड होने वाले प्रश्नों को एन्क्रिप्ट रखती है ताकि कोई GitHub से प्रश्न या उत्तर न चुरा सके
+private const val QUIZ_SECRET_PASSPHRASE = "SanjayMockTest#2026!SecureKey"
 
 // ==================== 2. CLEAN COACHING UI THEME COLORS ====================
 val BgDark = Color(0xFF09090B)
@@ -93,6 +101,7 @@ data class Question(
 )
 
 data class TestConfig(
+    val id: String = "custom",
     val title: String = "Online Mock Test",
     val subtitle: String = "Target Preparation & Revision Test",
     val subject: String = "General",
@@ -111,12 +120,51 @@ data class OnlineQuizMeta(
     val negativeMark: Double,
     val questionCount: Int,
     val fileUrl: String,
+    val repoPath: String,
     val publishedDate: String
+)
+
+data class SavedResumeState(
+    val config: TestConfig,
+    val rawTxt: String,
+    val currentQIndex: Int,
+    val remainingSeconds: Int,
+    val userAnswers: List<Int?>
 )
 
 enum class AppScreen { HOME, SUBJECT_TESTS, TEST, RESULT }
 
-// ==================== 4. TXT QUESTION PARSER ====================
+// ==================== 4. AES-256 ENCRYPTION HELPER (ANTI-CHEATING) ====================
+object QuizCrypto {
+    private fun getAesKey(): SecretKeySpec {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val keyBytes = digest.digest(QUIZ_SECRET_PASSPHRASE.toByteArray(Charsets.UTF_8))
+        return SecretKeySpec(keyBytes, "AES")
+    }
+
+    fun encrypt(plainText: String): String {
+        val iv = ByteArray(16)
+        SecureRandom().nextBytes(iv)
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, getAesKey(), IvParameterSpec(iv))
+        val encrypted = cipher.doFinal(plainText.toByteArray(Charsets.UTF_8))
+        val combined = iv + encrypted
+        return "ENCv1:" + Base64.encodeToString(combined, Base64.NO_WRAP)
+    }
+
+    fun decryptIfNeeded(content: String): String {
+        val trimmed = content.trim()
+        if (!trimmed.startsWith("ENCv1:")) return content
+        val combined = Base64.decode(trimmed.removePrefix("ENCv1:"), Base64.DEFAULT)
+        val iv = combined.copyOfRange(0, 16)
+        val encrypted = combined.copyOfRange(16, combined.size)
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, getAesKey(), IvParameterSpec(iv))
+        return String(cipher.doFinal(encrypted), Charsets.UTF_8)
+    }
+}
+
+// ==================== 5. TXT QUESTION PARSER ====================
 object TxtQuestionParser {
     fun parse(rawText: String): List<Question> {
         val parsed = mutableListOf<Question>()
@@ -170,7 +218,69 @@ object TxtQuestionParser {
     }
 }
 
-// ==================== 5. GITHUB CLOUD SYNC & ADMIN PUBLISHER ====================
+// ==================== 6. RESUME STATE STORAGE HELPER ====================
+object ResumeStorage {
+    private const val KEY_RESUME_JSON = "active_resume_state_v1"
+
+    fun save(context: Context, state: SavedResumeState) {
+        val prefs = context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE)
+        val ansArr = JSONArray()
+        state.userAnswers.forEach { ans ->
+            if (ans == null) ansArr.put(JSONObject.NULL) else ansArr.put(ans)
+        }
+        val obj = JSONObject().apply {
+            put("id", state.config.id)
+            put("title", state.config.title)
+            put("subtitle", state.config.subtitle)
+            put("subject", state.config.subject)
+            put("timeMinutes", state.config.timeMinutes)
+            put("marksPerCorrect", state.config.marksPerCorrect)
+            put("negativeMark", state.config.negativeMark)
+            put("rawTxt", state.rawTxt)
+            put("currentQIndex", state.currentQIndex)
+            put("remainingSeconds", state.remainingSeconds)
+            put("userAnswers", ansArr)
+        }
+        prefs.edit().putString(KEY_RESUME_JSON, obj.toString()).apply()
+    }
+
+    fun load(context: Context): SavedResumeState? {
+        val prefs = context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE)
+        val str = prefs.getString(KEY_RESUME_JSON, null) ?: return null
+        return try {
+            val obj = JSONObject(str)
+            val ansArr = obj.getJSONArray("userAnswers")
+            val ansList = mutableListOf<Int?>()
+            for (i in 0 until ansArr.length()) {
+                ansList.add(if (ansArr.isNull(i)) null else ansArr.getInt(i))
+            }
+            SavedResumeState(
+                config = TestConfig(
+                    id = obj.optString("id", "custom"),
+                    title = obj.optString("title", "Mock Test"),
+                    subtitle = obj.optString("subtitle", ""),
+                    subject = obj.optString("subject", "General"),
+                    timeMinutes = obj.optInt("timeMinutes", 60),
+                    marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
+                    negativeMark = obj.optDouble("negativeMark", 0.0)
+                ),
+                rawTxt = obj.getString("rawTxt"),
+                currentQIndex = obj.optInt("currentQIndex", 0),
+                remainingSeconds = obj.optInt("remainingSeconds", 60),
+                userAnswers = ansList
+            )
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun clear(context: Context) {
+        val prefs = context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE)
+        prefs.edit().remove(KEY_RESUME_JSON).apply()
+    }
+}
+
+// ==================== 7. GITHUB CLOUD SYNC & ADMIN PUBLISHER / DELETER ====================
 object GitHubCloudService {
     suspend fun fetchOnlineQuizzes(): List<OnlineQuizMeta> = withContext(Dispatchers.IO) {
         val urlStr = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/quizzes/index.json?t=${System.currentTimeMillis()}"
@@ -185,6 +295,11 @@ object GitHubCloudService {
         for (i in 0 until arr.length()) {
             val obj = arr.getJSONObject(i)
             val rawSubject = obj.optString("subject", "").trim()
+            val fileUrl = obj.optString("fileUrl", "")
+            val derivedPath = obj.optString("repoPath", "").ifBlank {
+                val marker = "/$GITHUB_BRANCH/"
+                if (fileUrl.contains(marker)) fileUrl.substringAfter(marker) else ""
+            }
             list.add(
                 OnlineQuizMeta(
                     id = obj.optString("id", "quiz_$i"),
@@ -195,7 +310,8 @@ object GitHubCloudService {
                     marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
                     negativeMark = obj.optDouble("negativeMark", 0.0),
                     questionCount = obj.optInt("questionCount", 0),
-                    fileUrl = obj.optString("fileUrl", ""),
+                    fileUrl = fileUrl,
+                    repoPath = derivedPath,
                     publishedDate = obj.optString("publishedDate", "")
                 )
             )
@@ -203,13 +319,14 @@ object GitHubCloudService {
         list
     }
 
-    suspend fun downloadQuizText(fileUrl: String): String = withContext(Dispatchers.IO) {
+    suspend fun downloadAndDecryptQuizText(fileUrl: String): String = withContext(Dispatchers.IO) {
         val sep = if (fileUrl.contains("?")) "&" else "?"
         val conn = URL("$fileUrl${sep}t=${System.currentTimeMillis()}").openConnection() as HttpURLConnection
-        conn.inputStream.bufferedReader().use { it.readText() }
+        val rawDownloaded = conn.inputStream.bufferedReader().use { it.readText() }
+        QuizCrypto.decryptIfNeeded(rawDownloaded)
     }
 
-    suspend fun publishQuizToGitHub(
+    suspend fun publishEncryptedQuizToGitHub(
         token: String,
         title: String,
         subtitle: String,
@@ -228,20 +345,21 @@ object GitHubCloudService {
                 .ifEmpty { "general" }
 
             val fileId = "quiz_${System.currentTimeMillis()}"
-            val txtPath = "quizzes/$safeFolder/$fileId.txt"
+            val encPath = "quizzes/$safeFolder/$fileId.enc"
+            val encryptedPayload = QuizCrypto.encrypt(rawTxtContent)
 
             putFileToGitHub(
                 token = token,
-                path = txtPath,
-                content = rawTxtContent,
-                commitMsg = "Publish [$subject] quiz: $title"
+                path = encPath,
+                content = encryptedPayload,
+                commitMsg = "Publish encrypted [$subject] quiz: $title"
             )
 
             val indexPath = "quizzes/index.json"
             val existingFile = getFileFromGitHub(token, indexPath)
             val currentArray = if (existingFile != null) JSONArray(existingFile.first) else JSONArray()
 
-            val rawFileUrl = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/$txtPath"
+            val rawFileUrl = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/$encPath"
             val today = SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).format(Date())
 
             val newEntry = JSONObject().apply {
@@ -254,6 +372,7 @@ object GitHubCloudService {
                 put("negativeMark", neg)
                 put("questionCount", questionCount)
                 put("fileUrl", rawFileUrl)
+                put("repoPath", encPath)
                 put("publishedDate", today)
             }
 
@@ -271,7 +390,83 @@ object GitHubCloudService {
                 sha = existingFile?.second
             )
 
-            Result.success("टेस्ट '$subject' फोल्डर में सफलतापूर्वक पब्लिश हो गया!")
+            Result.success("टेस्ट एन्क्रिप्टेड रूप में '$subject' फोल्डर में पब्लिश हो गया!")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteQuizFromGitHub(token: String, quiz: OnlineQuizMeta): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val indexPath = "quizzes/index.json"
+            val existingIndex = getFileFromGitHub(token, indexPath)
+                ?: return@withContext Result.failure(Exception("index.json नहीं मिला"))
+
+            val currentArray = JSONArray(existingIndex.first)
+            val updatedArray = JSONArray()
+            for (i in 0 until currentArray.length()) {
+                val obj = currentArray.getJSONObject(i)
+                if (obj.optString("id") != quiz.id) {
+                    updatedArray.put(obj)
+                }
+            }
+
+            putFileToGitHub(
+                token = token,
+                path = indexPath,
+                content = updatedArray.toString(2),
+                commitMsg = "Delete quiz: ${quiz.title}",
+                sha = existingIndex.second
+            )
+
+            if (quiz.repoPath.isNotBlank()) {
+                deleteFileFromGitHub(token, quiz.repoPath, "Remove file for ${quiz.title}")
+            }
+
+            Result.success("'${quiz.title}' डिलीट हो गया!")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteSubjectFolderFromGitHub(
+        token: String,
+        subjectName: String,
+        quizzesInFolder: List<OnlineQuizMeta>
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val indexPath = "quizzes/index.json"
+            val existingIndex = getFileFromGitHub(token, indexPath)
+                ?: return@withContext Result.failure(Exception("index.json नहीं मिला"))
+
+            val idsToRemove = quizzesInFolder.map { it.id }.toSet()
+            val currentArray = JSONArray(existingIndex.first)
+            val updatedArray = JSONArray()
+            for (i in 0 until currentArray.length()) {
+                val obj = currentArray.getJSONObject(i)
+                if (obj.optString("id") !in idsToRemove) {
+                    updatedArray.put(obj)
+                }
+            }
+
+            putFileToGitHub(
+                token = token,
+                path = indexPath,
+                content = updatedArray.toString(2),
+                commitMsg = "Delete subject folder: $subjectName",
+                sha = existingIndex.second
+            )
+
+            quizzesInFolder.forEach { q ->
+                if (q.repoPath.isNotBlank()) {
+                    try {
+                        deleteFileFromGitHub(token, q.repoPath, "Cleanup $subjectName")
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+
+            Result.success("फोल्डर '$subjectName' और इसके सभी टेस्ट डिलीट हो गए!")
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -323,9 +518,28 @@ object GitHubCloudService {
             throw Exception("GitHub API Error ($code): $err")
         }
     }
+
+    private fun deleteFileFromGitHub(token: String, path: String, commitMsg: String) {
+        val fileInfo = getFileFromGitHub(token, path) ?: return
+        val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/$path"
+        val conn = URL(apiUrl).openConnection() as HttpURLConnection
+        conn.requestMethod = "DELETE"
+        conn.doOutput = true
+        conn.setRequestProperty("Authorization", "Bearer $token")
+        conn.setRequestProperty("Accept", "application/vnd.github+json")
+        conn.setRequestProperty("Content-Type", "application/json")
+
+        val body = JSONObject().apply {
+            put("message", commitMsg)
+            put("sha", fileInfo.second)
+            put("branch", GITHUB_BRANCH)
+        }
+        OutputStreamWriter(conn.outputStream).use { it.write(body.toString()) }
+        conn.responseCode
+    }
 }
 
-// ==================== 6. MAIN ACTIVITY ====================
+// ==================== 8. MAIN ACTIVITY ====================
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -355,9 +569,13 @@ fun MockTestAppRoot() {
     var selectedSubjectFolder by remember { mutableStateOf("") }
 
     var testConfig by remember { mutableStateOf(TestConfig()) }
+    var activeRawTxt by remember { mutableStateOf("") }
     var questions by remember { mutableStateOf<List<Question>>(emptyList()) }
     var candidateName by remember { mutableStateOf(prefs.getString("student_name", "") ?: "") }
     var hasCustomSavedQuiz by remember { mutableStateOf(false) }
+
+    // Resume State
+    var savedResumeState by remember { mutableStateOf<SavedResumeState?>(null) }
 
     // Test Active State
     var currentQIndex by remember { mutableStateOf(0) }
@@ -369,7 +587,7 @@ fun MockTestAppRoot() {
 
     // Modals
     var showCustomQuizModal by remember { mutableStateOf(false) }
-    var showAdminPublishModal by remember { mutableStateOf(false) }
+    var showAdminModal by remember { mutableStateOf(false) }
     var showNamePromptDialog by remember { mutableStateOf(false) }
     var pendingQuizToStart by remember { mutableStateOf<OnlineQuizMeta?>(null) }
 
@@ -378,10 +596,29 @@ fun MockTestAppRoot() {
     var isLoadingOnline by remember { mutableStateOf(false) }
     var isDownloadingQuiz by remember { mutableStateOf(false) }
 
-    // Double-back to exit on Home
     var lastBackPressTime by remember { mutableStateOf(0L) }
 
-    // ==================== PROPER ANDROID BACK NAVIGATION ====================
+    fun persistActiveProgress() {
+        if (currentScreen == AppScreen.TEST && activeRawTxt.isNotBlank() && questions.isNotEmpty()) {
+            val state = SavedResumeState(
+                config = testConfig,
+                rawTxt = activeRawTxt,
+                currentQIndex = currentQIndex,
+                remainingSeconds = remainingSeconds,
+                userAnswers = userAnswers
+            )
+            ResumeStorage.save(context, state)
+            savedResumeState = state
+        }
+    }
+
+    fun finishAndSubmitExam() {
+        ResumeStorage.clear(context)
+        savedResumeState = null
+        currentScreen = AppScreen.RESULT
+    }
+
+    // Proper Android Back Navigation
     BackHandler(enabled = true) {
         when (currentScreen) {
             AppScreen.TEST -> {
@@ -398,24 +635,23 @@ fun MockTestAppRoot() {
                 currentScreen = AppScreen.HOME
             }
             AppScreen.HOME -> {
-                if (showCustomQuizModal) {
-                    showCustomQuizModal = false
-                } else if (showAdminPublishModal) {
-                    showAdminPublishModal = false
-                } else {
-                    val now = System.currentTimeMillis()
-                    if (now - lastBackPressTime < 2000L) {
-                        (context as? ComponentActivity)?.finish()
-                    } else {
-                        lastBackPressTime = now
-                        Toast.makeText(context, "ऐप बंद करने के लिए दोबारा Back दबाएं", Toast.LENGTH_SHORT).show()
+                when {
+                    showCustomQuizModal -> showCustomQuizModal = false
+                    showAdminModal -> showAdminModal = false
+                    else -> {
+                        val now = System.currentTimeMillis()
+                        if (now - lastBackPressTime < 2000L) {
+                            (context as? ComponentActivity)?.finish()
+                        } else {
+                            lastBackPressTime = now
+                            Toast.makeText(context, "ऐप बंद करने के लिए दोबारा Back दबाएं", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
         }
     }
 
-    // Helper to start any online quiz directly
     fun launchOnlineQuiz(meta: OnlineQuizMeta) {
         if (candidateName.isBlank()) {
             pendingQuizToStart = meta
@@ -426,11 +662,13 @@ fun MockTestAppRoot() {
         scope.launch {
             isDownloadingQuiz = true
             try {
-                val rawTxt = GitHubCloudService.downloadQuizText(meta.fileUrl)
-                val parsed = TxtQuestionParser.parse(rawTxt)
+                val decryptedTxt = GitHubCloudService.downloadAndDecryptQuizText(meta.fileUrl)
+                val parsed = TxtQuestionParser.parse(decryptedTxt)
                 if (parsed.isNotEmpty()) {
+                    activeRawTxt = decryptedTxt
                     questions = parsed
                     testConfig = TestConfig(
+                        id = meta.id,
                         title = meta.title,
                         subtitle = meta.subtitle,
                         subject = meta.subject,
@@ -443,6 +681,7 @@ fun MockTestAppRoot() {
                     remainingSeconds = meta.timeMinutes * 60
                     previousScreenBeforeTest = currentScreen
                     currentScreen = AppScreen.TEST
+                    persistActiveProgress()
                 } else {
                     Toast.makeText(context, "टेस्ट फाइल में कोई प्रश्न नहीं मिला।", Toast.LENGTH_SHORT).show()
                 }
@@ -454,20 +693,26 @@ fun MockTestAppRoot() {
         }
     }
 
-    // Initial load
+    // Initial Load
     LaunchedEffect(Unit) {
+        savedResumeState = ResumeStorage.load(context)
+
         val savedTxt = prefs.getString("saved_custom_txt", null)
         if (!savedTxt.isNullOrBlank()) {
             val parsed = TxtQuestionParser.parse(savedTxt)
             if (parsed.isNotEmpty()) {
-                questions = parsed
                 hasCustomSavedQuiz = true
-                testConfig = TestConfig(
-                    title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
-                    timeMinutes = prefs.getInt("saved_time", 60),
-                    marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
-                    negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
-                )
+                if (savedResumeState == null) {
+                    questions = parsed
+                    activeRawTxt = savedTxt
+                    testConfig = TestConfig(
+                        id = "custom",
+                        title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                        timeMinutes = prefs.getInt("saved_time", 60),
+                        marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
+                        negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
+                    )
+                }
             }
         }
 
@@ -480,13 +725,16 @@ fun MockTestAppRoot() {
         }
     }
 
-    // Timer
+    // Timer + Auto-save every 5 seconds for Resume
     LaunchedEffect(currentScreen, remainingSeconds) {
         if (currentScreen == AppScreen.TEST && remainingSeconds > 0) {
             delay(1000L)
             remainingSeconds--
+            if (remainingSeconds % 5 == 0) {
+                persistActiveProgress()
+            }
             if (remainingSeconds <= 0) {
-                currentScreen = AppScreen.RESULT
+                finishAndSubmitExam()
             }
         }
     }
@@ -509,12 +757,30 @@ fun MockTestAppRoot() {
                         candidateName = it
                         prefs.edit().putString("student_name", it.trim()).apply()
                     },
+                    savedResumeState = savedResumeState,
+                    onResumeTest = { state ->
+                        val parsed = TxtQuestionParser.parse(state.rawTxt)
+                        if (parsed.isNotEmpty()) {
+                            testConfig = state.config
+                            activeRawTxt = state.rawTxt
+                            questions = parsed
+                            currentQIndex = state.currentQIndex.coerceIn(0, parsed.size - 1)
+                            remainingSeconds = state.remainingSeconds.coerceAtLeast(1)
+                            userAnswers = if (state.userAnswers.size == parsed.size) state.userAnswers else List(parsed.size) { null }
+                            previousScreenBeforeTest = AppScreen.HOME
+                            currentScreen = AppScreen.TEST
+                        }
+                    },
+                    onDiscardResume = {
+                        ResumeStorage.clear(context)
+                        savedResumeState = null
+                    },
                     groupedSubjects = groupedBySubject,
                     totalOnlineTests = onlineQuizzes.size,
                     isLoadingOnline = isLoadingOnline,
                     hasCustomSavedQuiz = hasCustomSavedQuiz,
-                    customQuizTitle = testConfig.title,
-                    customQuizCount = questions.size,
+                    customQuizTitle = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                    customQuizCount = TxtQuestionParser.parse(prefs.getString("saved_custom_txt", "") ?: "").size,
                     onRefreshOnline = {
                         scope.launch {
                             isLoadingOnline = true
@@ -536,8 +802,10 @@ fun MockTestAppRoot() {
                             val savedTxt = prefs.getString("saved_custom_txt", "") ?: ""
                             val parsed = TxtQuestionParser.parse(savedTxt)
                             if (parsed.isNotEmpty()) {
+                                activeRawTxt = savedTxt
                                 questions = parsed
                                 testConfig = TestConfig(
+                                    id = "custom",
                                     title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
                                     timeMinutes = prefs.getInt("saved_time", 60),
                                     marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
@@ -548,11 +816,12 @@ fun MockTestAppRoot() {
                                 remainingSeconds = testConfig.timeMinutes * 60
                                 previousScreenBeforeTest = AppScreen.HOME
                                 currentScreen = AppScreen.TEST
+                                persistActiveProgress()
                             }
                         }
                     },
                     onOpenCustomModal = { showCustomQuizModal = true },
-                    onOpenAdminModal = { showAdminPublishModal = true }
+                    onOpenAdminModal = { showAdminModal = true }
                 )
             }
 
@@ -580,15 +849,29 @@ fun MockTestAppRoot() {
                         val mutable = userAnswers.toMutableList()
                         mutable[currentQIndex] = optIdx
                         userAnswers = mutable
+                        persistActiveProgress()
                     },
-                    onPrev = { if (currentQIndex > 0) currentQIndex-- },
+                    onPrev = {
+                        if (currentQIndex > 0) {
+                            currentQIndex--
+                            persistActiveProgress()
+                        }
+                    },
                     onNext = {
-                        if (currentQIndex < questions.size - 1) currentQIndex++
-                        else showSubmitConfirm = true
+                        if (currentQIndex < questions.size - 1) {
+                            currentQIndex++
+                            persistActiveProgress()
+                        } else {
+                            showSubmitConfirm = true
+                        }
                     },
                     onSkip = {
-                        if (currentQIndex < questions.size - 1) currentQIndex++
-                        else showSubmitConfirm = true
+                        if (currentQIndex < questions.size - 1) {
+                            currentQIndex++
+                            persistActiveProgress()
+                        } else {
+                            showSubmitConfirm = true
+                        }
                     },
                     onOpenPalette = { showPaletteSheet = true },
                     onSubmitClick = { showSubmitConfirm = true }
@@ -604,7 +887,7 @@ fun MockTestAppRoot() {
                     timeSpentSeconds = (testConfig.timeMinutes * 60) - remainingSeconds,
                     onBackHome = { currentScreen = previousScreenBeforeTest },
                     onPrintPdf = {
-                        printExactA4ResultPdf(
+                        printTwoColumnA4ResultPdf(
                             context = context,
                             config = testConfig,
                             studentName = candidateName,
@@ -617,12 +900,12 @@ fun MockTestAppRoot() {
                         currentQIndex = 0
                         remainingSeconds = testConfig.timeMinutes * 60
                         currentScreen = AppScreen.TEST
+                        persistActiveProgress()
                     }
                 )
             }
         }
 
-        // Loading overlay while downloading quiz
         if (isDownloadingQuiz) {
             Box(
                 modifier = Modifier
@@ -640,12 +923,11 @@ fun MockTestAppRoot() {
                 ) {
                     CircularProgressIndicator(color = PrimaryRose)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("टेस्ट लोड हो रहा है...", color = TextMain, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("सुरक्षित टेस्ट लोड हो रहा है...", color = TextMain, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
 
-        // Question Palette Dialog
         if (showPaletteSheet && currentScreen == AppScreen.TEST) {
             AlertDialog(
                 onDismissRequest = { showPaletteSheet = false },
@@ -672,6 +954,7 @@ fun MockTestAppRoot() {
                                     .background(bg)
                                     .clickable {
                                         currentQIndex = idx
+                                        persistActiveProgress()
                                         showPaletteSheet = false
                                     }
                             ) {
@@ -695,22 +978,23 @@ fun MockTestAppRoot() {
             )
         }
 
-        // Exit Test Confirmation Dialog (on Back press during exam)
+        // Exit Test Confirmation (Saves Resume State!)
         if (showExitTestConfirm) {
             AlertDialog(
                 onDismissRequest = { showExitTestConfirm = false },
                 containerColor = CardDark,
-                title = { Text("परीक्षा से बाहर जाएं?", color = TextMain, fontWeight = FontWeight.Bold) },
-                text = { Text("अगर आप अभी वापस जाएंगे तो आपकी चल रही परीक्षा का समय और उत्तर सेव नहीं होंगे।", color = TextMuted) },
+                title = { Text("परीक्षा रोकें और बाहर जाएं?", color = TextMain, fontWeight = FontWeight.Bold) },
+                text = { Text("आपका बचा हुआ समय और उत्तर सेव कर लिए गए हैं। आप होम स्क्रीन से कभी भी Resume कर सकते हैं।", color = TextMuted) },
                 confirmButton = {
                     Button(
                         onClick = {
+                            persistActiveProgress()
                             showExitTestConfirm = false
                             currentScreen = previousScreenBeforeTest
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = WrongRed)
+                        colors = ButtonDefaults.buttonColors(containerColor = AmberGold)
                     ) {
-                        Text("हाँ, बाहर जाएं", color = Color.White)
+                        Text("सेव करें व बाहर जाएं", color = Color.Black, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -721,7 +1005,6 @@ fun MockTestAppRoot() {
             )
         }
 
-        // Submit Confirmation Dialog
         if (showSubmitConfirm) {
             AlertDialog(
                 onDismissRequest = { showSubmitConfirm = false },
@@ -732,7 +1015,7 @@ fun MockTestAppRoot() {
                     Button(
                         onClick = {
                             showSubmitConfirm = false
-                            currentScreen = AppScreen.RESULT
+                            finishAndSubmitExam()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = CorrectGreen)
                     ) {
@@ -747,7 +1030,6 @@ fun MockTestAppRoot() {
             )
         }
 
-        // Student Name Prompt if they tap a test without entering name
         if (showNamePromptDialog && pendingQuizToStart != null) {
             var tempName by remember { mutableStateOf(candidateName) }
             AlertDialog(
@@ -788,13 +1070,13 @@ fun MockTestAppRoot() {
             )
         }
 
-        // Custom Local Quiz Modal
         if (showCustomQuizModal) {
             CustomQuizDialog(
                 initialConfig = testConfig,
                 onDismiss = { showCustomQuizModal = false },
                 onSaveCustomQuiz = { newCfg, rawTxt, parsedList ->
                     testConfig = newCfg
+                    activeRawTxt = rawTxt
                     questions = parsedList
                     hasCustomSavedQuiz = true
                     prefs.edit()
@@ -810,15 +1092,14 @@ fun MockTestAppRoot() {
             )
         }
 
-        // Teacher Admin Online Publish Modal (With Subject Folder Selection)
-        if (showAdminPublishModal) {
-            AdminPublishDialog(
+        // Admin Portal Dialog (Publish + Delete Tests & Folders)
+        if (showAdminModal) {
+            AdminPortalDialog(
                 savedToken = prefs.getString("gh_pat_token", "") ?: "",
-                existingSubjects = groupedBySubject.keys.toList(),
-                onDismiss = { showAdminPublishModal = false },
-                onPublishedSuccess = { tokenUsed ->
+                groupedSubjects = groupedBySubject,
+                onDismiss = { showAdminModal = false },
+                onActionSuccess = { tokenUsed ->
                     prefs.edit().putString("gh_pat_token", tokenUsed).apply()
-                    showAdminPublishModal = false
                     scope.launch {
                         isLoadingOnline = true
                         try {
@@ -833,11 +1114,14 @@ fun MockTestAppRoot() {
     }
 }
 
-// ==================== 7. CLEAN COACHING HOME SCREEN (WELCOME + SUBJECT FOLDERS) ====================
+// ==================== 9. HOME SCREEN UI (WELCOME + RESUME CARD + SUBJECT FOLDERS) ====================
 @Composable
 fun HomeScreenUI(
     candidateName: String,
     onCandidateNameChange: (String) -> Unit,
+    savedResumeState: SavedResumeState?,
+    onResumeTest: (SavedResumeState) -> Unit,
+    onDiscardResume: () -> Unit,
     groupedSubjects: Map<String, List<OnlineQuizMeta>>,
     totalOnlineTests: Int,
     isLoadingOnline: Boolean,
@@ -857,7 +1141,7 @@ fun HomeScreenUI(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 18.dp, vertical = 16.dp)
     ) {
-        // 1. Coaching Brand & Welcome Card
+        // Welcome Card
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -898,7 +1182,6 @@ fun HomeScreenUI(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Student Name Input (Saved Automatically)
             OutlinedTextField(
                 value = candidateName,
                 onValueChange = onCandidateNameChange,
@@ -918,16 +1201,68 @@ fun HomeScreenUI(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Quick Summary Pills
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 StatInfoBox(Modifier.weight(1f), "${groupedSubjects.size}", "SUBJECTS", SecondarySky)
                 StatInfoBox(Modifier.weight(1f), "$totalOnlineTests", "LIVE TESTS", PrimaryRose)
             }
         }
 
+        // RESUME INTERRUPTED TEST BANNER
+        if (savedResumeState != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            val answered = savedResumeState.userAnswers.count { it != null }
+            val total = savedResumeState.userAnswers.size
+            val minsLeft = savedResumeState.remainingSeconds / 60
+            val secsLeft = savedResumeState.remainingSeconds % 60
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(AmberGold.copy(alpha = 0.12f))
+                    .border(1.dp, AmberGold, RoundedCornerShape(14.dp))
+                    .padding(14.dp)
+            ) {
+                Text(
+                    text = "⏳ अधूरा टेस्ट जारी रखें (Resume)",
+                    color = AmberGold,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = savedResumeState.config.title,
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+                Text(
+                    text = "उत्तर दिए: $answered/$total • बचा समय: %02d:%02d".format(minsLeft, secsLeft),
+                    color = TextMuted,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 2.dp, bottom = 10.dp)
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { onResumeTest(savedResumeState) },
+                        colors = ButtonDefaults.buttonColors(containerColor = AmberGold),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("▶ Resume Test", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+                    OutlinedButton(
+                        onClick = onDiscardResume,
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("हटाएं", color = WrongRed, fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(22.dp))
 
-        // 2. Subject-Wise Folders Header (Fixed Refresh Alignment!)
+        // Subject-Wise Folders Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -957,7 +1292,6 @@ fun HomeScreenUI(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Subject Folders List
         if (isLoadingOnline && groupedSubjects.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -1036,7 +1370,7 @@ fun HomeScreenUI(
 
         Spacer(modifier = Modifier.height(22.dp))
 
-        // 3. Custom Local .TXT Quiz Card
+        // Custom Local .TXT Quiz Card
         Text(
             text = "📂 खुद का कस्टम टेस्ट (.TXT फाइल से)",
             color = TextMain,
@@ -1052,7 +1386,7 @@ fun HomeScreenUI(
                 .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
                 .padding(15.dp)
         ) {
-            if (hasCustomSavedQuiz) {
+            if (hasCustomSavedQuiz && customQuizCount > 0) {
                 Text(
                     text = "सेव किया गया टेस्ट: $customQuizTitle ($customQuizCount प्रश्न)",
                     color = TextMain,
@@ -1095,16 +1429,15 @@ fun HomeScreenUI(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // 4. Teacher Admin Button
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             TextButton(onClick = onOpenAdminModal) {
-                Text("🔒 Teacher Admin: Publish New Quiz Online", color = TextMuted, fontSize = 12.sp)
+                Text("🔒 Teacher Admin: Publish / Delete Tests", color = TextMuted, fontSize = 12.sp)
             }
         }
     }
 }
 
-// ==================== 8. SUBJECT FOLDER TESTS SCREEN (WITH BACK BUTTON) ====================
+// ==================== 10. SUBJECT FOLDER TESTS SCREEN ====================
 @Composable
 fun SubjectTestsScreenUI(
     subjectName: String,
@@ -1118,7 +1451,6 @@ fun SubjectTestsScreenUI(
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(HomeBgTop, HomeBgBot)))
     ) {
-        // Top App Bar with Back Button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1212,7 +1544,7 @@ fun StatInfoBox(modifier: Modifier, value: String, label: String, valueColor: Co
     }
 }
 
-// ==================== 9. TEST SCREEN UI (WITH TOP BACK BUTTON) ====================
+// ==================== 11. TEST SCREEN UI ====================
 @Composable
 fun TestScreenUI(
     testConfig: TestConfig,
@@ -1234,7 +1566,6 @@ fun TestScreenUI(
     val letters = listOf("A", "B", "C", "D", "E")
 
     Column(modifier = Modifier.fillMaxSize().background(BgDark)) {
-        // Top Header with Back Button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1448,7 +1779,7 @@ fun TestScreenUI(
     }
 }
 
-// ==================== 10. RESULT SCREEN UI (WITH BACK BUTTON) ====================
+// ==================== 12. RESULT SCREEN UI ====================
 @Composable
 fun ResultScreenUI(
     testConfig: TestConfig,
@@ -1477,7 +1808,6 @@ fun ResultScreenUI(
     val letters = listOf("A", "B", "C", "D", "E")
 
     Column(modifier = Modifier.fillMaxSize().background(BgDark)) {
-        // Top Bar with Back Button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1634,7 +1964,7 @@ fun ResultScreenUI(
     }
 }
 
-// ==================== 11. CUSTOM LOCAL QUIZ MODAL ====================
+// ==================== 13. CUSTOM LOCAL QUIZ MODAL ====================
 @Composable
 fun CustomQuizDialog(
     initialConfig: TestConfig,
@@ -1719,6 +2049,7 @@ fun CustomQuizDialog(
                         return@Button
                     }
                     val cfg = TestConfig(
+                        id = "custom_${System.currentTimeMillis()}",
                         title = title.ifBlank { "Custom Mock Test" },
                         timeMinutes = timeStr.toIntOrNull() ?: 60,
                         marksPerCorrect = marksStr.toDoubleOrNull() ?: 2.0,
@@ -1737,30 +2068,34 @@ fun CustomQuizDialog(
     )
 }
 
-// ==================== 12. TEACHER ADMIN ONLINE PUBLISH MODAL (WITH SUBJECT FOLDER) ====================
+// ==================== 14. TEACHER ADMIN PORTAL (PUBLISH ENCRYPTED + DELETE TEST/FOLDER) ====================
 @Composable
-fun AdminPublishDialog(
+fun AdminPortalDialog(
     savedToken: String,
-    existingSubjects: List<String>,
+    groupedSubjects: Map<String, List<OnlineQuizMeta>>,
     onDismiss: () -> Unit,
-    onPublishedSuccess: (String) -> Unit
+    onActionSuccess: (String) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var selectedTab by remember { mutableStateOf(0) } // 0 = Publish, 1 = Manage/Delete
     var token by remember { mutableStateOf(savedToken) }
+    var isBusy by remember { mutableStateOf(false) }
+
+    // Publish Tab State
+    val existingSubjects = groupedSubjects.keys.toList()
     var subject by remember { mutableStateOf(existingSubjects.firstOrNull() ?: "Computer Science") }
     var title by remember { mutableStateOf("Rajasthan SET & UGC NET Mock Test") }
     var subtitle by remember { mutableStateOf("Target Preparation & Revision Test") }
     var timeStr by remember { mutableStateOf("60") }
     var marksStr by remember { mutableStateOf("2.0") }
     var negStr by remember { mutableStateOf("0.0") }
-    var selectedFileName by remember { mutableStateOf("📂 Select .TXT File to Publish Online") }
+    var selectedFileName by remember { mutableStateOf("📂 Select .TXT File (Auto-Encrypted)") }
     var rawTextContent by remember { mutableStateOf("") }
-    var isPublishing by remember { mutableStateOf(false) }
 
     val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            selectedFileName = "📄 Ready: ${uri.lastPathSegment ?: "quiz.txt"}"
+            selectedFileName = "🔒 Ready: ${uri.lastPathSegment ?: "quiz.txt"}"
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 rawTextContent = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).readText()
             }
@@ -1768,17 +2103,32 @@ fun AdminPublishDialog(
     }
 
     AlertDialog(
-        onDismissRequest = { if (!isPublishing) onDismiss() },
+        onDismissRequest = { if (!isBusy) onDismiss() },
         containerColor = CardDark,
-        title = { Text("🌐 Publish Quiz Online", color = PrimaryRose, fontWeight = FontWeight.Black, fontSize = 17.sp) },
+        title = {
+            Column {
+                Text("🔒 Teacher Admin Panel", color = PrimaryRose, fontWeight = FontWeight.Black, fontSize = 17.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = BgDark,
+                    contentColor = PrimaryRose
+                ) {
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { if (!isBusy) selectedTab = 0 },
+                        text = { Text("Publish New", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                    )
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick = { if (!isBusy) selectedTab = 1 },
+                        text = { Text("Delete / Manage", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                    )
+                }
+            }
+        },
         text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Text(
-                    "जिस Subject का नाम लिखेंगे, होम स्क्रीन पर उसका फोल्डर अपने आप बन जाएगा।",
-                    color = TextMuted,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
+            Column(modifier = Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
                 OutlinedTextField(
                     value = token,
                     onValueChange = { token = it },
@@ -1787,136 +2137,244 @@ fun AdminPublishDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = subject,
-                    onValueChange = { subject = it },
-                    label = { Text("Subject / Folder Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                if (existingSubjects.isNotEmpty()) {
-                    Row(
+                Spacer(modifier = Modifier.height(10.dp))
+
+                if (selectedTab == 0) {
+                    Text(
+                        "टेस्ट AES-256 एन्क्रिप्शन के साथ अपलोड होगा ताकि कोई GitHub से प्रश्न या उत्तर न देख सके।",
+                        color = CorrectGreen,
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    OutlinedTextField(
+                        value = subject,
+                        onValueChange = { subject = it },
+                        label = { Text("Subject / Folder Name") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (existingSubjects.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
+                                .padding(top = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            existingSubjects.forEach { sub ->
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(HomeBox)
+                                        .clickable { subject = sub }
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Text(sub, color = TextMain, fontSize = 11.sp)
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Quiz Title") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = subtitle,
+                        onValueChange = { subtitle = it },
+                        label = { Text("Subtitle / Description") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = timeStr,
+                            onValueChange = { timeStr = it },
+                            label = { Text("Time") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = marksStr,
+                            onValueChange = { marksStr = it },
+                            label = { Text("Marks") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = negStr,
+                            onValueChange = { negStr = it },
+                            label = { Text("Neg") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(top = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(PrimaryRose.copy(alpha = 0.08f))
+                            .border(1.dp, PrimaryRose, RoundedCornerShape(8.dp))
+                            .clickable { filePicker.launch("text/plain") }
+                            .padding(14.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        existingSubjects.forEach { sub ->
-                            Box(
+                        Text(selectedFileName, color = TextMain, fontSize = 13.sp)
+                    }
+                } else {
+                    // MANAGE / DELETE TAB
+                    if (groupedSubjects.isEmpty()) {
+                        Text("अभी कोई ऑनलाइन टेस्ट मौजूद नहीं है।", color = TextMuted, fontSize = 13.sp)
+                    } else {
+                        groupedSubjects.forEach { (subName, testList) ->
+                            Column(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(HomeBox)
-                                    .clickable { subject = sub }
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(BgDark)
+                                    .padding(10.dp)
                             ) {
-                                Text(sub, color = TextMain, fontSize = 11.sp)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "📁 $subName (${testList.size})",
+                                        color = SecondarySky,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    TextButton(
+                                        enabled = !isBusy,
+                                        onClick = {
+                                            if (token.isBlank()) {
+                                                Toast.makeText(context, "पहले ऊपर GitHub Token डालें!", Toast.LENGTH_SHORT).show()
+                                                return@TextButton
+                                            }
+                                            isBusy = true
+                                            scope.launch {
+                                                val res = GitHubCloudService.deleteSubjectFolderFromGitHub(
+                                                    token = token.trim(),
+                                                    subjectName = subName,
+                                                    quizzesInFolder = testList
+                                                )
+                                                isBusy = false
+                                                res.onSuccess { msg ->
+                                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                                    onActionSuccess(token.trim())
+                                                }.onFailure { err ->
+                                                    Toast.makeText(context, "Error: ${err.message}", Toast.LENGTH_LONG).show()
+                                                }
+                                            }
+                                        }
+                                    ) {
+                                        Text("🗑️ Del Folder", color = WrongRed, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                                HorizontalDivider(color = BorderColor, modifier = Modifier.padding(vertical = 4.dp))
+                                testList.forEach { quiz ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "• ${quiz.title}",
+                                            color = TextMain,
+                                            fontSize = 12.sp,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        TextButton(
+                                            enabled = !isBusy,
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            onClick = {
+                                                if (token.isBlank()) {
+                                                    Toast.makeText(context, "पहले ऊपर GitHub Token डालें!", Toast.LENGTH_SHORT).show()
+                                                    return@TextButton
+                                                }
+                                                isBusy = true
+                                                scope.launch {
+                                                    val res = GitHubCloudService.deleteQuizFromGitHub(token.trim(), quiz)
+                                                    isBusy = false
+                                                    res.onSuccess { msg ->
+                                                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                                        onActionSuccess(token.trim())
+                                                    }.onFailure { err ->
+                                                        Toast.makeText(context, "Error: ${err.message}", Toast.LENGTH_LONG).show()
+                                                    }
+                                                }
+                                            }
+                                        ) {
+                                            Text("🗑️", fontSize = 13.sp)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Quiz Title") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = subtitle,
-                    onValueChange = { subtitle = it },
-                    label = { Text("Subtitle / Description") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = timeStr,
-                        onValueChange = { timeStr = it },
-                        label = { Text("Time") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = marksStr,
-                        onValueChange = { marksStr = it },
-                        label = { Text("Marks") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = negStr,
-                        onValueChange = { negStr = it },
-                        label = { Text("Neg") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(PrimaryRose.copy(alpha = 0.08f))
-                        .border(1.dp, PrimaryRose, RoundedCornerShape(8.dp))
-                        .clickable { filePicker.launch("text/plain") }
-                        .padding(14.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(selectedFileName, color = TextMain, fontSize = 13.sp)
-                }
             }
         },
         confirmButton = {
-            Button(
-                enabled = !isPublishing,
-                onClick = {
-                    val parsed = TxtQuestionParser.parse(rawTextContent)
-                    if (token.isBlank()) {
-                        Toast.makeText(context, "कृपया अपना GitHub Token डालें!", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (parsed.isEmpty()) {
-                        Toast.makeText(context, "कृपया सही प्रश्नों वाली .txt फाइल चुनें!", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    isPublishing = true
-                    scope.launch {
-                        val res = GitHubCloudService.publishQuizToGitHub(
-                            token = token.trim(),
-                            title = title.trim(),
-                            subtitle = subtitle.trim(),
-                            subject = subject.trim().ifEmpty { "General Tests" },
-                            timeMinutes = timeStr.toIntOrNull() ?: 60,
-                            marks = marksStr.toDoubleOrNull() ?: 2.0,
-                            neg = negStr.toDoubleOrNull() ?: 0.0,
-                            rawTxtContent = rawTextContent,
-                            questionCount = parsed.size
-                        )
-                        isPublishing = false
-                        res.onSuccess { msg ->
-                            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                            onPublishedSuccess(token.trim())
-                        }.onFailure { err ->
-                            Toast.makeText(context, "Publish Failed: ${err.message}", Toast.LENGTH_LONG).show()
+            if (selectedTab == 0) {
+                Button(
+                    enabled = !isBusy,
+                    onClick = {
+                        val parsed = TxtQuestionParser.parse(rawTextContent)
+                        if (token.isBlank()) {
+                            Toast.makeText(context, "कृपया अपना GitHub Token डालें!", Toast.LENGTH_SHORT).show()
+                            return@Button
                         }
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = CorrectGreen)
-            ) {
-                Text(if (isPublishing) "Publishing..." else "🚀 Publish Online", color = Color.White, fontWeight = FontWeight.Bold)
+                        if (parsed.isEmpty()) {
+                            Toast.makeText(context, "कृपया सही प्रश्नों वाली .txt फाइल चुनें!", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        isBusy = true
+                        scope.launch {
+                            val res = GitHubCloudService.publishEncryptedQuizToGitHub(
+                                token = token.trim(),
+                                title = title.trim(),
+                                subtitle = subtitle.trim(),
+                                subject = subject.trim().ifEmpty { "General Tests" },
+                                timeMinutes = timeStr.toIntOrNull() ?: 60,
+                                marks = marksStr.toDoubleOrNull() ?: 2.0,
+                                neg = negStr.toDoubleOrNull() ?: 0.0,
+                                rawTxtContent = rawTextContent,
+                                questionCount = parsed.size
+                            )
+                            isBusy = false
+                            res.onSuccess { msg ->
+                                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                onActionSuccess(token.trim())
+                                onDismiss()
+                            }.onFailure { err ->
+                                Toast.makeText(context, "Publish Failed: ${err.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = CorrectGreen)
+                ) {
+                    Text(if (isBusy) "Encrypting..." else "🚀 Publish Encrypted", color = Color.White, fontWeight = FontWeight.Bold)
+                }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isPublishing) { Text("Close", color = TextMuted) }
+            TextButton(onClick = onDismiss, enabled = !isBusy) { Text("Close", color = TextMuted) }
         }
     )
 }
 
-// ==================== 13. EXACT A4 WATERMARK PDF PRINT HELPER ====================
-fun printExactA4ResultPdf(
+// ==================== 15. TWO-COLUMN A4 PDF PRINT HELPER (NO WATERMARK) ====================
+fun printTwoColumnA4ResultPdf(
     context: Context,
     config: TestConfig,
     studentName: String,
@@ -1950,7 +2408,7 @@ fun printExactA4ResultPdf(
                 <div class="print-options-grid">$optsHtml</div>
                 <div class="print-ans-row"><strong>आपका उत्तर:</strong> <span style="color:$printColor">$uAnsText</span></div>
                 <div class="print-ans-row"><strong>सही उत्तर:</strong> <span style="color:#10b981">$cAnsText</span></div>
-                <div class="print-sol-box"><div class="print-sol-lbl">व्याख्या (Solution):</div>${q.solution}</div>
+                <div class="print-sol-box"><strong>व्याख्या:</strong> ${q.solution}</div>
             </div>
             """.trimIndent()
         )
@@ -1960,7 +2418,7 @@ fun printExactA4ResultPdf(
     val maxMarks = questions.size * config.marksPerCorrect
     val attempted = correct + wrong
     val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).roundToInt() else 0
-    val negInfo = if (config.negativeMark > 0) "-%.2f Negative".format(config.negativeMark) else "No Negative Marking"
+    val negInfo = if (config.negativeMark > 0) "-%.2f Negative".format(config.negativeMark) else "No Negative"
 
     val fullHtml = """
         <!DOCTYPE html>
@@ -1968,22 +2426,48 @@ fun printExactA4ResultPdf(
         <head>
         <meta charset="UTF-8">
         <style>
-            @page { size: A4 portrait; margin: 10mm; }
+            @page { size: A4 portrait; margin: 8mm; }
             body { background: white; color: black; font-family: sans-serif; margin: 0; padding: 0; }
-            .wm-print { position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 40px; font-weight: 900; color: #000; opacity: 0.08; z-index: 9999; white-space: nowrap; }
-            .print-header-box { border: 2px solid #000; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; background: #f8fafc; }
-            .print-score-row { display: flex; justify-content: space-around; border-top: 1px dashed #000; padding-top: 10px; font-size: 13px; font-weight: bold; }
-            .print-q-box { margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #cbd5e1; page-break-inside: avoid; }
-            .print-q-head { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px; }
-            .print-q-topic { background: #e11d48; color: #fff; padding: 2px 8px; font-size: 11px; border-radius: 12px; }
-            .print-q-text { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-            .print-options-grid { margin-bottom: 6px; font-size: 13px; padding-left: 10px; }
-            .print-ans-row { font-size: 12px; margin-bottom: 3px; }
-            .print-sol-box { background: #f8fafc; border-left: 4px solid #e11d48; padding: 8px; margin-top: 6px; font-size: 12px; }
+            .print-header-box {
+                border: 1.5px solid #000;
+                padding: 10px 14px;
+                border-radius: 6px;
+                margin-bottom: 12px;
+                text-align: center;
+                background: #f8fafc;
+            }
+            .print-header-box h2 { font-size: 16px; margin: 0 0 4px 0; }
+            .print-header-box h3 { font-size: 12px; margin: 0 0 4px 0; color: #333; }
+            .print-header-box p { font-size: 11px; margin: 0 0 8px 0; color: #555; }
+            .print-score-row {
+                display: flex;
+                justify-content: space-around;
+                border-top: 1px dashed #000;
+                padding-top: 6px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+            .two-col-container {
+                column-count: 2;
+                column-gap: 14px;
+                column-rule: 1px solid #cbd5e1;
+            }
+            .print-q-box {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .print-q-head { display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; margin-bottom: 3px; }
+            .print-q-topic { background: #e11d48; color: #fff; padding: 1px 6px; font-size: 9px; border-radius: 10px; }
+            .print-q-text { font-size: 11px; font-weight: 600; margin-bottom: 4px; line-height: 1.35; }
+            .print-options-grid { margin-bottom: 4px; font-size: 10.5px; padding-left: 6px; line-height: 1.3; }
+            .print-ans-row { font-size: 10px; margin-bottom: 2px; }
+            .print-sol-box { background: #f8fafc; border-left: 3px solid #e11d48; padding: 4px 6px; margin-top: 4px; font-size: 10px; line-height: 1.3; }
         </style>
         </head>
         <body>
-            <div class="wm-print">${config.title.uppercase()}</div>
             <div class="print-header-box">
                 <h2>${config.title}</h2>
                 <h3>Candidate: $studentName | Total Questions: ${questions.size}</h3>
@@ -1996,7 +2480,9 @@ fun printExactA4ResultPdf(
                     <span>Accuracy: $accuracy%</span>
                 </div>
             </div>
-            $qHtmlBuilder
+            <div class="two-col-container">
+                $qHtmlBuilder
+            </div>
         </body>
         </html>
     """.trimIndent()
