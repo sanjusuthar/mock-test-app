@@ -10,16 +10,5 @@
     "questionCount": 160,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/ctet\/quiz_1794672871630.txt",
     "publishedDate": "14 Nov 2026"
-  },
-  {
-    "id": "test_1",
-    "title": "Rajasthan SET & UGC NET Mock Test 1",
-    "subtitle": "Paper 1 Teaching & Research Aptitude",
-    "timeMinutes": 60,
-    "marksPerCorrect": 2,
-    "negativeMark": 0.66,
-    "questionCount": 50,
-    "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/sample_test.txt",
-    "publishedDate": "14 Nov 2026"
   }
 ]
