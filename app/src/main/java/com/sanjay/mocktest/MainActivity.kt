@@ -2311,10 +2311,35 @@ fun CustomQuizDialog(
                         .background(PrimaryRose.copy(alpha = 0.08f))
                         .border(1.dp, PrimaryRose, RoundedCornerShape(8.dp))
                         .clickable { filePicker.launch("text/plain") }
-                        .padding(14.dp),
+                        .padding(12.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(selectedFileName, color = TextMain, fontSize = 13.sp)
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Text("या नीचे सीधे प्रश्न Copy-Paste करें:", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(4.dp))
+                OutlinedTextField(
+                    value = rawTextContent,
+                    onValueChange = { rawTextContent = it },
+                    placeholder = { Text("Q: प्रश्न...
+A) विकल्प 1
+B) विकल्प 2
+ANS: A
+SOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
+                    minLines = 4,
+                    maxLines = 7,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (rawTextContent.isNotBlank()) {
+                    val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
+                    Text(
+                        text = "✅ मान्य प्रश्न: $previewCount",
+                        color = if (previewCount > 0) CorrectGreen else WrongRed,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
                 }
             }
         },
@@ -2494,10 +2519,35 @@ fun AdminPortalDialog(
                             .background(PrimaryRose.copy(alpha = 0.08f))
                             .border(1.dp, PrimaryRose, RoundedCornerShape(8.dp))
                             .clickable { filePicker.launch("text/plain") }
-                            .padding(14.dp),
+                            .padding(12.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(selectedFileName, color = TextMain, fontSize = 13.sp)
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("या नीचे सीधे प्रश्न Copy-Paste करें:", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = rawTextContent,
+                        onValueChange = { rawTextContent = it },
+                        placeholder = { Text("Q: प्रश्न...
+A) विकल्प 1
+B) विकल्प 2
+ANS: A
+SOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
+                        minLines = 4,
+                        maxLines = 7,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (rawTextContent.isNotBlank()) {
+                        val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
+                        Text(
+                            text = "✅ पब्लिश के लिए तैयार प्रश्न: $previewCount",
+                            color = if (previewCount > 0) CorrectGreen else WrongRed,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
                     }
                 } else {
                     if (groupedSubjects.isEmpty()) {
