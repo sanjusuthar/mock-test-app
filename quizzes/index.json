@@ -1,18 +1,5 @@
 [
   {
-    "id": "quiz_1794743905094",
-    "title": "Rajasthan SET & UGC NET Mock Test",
-    "subtitle": "Target Preparation & Revision Test",
-    "subject": "try",
-    "timeMinutes": 60,
-    "marksPerCorrect": 2,
-    "negativeMark": 0,
-    "questionCount": 160,
-    "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/try\/quiz_1794743905094.enc",
-    "repoPath": "quizzes\/try\/quiz_1794743905094.enc",
-    "publishedDate": "15 Nov 2026"
-  },
-  {
     "id": "quiz_1794742656311",
     "title": "इकाई 2: यौन उत्पीड़न — रूप एवं कानूनी प्रावधान",
     "subtitle": "Target Preparation & Revision Test",
