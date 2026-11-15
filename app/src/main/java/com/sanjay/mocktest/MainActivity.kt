@@ -145,7 +145,7 @@ data class SavedResumeState(
     val markedForReview: List<Boolean>
 )
 
-enum class AppScreen { HOME, SUBJECT_TESTS, TEST, RESULT }
+enum class AppScreen { HOME, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
 
 // ==================== 4. ANDROID KEYSTORE SECURE STORAGE FOR PAT & ADMIN PIN ====================
 object SecureAdminStore {
