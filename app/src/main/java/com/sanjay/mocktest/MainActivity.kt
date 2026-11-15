@@ -2322,11 +2322,7 @@ fun CustomQuizDialog(
                 OutlinedTextField(
                     value = rawTextContent,
                     onValueChange = { rawTextContent = it },
-                    placeholder = { Text("Q: प्रश्न...
-A) विकल्प 1
-B) विकल्प 2
-ANS: A
-SOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
+                    placeholder = { Text("Q: प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
                     minLines = 4,
                     maxLines = 7,
                     modifier = Modifier.fillMaxWidth()
@@ -2530,11 +2526,7 @@ fun AdminPortalDialog(
                     OutlinedTextField(
                         value = rawTextContent,
                         onValueChange = { rawTextContent = it },
-                        placeholder = { Text("Q: प्रश्न...
-A) विकल्प 1
-B) विकल्प 2
-ANS: A
-SOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
+                        placeholder = { Text("Q: प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
                         minLines = 4,
                         maxLines = 7,
                         modifier = Modifier.fillMaxWidth()
