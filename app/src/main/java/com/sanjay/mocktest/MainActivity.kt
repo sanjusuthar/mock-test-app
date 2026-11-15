@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -258,32 +259,45 @@ object TxtQuestionParser {
         val parsed = mutableListOf<Question>()
         val warnings = mutableListOf<String>()
 
-        // Split by question start markers (TOPIC: or Q:/Question:) instead of blank lines so multi-paragraph questions don't break
+        // Split cleanly so TOPIC: before Q: stays with that question and never leaks into the previous solution
         val lines = rawText.replace("\r\n", "\n").lines()
         val blocks = mutableListOf<MutableList<String>>()
         var currentBlock = mutableListOf<String>()
         var currentHasQ = false
+        var currentHasOptionsOrAns = false
 
         for (rawLine in lines) {
             val line = rawLine.trim()
+            if (line.isEmpty()) continue
+
             val isTopicStart = line.matches(Regex("^(?i)TOPIC:.*"))
             val isQStart = line.matches(Regex("^(?i)(Q:|Question:).*"))
+            val isOptOrAns = line.matches(Regex("^(?i)([A-E][).]|ANS:|Answer:|SOL:|SOLUTION:).*"))
 
-            if ((isTopicStart || (isQStart && currentHasQ)) && currentBlock.isNotEmpty()) {
+            if (isTopicStart && currentHasQ) {
+                // New question's TOPIC: line arrived -> close previous question block first!
                 blocks.add(currentBlock)
                 currentBlock = mutableListOf()
                 currentHasQ = false
+                currentHasOptionsOrAns = false
+            } else if (isQStart && currentHasQ) {
+                // New Q: arrived without a preceding TOPIC: -> close previous question block!
+                blocks.add(currentBlock)
+                currentBlock = mutableListOf()
+                currentHasQ = false
+                currentHasOptionsOrAns = false
             }
-            if (line.isNotEmpty()) {
-                currentBlock.add(line)
-                if (isQStart) currentHasQ = true
-            }
+
+            currentBlock.add(line)
+            if (isQStart) currentHasQ = true
+            if (isOptOrAns) currentHasOptionsOrAns = true
         }
         if (currentBlock.isNotEmpty()) blocks.add(currentBlock)
 
+        var lastSeenTopic = "General"
         blocks.forEachIndexed { idx, block ->
             var qText = ""
-            var topic = "General"
+            var topic = lastSeenTopic
             var solution = "व्याख्या उपलब्ध नहीं है।"
             var answerIndex: Int? = null
             val options = mutableListOf<String>()
@@ -292,7 +306,8 @@ object TxtQuestionParser {
             for (line in block) {
                 when {
                     line.matches(Regex("^(?i)TOPIC:.*")) -> {
-                        topic = line.replace(Regex("^(?i)TOPIC:\\s*"), "")
+                        topic = line.replace(Regex("^(?i)TOPIC:\\s*"), "").trim().ifEmpty { lastSeenTopic }
+                        lastSeenTopic = topic
                         inSolution = false
                     }
                     line.matches(Regex("^(?i)(Q:|Question:).*")) -> {
@@ -2268,6 +2283,8 @@ fun CustomQuizDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.fillMaxWidth(0.94f).imePadding(),
         containerColor = CardDark,
         title = { Text("⚙️ Custom Quiz Configuration", color = PrimaryRose, fontWeight = FontWeight.Black, fontSize = 17.sp) },
         text = {
@@ -2323,9 +2340,7 @@ fun CustomQuizDialog(
                     value = rawTextContent,
                     onValueChange = { rawTextContent = it },
                     placeholder = { Text("Q: प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
-                    minLines = 4,
-                    maxLines = 7,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().height(130.dp)
                 )
                 if (rawTextContent.isNotBlank()) {
                     val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
@@ -2405,6 +2420,8 @@ fun AdminPortalDialog(
 
     AlertDialog(
         onDismissRequest = { if (!isBusy) onDismiss() },
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.fillMaxWidth(0.94f).imePadding(),
         containerColor = CardDark,
         title = {
             Column {
@@ -2429,7 +2446,7 @@ fun AdminPortalDialog(
             }
         },
         text = {
-            Column(modifier = Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 OutlinedTextField(
                     value = token,
                     onValueChange = { token = it },
