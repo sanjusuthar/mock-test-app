@@ -1,5 +1,18 @@
 [
   {
+    "id": "quiz_1794744629050",
+    "title": "इकाई 1: संगीत की पारिभाषिक शब्दावली",
+    "subtitle": "Target Preparation & Revision Test",
+    "subject": "Music",
+    "timeMinutes": 30,
+    "marksPerCorrect": 2,
+    "negativeMark": 0.66,
+    "questionCount": 30,
+    "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794744629050.enc",
+    "repoPath": "quizzes\/music\/quiz_1794744629050.enc",
+    "publishedDate": "15 Nov 2026"
+  },
+  {
     "id": "quiz_1794744439195",
     "title": "इकाई 3: बाल श्रम — कारण एवं संवैधानिक प्रावधान",
     "subtitle": "Target Preparation & Revision Test",
