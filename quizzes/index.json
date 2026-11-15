@@ -1,5 +1,18 @@
 [
   {
+    "id": "quiz_1794713356702",
+    "title": "इकाई 1: जनसंख्या वृद्धि — अर्थ, कारण एवं परिणाम",
+    "subtitle": "Target Preparation & Revision Test\n• जनसंख्या वृद्धि के कारण और परिणाम (Causes and Consequences of Population Growth)\n• भारत में जनसंख्या नीति (Population Policy in India)",
+    "subject": "sociology",
+    "timeMinutes": 30,
+    "marksPerCorrect": 2,
+    "negativeMark": 0.66,
+    "questionCount": 30,
+    "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/sociology\/quiz_1794713356702.enc",
+    "repoPath": "quizzes\/sociology\/quiz_1794713356702.enc",
+    "publishedDate": "15 Nov 2026"
+  },
+  {
     "id": "quiz_1794675349877",
     "title": "CTET PAPER 2",
     "subtitle": "Target Preparation & Revision Test",
