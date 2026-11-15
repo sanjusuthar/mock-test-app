@@ -47,7 +47,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -259,100 +258,116 @@ object TxtQuestionParser {
         val parsed = mutableListOf<Question>()
         val warnings = mutableListOf<String>()
 
-        // Split cleanly so TOPIC: before Q: stays with that question and never leaks into the previous solution
-        val lines = rawText.replace("\r\n", "\n").lines()
-        val blocks = mutableListOf<MutableList<String>>()
-        var currentBlock = mutableListOf<String>()
-        var currentHasQ = false
-        var currentHasOptionsOrAns = false
+        // Normalize all line breaks and split any inline TOPIC: glued onto the end of a SOL: line
+        val normalized = rawText
+            .replace("\r\n", "\n")
+            .replace("\r", "\n")
+            .replace(Regex("(?i)(?<!^)(?<!\\n)(?=TOPIC\\s*:)"), "\n")
 
-        for (rawLine in lines) {
-            val line = rawLine.trim()
-            if (line.isEmpty()) continue
+        var pendingTopic = "General"
+        var qTopic = "General"
+        var qText = ""
+        val options = mutableListOf<String>()
+        var answerIndex: Int? = null
+        var solution = "व्याख्या उपलब्ध नहीं है।"
+        var currentField = "NONE" // TOPIC, Q, OPT, ANS, SOL
 
-            val isTopicStart = line.matches(Regex("^(?i)TOPIC:.*"))
-            val isQStart = line.matches(Regex("^(?i)(Q:|Question:).*"))
-            val isOptOrAns = line.matches(Regex("^(?i)([A-E][).]|ANS:|Answer:|SOL:|SOLUTION:).*"))
-
-            if (isTopicStart && currentHasQ) {
-                // New question's TOPIC: line arrived -> close previous question block first!
-                blocks.add(currentBlock)
-                currentBlock = mutableListOf()
-                currentHasQ = false
-                currentHasOptionsOrAns = false
-            } else if (isQStart && currentHasQ) {
-                // New Q: arrived without a preceding TOPIC: -> close previous question block!
-                blocks.add(currentBlock)
-                currentBlock = mutableListOf()
-                currentHasQ = false
-                currentHasOptionsOrAns = false
-            }
-
-            currentBlock.add(line)
-            if (isQStart) currentHasQ = true
-            if (isOptOrAns) currentHasOptionsOrAns = true
-        }
-        if (currentBlock.isNotEmpty()) blocks.add(currentBlock)
-
-        var lastSeenTopic = "General"
-        blocks.forEachIndexed { idx, block ->
-            var qText = ""
-            var topic = lastSeenTopic
-            var solution = "व्याख्या उपलब्ध नहीं है।"
-            var answerIndex: Int? = null
-            val options = mutableListOf<String>()
-            var inSolution = false
-
-            for (line in block) {
-                when {
-                    line.matches(Regex("^(?i)TOPIC:.*")) -> {
-                        topic = line.replace(Regex("^(?i)TOPIC:\\s*"), "").trim().ifEmpty { lastSeenTopic }
-                        lastSeenTopic = topic
-                        inSolution = false
-                    }
-                    line.matches(Regex("^(?i)(Q:|Question:).*")) -> {
-                        qText = line.replace(Regex("^(?i)(Q:|Question:)\\s*"), "")
-                        inSolution = false
-                    }
-                    line.matches(Regex("^(?i)[A-E][).].*")) -> {
-                        options.add(line.replace(Regex("^(?i)[A-E][).]\\s*"), ""))
-                        inSolution = false
-                    }
-                    line.matches(Regex("^(?i)(ANS:|Answer:).*")) -> {
-                        val ansChar = line.replace(Regex("^(?i)(ANS:|Answer:)\\s*"), "").trim().uppercase()
-                        val map = mapOf("A" to 0, "B" to 1, "C" to 2, "D" to 3, "E" to 4)
-                        answerIndex = map[ansChar] ?: ansChar.toIntOrNull()?.minus(1)
-                        inSolution = false
-                    }
-                    line.matches(Regex("^(?i)(SOL:|SOLUTION:).*")) -> {
-                        solution = line.replace(Regex("^(?i)(SOL:|SOLUTION:)\\s*"), "")
-                        inSolution = true
-                    }
-                    inSolution -> {
-                        solution += "\n$line"
-                    }
-                    options.isEmpty() -> {
-                        qText = if (qText.isEmpty()) line else "$qText\n$line"
-                    }
-                }
-            }
-
-            if (qText.isNotEmpty() && options.size >= 2) {
-                if (answerIndex == null || answerIndex !in options.indices) {
-                    warnings.add("Q${idx + 1}: ANS: गलत या गायब है")
+        fun flushCurrentQuestion() {
+            if (qText.isNotBlank() && options.size >= 2) {
+                val cleanSol = solution
+                    .replace(Regex("(?i)\\n?TOPIC\\s*:.*$"), "")
+                    .replace("<br>", "\n")
+                    .trim()
+                val idx = answerIndex
+                if (idx == null || idx !in options.indices) {
+                    warnings.add("Q${parsed.size + 1}: ANS: गलत या गायब है")
                 } else {
                     parsed.add(
                         Question(
-                            topic = topic,
-                            text = qText.replace("<br>", "\n"),
-                            options = options,
-                            correctAnswer = answerIndex,
-                            solution = solution.replace("<br>", "\n")
+                            topic = qTopic.trim().ifEmpty { "General" },
+                            text = qText.replace("<br>", "\n").trim(),
+                            options = options.map { it.trim() },
+                            correctAnswer = idx,
+                            solution = cleanSol.ifEmpty { "व्याख्या उपलब्ध नहीं है।" }
                         )
                     )
                 }
             }
+            qText = ""
+            options.clear()
+            answerIndex = null
+            solution = "व्याख्या उपलब्ध नहीं है।"
+            currentField = "NONE"
         }
+
+        for (rawLine in normalized.lines()) {
+            val line = rawLine.trim()
+            if (line.isEmpty()) continue
+
+            val topicMatch = Regex("^(?i)TOPIC\\s*:\\s*(.*)").find(line)
+            val qMatch = Regex("^(?i)(?:Q|Question|प्र|प्रश्न)\\s*[:.]?\\s*(.*)").find(line)
+            val optMatch = Regex("^(?i)([A-E])[).:-]\\s*(.*)").find(line)
+            val ansMatch = Regex("^(?i)(?:ANS|Answer|उत्तर)\\s*[:.-]?\\s*(.*)").find(line)
+            val solMatch = Regex("^(?i)(?:SOL|SOLUTION|व्याख्या)\\s*[:.-]?\\s*(.*)").find(line)
+
+            when {
+                topicMatch != null -> {
+                    // Save previous question BEFORE updating pendingTopic for the next question!
+                    if (qText.isNotBlank()) {
+                        flushCurrentQuestion()
+                    }
+                    pendingTopic = topicMatch.groupValues[1].trim().ifEmpty { "General" }
+                    currentField = "TOPIC"
+                }
+                qMatch != null -> {
+                    // Save previous question if it wasn't flushed yet
+                    if (qText.isNotBlank()) {
+                        flushCurrentQuestion()
+                    }
+                    qTopic = pendingTopic
+                    qText = qMatch.groupValues[1].trim()
+                    currentField = "Q"
+                }
+                optMatch != null && (currentField == "Q" || currentField == "OPT") -> {
+                    options.add(optMatch.groupValues[2].trim())
+                    currentField = "OPT"
+                }
+                ansMatch != null && options.isNotEmpty() -> {
+                    val ansToken = ansMatch.groupValues[1].trim().uppercase()
+                    val firstChar = ansToken.firstOrNull()?.toString() ?: ""
+                    val map = mapOf("A" to 0, "B" to 1, "C" to 2, "D" to 3, "E" to 4)
+                    answerIndex = map[firstChar] ?: ansToken.toIntOrNull()?.minus(1)
+                    currentField = "ANS"
+                }
+                solMatch != null && options.isNotEmpty() -> {
+                    solution = solMatch.groupValues[1].trim()
+                    currentField = "SOL"
+                }
+                else -> {
+                    when (currentField) {
+                        "TOPIC" -> {
+                            pendingTopic = "$pendingTopic $line".trim()
+                        }
+                        "Q" -> {
+                            qText = if (qText.isEmpty()) line else "$qText\n$line"
+                        }
+                        "OPT" -> {
+                            if (options.isNotEmpty()) {
+                                val lastIdx = options.lastIndex
+                                options[lastIdx] = options[lastIdx] + " " + line
+                            }
+                        }
+                        "SOL" -> {
+                            solution = if (solution.isEmpty() || solution == "व्याख्या उपलब्ध नहीं है।") line else "$solution\n$line"
+                        }
+                    }
+                }
+            }
+        }
+        if (qText.isNotBlank()) {
+            flushCurrentQuestion()
+        }
+
         return ParseResult(parsed, warnings)
     }
 
@@ -2269,12 +2284,12 @@ fun CustomQuizDialog(
     var timeStr by remember { mutableStateOf(initialConfig.timeMinutes.toString()) }
     var marksStr by remember { mutableStateOf(initialConfig.marksPerCorrect.toString()) }
     var negStr by remember { mutableStateOf(initialConfig.negativeMark.toString()) }
-    var selectedFileName by remember { mutableStateOf("📂 Click to select .txt file") }
+    var selectedFileName by remember { mutableStateOf("📂 .TXT फाइल चुनें") }
     var rawTextContent by remember { mutableStateOf("") }
 
     val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            selectedFileName = "📄 Selected: ${uri.lastPathSegment ?: "questions.txt"}"
+            selectedFileName = "📄 ${uri.lastPathSegment ?: "questions.txt"}"
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 rawTextContent = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).readText()
             }
@@ -2283,64 +2298,35 @@ fun CustomQuizDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-        modifier = Modifier.fillMaxWidth(0.94f).imePadding(),
         containerColor = CardDark,
-        title = { Text("⚙️ Custom Quiz Configuration", color = PrimaryRose, fontWeight = FontWeight.Black, fontSize = 17.sp) },
+        title = { Text("⚙️ Custom Quiz Configuration", color = PrimaryRose, fontWeight = FontWeight.Black, fontSize = 16.sp) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Test Name / Title") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = timeStr,
-                        onValueChange = { timeStr = it },
-                        label = { Text("Time (Min)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = marksStr,
-                        onValueChange = { marksStr = it },
-                        label = { Text("Marks/Correct") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = negStr,
-                    onValueChange = { negStr = it },
-                    label = { Text("Negative Marking (0 for None)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(PrimaryRose.copy(alpha = 0.08f))
-                        .border(1.dp, PrimaryRose, RoundedCornerShape(8.dp))
-                        .clickable { filePicker.launch("text/plain") }
-                        .padding(12.dp),
-                    contentAlignment = Alignment.Center
+                // Top Row: Paste Box + File Upload at the VERY TOP so keyboard never covers it!
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(selectedFileName, color = TextMain, fontSize = 13.sp)
+                    Text("1. प्रश्न पेस्ट करें या फाइल चुनें:", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = selectedFileName,
+                        color = PrimaryRose,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(PrimaryRose.copy(alpha = 0.12f))
+                            .clickable { filePicker.launch("text/plain") }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
                 }
-                Spacer(modifier = Modifier.height(10.dp))
-                Text("या नीचे सीधे प्रश्न Copy-Paste करें:", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
                     value = rawTextContent,
                     onValueChange = { rawTextContent = it },
-                    placeholder = { Text("Q: प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
-                    modifier = Modifier.fillMaxWidth().height(130.dp)
+                    placeholder = { Text("Q: प्रश्न...\\nA) विकल्प 1\\nB) विकल्प 2\\nANS: A\\nSOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
+                    modifier = Modifier.fillMaxWidth().height(115.dp)
                 )
                 if (rawTextContent.isNotBlank()) {
                     val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
@@ -2350,6 +2336,41 @@ fun CustomQuizDialog(
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Test Name / Title") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = timeStr,
+                        onValueChange = { timeStr = it },
+                        label = { Text("Time") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = marksStr,
+                        onValueChange = { marksStr = it },
+                        label = { Text("Marks") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = negStr,
+                        onValueChange = { negStr = it },
+                        label = { Text("Neg") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -2420,8 +2441,6 @@ fun AdminPortalDialog(
 
     AlertDialog(
         onDismissRequest = { if (!isBusy) onDismiss() },
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-        modifier = Modifier.fillMaxWidth(0.94f).imePadding(),
         containerColor = CardDark,
         title = {
             Column {
@@ -2458,6 +2477,42 @@ fun AdminPortalDialog(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 if (selectedTab == 0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("प्रश्न पेस्ट करें या .TXT चुनें:", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = selectedFileName,
+                            color = PrimaryRose,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(PrimaryRose.copy(alpha = 0.12f))
+                                .clickable { filePicker.launch("text/plain") }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = rawTextContent,
+                        onValueChange = { rawTextContent = it },
+                        placeholder = { Text("Q: प्रश्न...\\nA) विकल्प 1\\nB) विकल्प 2\\nANS: A\\nSOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
+                        modifier = Modifier.fillMaxWidth().height(110.dp)
+                    )
+                    if (rawTextContent.isNotBlank()) {
+                        val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
+                        Text(
+                            text = "✅ पब्लिश के लिए तैयार प्रश्न: $previewCount",
+                            color = if (previewCount > 0) CorrectGreen else WrongRed,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = subject,
                         onValueChange = { subject = it },
@@ -2491,6 +2546,7 @@ fun AdminPortalDialog(
                         value = title,
                         onValueChange = { title = it },
                         label = { Text("Quiz Title") },
+                        singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -2498,6 +2554,7 @@ fun AdminPortalDialog(
                         value = subtitle,
                         onValueChange = { subtitle = it },
                         label = { Text("Subtitle / Description") },
+                        singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -2506,6 +2563,7 @@ fun AdminPortalDialog(
                             value = timeStr,
                             onValueChange = { timeStr = it },
                             label = { Text("Time") },
+                            singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f)
                         )
@@ -2513,6 +2571,7 @@ fun AdminPortalDialog(
                             value = marksStr,
                             onValueChange = { marksStr = it },
                             label = { Text("Marks") },
+                            singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(1f)
                         )
@@ -2520,42 +2579,9 @@ fun AdminPortalDialog(
                             value = negStr,
                             onValueChange = { negStr = it },
                             label = { Text("Neg") },
+                            singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(1f)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(PrimaryRose.copy(alpha = 0.08f))
-                            .border(1.dp, PrimaryRose, RoundedCornerShape(8.dp))
-                            .clickable { filePicker.launch("text/plain") }
-                            .padding(12.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(selectedFileName, color = TextMain, fontSize = 13.sp)
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text("या नीचे सीधे प्रश्न Copy-Paste करें:", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = rawTextContent,
-                        onValueChange = { rawTextContent = it },
-                        placeholder = { Text("Q: प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
-                        minLines = 4,
-                        maxLines = 7,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (rawTextContent.isNotBlank()) {
-                        val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
-                        Text(
-                            text = "✅ पब्लिश के लिए तैयार प्रश्न: $previewCount",
-                            color = if (previewCount > 0) CorrectGreen else WrongRed,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
                 } else {
