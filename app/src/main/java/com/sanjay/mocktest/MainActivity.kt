@@ -790,9 +790,7 @@ fun MockTestAppRoot() {
     var showExitTestConfirm by remember { mutableStateOf(false) }
 
     // Modals
-    var showCustomQuizModal by remember { mutableStateOf(false) }
     var showPinGateModal by remember { mutableStateOf(false) }
-    var showAdminModal by remember { mutableStateOf(false) }
     var showNamePromptDialog by remember { mutableStateOf(false) }
     var pendingQuizToStart by remember { mutableStateOf<OnlineQuizMeta?>(null) }
 
@@ -832,11 +830,11 @@ fun MockTestAppRoot() {
             }
             AppScreen.RESULT -> currentScreen = previousScreenBeforeTest
             AppScreen.SUBJECT_TESTS -> currentScreen = AppScreen.HOME
+            AppScreen.CUSTOM_BUILDER -> currentScreen = AppScreen.HOME
+            AppScreen.ADMIN_PORTAL -> currentScreen = AppScreen.HOME
             AppScreen.HOME -> {
                 when {
-                    showCustomQuizModal -> showCustomQuizModal = false
                     showPinGateModal -> showPinGateModal = false
-                    showAdminModal -> showAdminModal = false
                     else -> {
                         val now = System.currentTimeMillis()
                         if (now - lastBackPressTime < 2000L) {
@@ -1022,7 +1020,7 @@ fun MockTestAppRoot() {
                             }
                         }
                     },
-                    onOpenCustomModal = { showCustomQuizModal = true },
+                    onOpenCustomModal = { currentScreen = AppScreen.CUSTOM_BUILDER },
                     onOpenAdminModal = { showPinGateModal = true }
                 )
             }
@@ -1035,6 +1033,47 @@ fun MockTestAppRoot() {
                     isDownloading = isDownloadingQuiz,
                     onBack = { currentScreen = AppScreen.HOME },
                     onStartTest = { meta -> launchOnlineQuiz(meta) }
+                )
+            }
+
+            AppScreen.CUSTOM_BUILDER -> {
+                CustomQuizScreenUI(
+                    initialConfig = testConfig,
+                    onBack = { currentScreen = AppScreen.HOME },
+                    onSaveCustomQuiz = { newCfg, rawTxt, parsedList ->
+                        testConfig = newCfg
+                        activeRawTxt = rawTxt
+                        questions = parsedList
+                        hasCustomSavedQuiz = true
+                        prefs.edit()
+                            .putString("saved_custom_txt", rawTxt)
+                            .putString("saved_title", newCfg.title)
+                            .putInt("saved_time", newCfg.timeMinutes)
+                            .putFloat("saved_marks", newCfg.marksPerCorrect.toFloat())
+                            .putFloat("saved_neg", newCfg.negativeMark.toFloat())
+                            .apply()
+                        currentScreen = AppScreen.HOME
+                        Toast.makeText(context, "Custom Quiz सेव हो गया (${parsedList.size} प्रश्न)!", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
+
+            AppScreen.ADMIN_PORTAL -> {
+                AdminPortalScreenUI(
+                    savedToken = SecureAdminStore.loadPat(context),
+                    groupedSubjects = groupedBySubject,
+                    onBack = { currentScreen = AppScreen.HOME },
+                    onActionSuccess = { tokenUsed ->
+                        SecureAdminStore.savePat(context, tokenUsed)
+                        scope.launch {
+                            isLoadingOnline = true
+                            try {
+                                onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes()
+                            } catch (_: Exception) {
+                            }
+                            isLoadingOnline = false
+                        }
+                    }
                 )
             }
 
@@ -1285,29 +1324,7 @@ fun MockTestAppRoot() {
             )
         }
 
-        if (showCustomQuizModal) {
-            CustomQuizDialog(
-                initialConfig = testConfig,
-                onDismiss = { showCustomQuizModal = false },
-                onSaveCustomQuiz = { newCfg, rawTxt, parsedList ->
-                    testConfig = newCfg
-                    activeRawTxt = rawTxt
-                    questions = parsedList
-                    hasCustomSavedQuiz = true
-                    prefs.edit()
-                        .putString("saved_custom_txt", rawTxt)
-                        .putString("saved_title", newCfg.title)
-                        .putInt("saved_time", newCfg.timeMinutes)
-                        .putFloat("saved_marks", newCfg.marksPerCorrect.toFloat())
-                        .putFloat("saved_neg", newCfg.negativeMark.toFloat())
-                        .apply()
-                    showCustomQuizModal = false
-                    Toast.makeText(context, "Custom Quiz सेव हो गया (${parsedList.size} प्रश्न)!", Toast.LENGTH_SHORT).show()
-                }
-            )
-        }
-
-        // PIN Gate Before Opening Admin Panel
+        // PIN Gate Before Opening Full-Screen Admin Panel
         if (showPinGateModal) {
             AdminPinGateDialog(
                 isSettingNewPin = !SecureAdminStore.hasPin(context),
@@ -1317,27 +1334,7 @@ fun MockTestAppRoot() {
                         SecureAdminStore.setPin(context, pin)
                     }
                     showPinGateModal = false
-                    showAdminModal = true
-                }
-            )
-        }
-
-        // Admin Portal Dialog (Uses Keystore-Encrypted PAT)
-        if (showAdminModal) {
-            AdminPortalDialog(
-                savedToken = SecureAdminStore.loadPat(context),
-                groupedSubjects = groupedBySubject,
-                onDismiss = { showAdminModal = false },
-                onActionSuccess = { tokenUsed ->
-                    SecureAdminStore.savePat(context, tokenUsed)
-                    scope.launch {
-                        isLoadingOnline = true
-                        try {
-                            onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes()
-                        } catch (_: Exception) {
-                        }
-                        isLoadingOnline = false
-                    }
+                    currentScreen = AppScreen.ADMIN_PORTAL
                 }
             )
         }
@@ -2272,11 +2269,11 @@ fun ResultScreenUI(
     }
 }
 
-// ==================== 15. CUSTOM LOCAL QUIZ MODAL ====================
+// ==================== 15. FULL-SCREEN CUSTOM LOCAL QUIZ BUILDER (ZERO KEYBOARD JITTER) ====================
 @Composable
-fun CustomQuizDialog(
+fun CustomQuizScreenUI(
     initialConfig: TestConfig,
-    onDismiss: () -> Unit,
+    onBack: () -> Unit,
     onSaveCustomQuiz: (TestConfig, String, List<Question>) -> Unit
 ) {
     val context = LocalContext.current
@@ -2296,86 +2293,31 @@ fun CustomQuizDialog(
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = CardDark,
-        title = { Text("⚙️ Custom Quiz Configuration", color = PrimaryRose, fontWeight = FontWeight.Black, fontSize = 16.sp) },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                // Top Row: Paste Box + File Upload at the VERY TOP so keyboard never covers it!
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgDark)
+            .imePadding()
+    ) {
+        // Fixed Top Header Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(CardDark)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(
+                    onClick = onBack,
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text("1. प्रश्न पेस्ट करें या फाइल चुनें:", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    Text(
-                        text = selectedFileName,
-                        color = PrimaryRose,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(PrimaryRose.copy(alpha = 0.12f))
-                            .clickable { filePicker.launch("text/plain") }
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
+                    Text("← Back", color = PrimaryRose, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
-                Spacer(modifier = Modifier.height(6.dp))
-                OutlinedTextField(
-                    value = rawTextContent,
-                    onValueChange = { rawTextContent = it },
-                    placeholder = { Text("Q: प्रश्न...\\nA) विकल्प 1\\nB) विकल्प 2\\nANS: A\\nSOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
-                    modifier = Modifier.fillMaxWidth().height(115.dp)
-                )
-                if (rawTextContent.isNotBlank()) {
-                    val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
-                    Text(
-                        text = "✅ मान्य प्रश्न: $previewCount",
-                        color = if (previewCount > 0) CorrectGreen else WrongRed,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Test Name / Title") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = timeStr,
-                        onValueChange = { timeStr = it },
-                        label = { Text("Time") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = marksStr,
-                        onValueChange = { marksStr = it },
-                        label = { Text("Marks") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = negStr,
-                        onValueChange = { negStr = it },
-                        label = { Text("Neg") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("⚙️ Custom Quiz Builder", color = TextMain, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
-        },
-        confirmButton = {
             Button(
                 onClick = {
                     val result = TxtQuestionParser.parseWithValidation(rawTextContent)
@@ -2395,23 +2337,110 @@ fun CustomQuizDialog(
                     )
                     onSaveCustomQuiz(cfg, rawTextContent, result.questions)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose)
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
             ) {
-                Text("Save & Load Test", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Save & Load", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel", color = TextMuted) }
         }
-    )
+
+        // Stable LazyColumn Form (No AlertDialog window jumping!)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Test Name / Title") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = timeStr,
+                        onValueChange = { timeStr = it },
+                        label = { Text("Time (Min)") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = marksStr,
+                        onValueChange = { marksStr = it },
+                        label = { Text("Marks") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = negStr,
+                        onValueChange = { negStr = it },
+                        label = { Text("Negative") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("प्रश्न पेस्ट करें या फाइल चुनें:", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = selectedFileName,
+                        color = PrimaryRose,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(PrimaryRose.copy(alpha = 0.14f))
+                            .border(1.dp, PrimaryRose, RoundedCornerShape(8.dp))
+                            .clickable { filePicker.launch("text/plain") }
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+            item {
+                OutlinedTextField(
+                    value = rawTextContent,
+                    onValueChange = { rawTextContent = it },
+                    placeholder = { Text("TOPIC: विषय...\nQ: 1. प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या...", color = TextMuted, fontSize = 12.sp) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                )
+                if (rawTextContent.isNotBlank()) {
+                    val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
+                    Text(
+                        text = "✅ मान्य प्रश्न: $previewCount",
+                        color = if (previewCount > 0) CorrectGreen else WrongRed,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                }
+            }
+        }
+    }
 }
 
-// ==================== 16. TEACHER ADMIN PORTAL ====================
+// ==================== 16. FULL-SCREEN TEACHER ADMIN PORTAL (ZERO KEYBOARD JITTER) ====================
 @Composable
-fun AdminPortalDialog(
+fun AdminPortalScreenUI(
     savedToken: String,
     groupedSubjects: Map<String, List<OnlineQuizMeta>>,
-    onDismiss: () -> Unit,
+    onBack: () -> Unit,
     onActionSuccess: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -2421,268 +2450,51 @@ fun AdminPortalDialog(
     var isBusy by remember { mutableStateOf(false) }
 
     val existingSubjects = groupedSubjects.keys.toList()
-    var subject by remember { mutableStateOf(existingSubjects.firstOrNull() ?: "Computer Science") }
+    var subject by remember { mutableStateOf(existingSubjects.firstOrNull() ?: "Sociology") }
     var title by remember { mutableStateOf("Rajasthan SET & UGC NET Mock Test") }
     var subtitle by remember { mutableStateOf("Target Preparation & Revision Test") }
     var timeStr by remember { mutableStateOf("60") }
     var marksStr by remember { mutableStateOf("2.0") }
     var negStr by remember { mutableStateOf("0.0") }
-    var selectedFileName by remember { mutableStateOf("📂 Select .TXT File (Auto-Encrypted)") }
+    var selectedFileName by remember { mutableStateOf("📂 .TXT फाइल चुनें") }
     var rawTextContent by remember { mutableStateOf("") }
 
     val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            selectedFileName = "🔒 Ready: ${uri.lastPathSegment ?: "quiz.txt"}"
+            selectedFileName = "🔒 ${uri.lastPathSegment ?: "quiz.txt"}"
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 rawTextContent = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).readText()
             }
         }
     }
 
-    AlertDialog(
-        onDismissRequest = { if (!isBusy) onDismiss() },
-        containerColor = CardDark,
-        title = {
-            Column {
-                Text("🔒 Teacher Admin Panel", color = PrimaryRose, fontWeight = FontWeight.Black, fontSize = 17.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                TabRow(
-                    selectedTabIndex = selectedTab,
-                    containerColor = BgDark,
-                    contentColor = PrimaryRose
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgDark)
+            .imePadding()
+    ) {
+        // Fixed Top Bar with Back & Publish Button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(CardDark)
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(
+                    enabled = !isBusy,
+                    onClick = onBack,
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Tab(
-                        selected = selectedTab == 0,
-                        onClick = { if (!isBusy) selectedTab = 0 },
-                        text = { Text("Publish New", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
-                    )
-                    Tab(
-                        selected = selectedTab == 1,
-                        onClick = { if (!isBusy) selectedTab = 1 },
-                        text = { Text("Delete / Manage", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
-                    )
+                    Text("← Back", color = PrimaryRose, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("🔒 Teacher Admin Panel", color = TextMain, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
-        },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                OutlinedTextField(
-                    value = token,
-                    onValueChange = { token = it },
-                    label = { Text("GitHub Fine-Grained PAT (Keystore Encrypted)") },
-                    visualTransformation = PasswordVisualTransformation(),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(10.dp))
 
-                if (selectedTab == 0) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("प्रश्न पेस्ट करें या .TXT चुनें:", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Text(
-                            text = selectedFileName,
-                            color = PrimaryRose,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(PrimaryRose.copy(alpha = 0.12f))
-                                .clickable { filePicker.launch("text/plain") }
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = rawTextContent,
-                        onValueChange = { rawTextContent = it },
-                        placeholder = { Text("Q: प्रश्न...\\nA) विकल्प 1\\nB) विकल्प 2\\nANS: A\\nSOL: व्याख्या...", color = TextMuted, fontSize = 11.sp) },
-                        modifier = Modifier.fillMaxWidth().height(110.dp)
-                    )
-                    if (rawTextContent.isNotBlank()) {
-                        val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
-                        Text(
-                            text = "✅ पब्लिश के लिए तैयार प्रश्न: $previewCount",
-                            color = if (previewCount > 0) CorrectGreen else WrongRed,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = subject,
-                        onValueChange = { subject = it },
-                        label = { Text("Subject / Folder Name") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (existingSubjects.isNotEmpty()) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState())
-                                .padding(top = 6.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            existingSubjects.forEach { sub ->
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(HomeBox)
-                                        .clickable { subject = sub }
-                                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                                ) {
-                                    Text(sub, color = TextMain, fontSize = 11.sp)
-                                }
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = { Text("Quiz Title") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = subtitle,
-                        onValueChange = { subtitle = it },
-                        label = { Text("Subtitle / Description") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = timeStr,
-                            onValueChange = { timeStr = it },
-                            label = { Text("Time") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f)
-                        )
-                        OutlinedTextField(
-                            value = marksStr,
-                            onValueChange = { marksStr = it },
-                            label = { Text("Marks") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.weight(1f)
-                        )
-                        OutlinedTextField(
-                            value = negStr,
-                            onValueChange = { negStr = it },
-                            label = { Text("Neg") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                } else {
-                    if (groupedSubjects.isEmpty()) {
-                        Text("अभी कोई ऑनलाइन टेस्ट मौजूद नहीं है।", color = TextMuted, fontSize = 13.sp)
-                    } else {
-                        groupedSubjects.forEach { (subName, testList) ->
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 6.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(BgDark)
-                                    .padding(10.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "📁 $subName (${testList.size})",
-                                        color = SecondarySky,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    TextButton(
-                                        enabled = !isBusy,
-                                        onClick = {
-                                            if (token.isBlank()) {
-                                                Toast.makeText(context, "पहले ऊपर GitHub Token डालें!", Toast.LENGTH_SHORT).show()
-                                                return@TextButton
-                                            }
-                                            isBusy = true
-                                            scope.launch {
-                                                val res = GitHubCloudService.deleteSubjectFolderFromGitHub(
-                                                    token = token.trim(),
-                                                    subjectName = subName,
-                                                    quizzesInFolder = testList
-                                                )
-                                                isBusy = false
-                                                res.onSuccess { msg ->
-                                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                                    onActionSuccess(token.trim())
-                                                }.onFailure { err ->
-                                                    Toast.makeText(context, "Error: ${err.message}", Toast.LENGTH_LONG).show()
-                                                }
-                                            }
-                                        }
-                                    ) {
-                                        Text("🗑️ Del Folder", color = WrongRed, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                }
-                                HorizontalDivider(color = BorderColor, modifier = Modifier.padding(vertical = 4.dp))
-                                testList.forEach { quiz ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "• ${quiz.title}",
-                                            color = TextMain,
-                                            fontSize = 12.sp,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        TextButton(
-                                            enabled = !isBusy,
-                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                                            onClick = {
-                                                if (token.isBlank()) {
-                                                    Toast.makeText(context, "पहले ऊपर GitHub Token डालें!", Toast.LENGTH_SHORT).show()
-                                                    return@TextButton
-                                                }
-                                                isBusy = true
-                                                scope.launch {
-                                                    val res = GitHubCloudService.deleteQuizFromGitHub(token.trim(), quiz)
-                                                    isBusy = false
-                                                    res.onSuccess { msg ->
-                                                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                                        onActionSuccess(token.trim())
-                                                    }.onFailure { err ->
-                                                        Toast.makeText(context, "Error: ${err.message}", Toast.LENGTH_LONG).show()
-                                                    }
-                                                }
-                                            }
-                                        ) {
-                                            Text("🗑️", fontSize = 13.sp)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
             if (selectedTab == 0) {
                 Button(
                     enabled = !isBusy,
@@ -2693,7 +2505,7 @@ fun AdminPortalDialog(
                             return@Button
                         }
                         if (result.questions.isEmpty()) {
-                            Toast.makeText(context, "कृपया सही प्रश्नों और ANS: वाली .txt फाइल चुनें!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "कृपया सही प्रश्नों और ANS: वाली .txt फाइल या टेक्स्ट डालें!", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
                         if (result.warnings.isNotEmpty()) {
@@ -2716,22 +2528,276 @@ fun AdminPortalDialog(
                             res.onSuccess { msg ->
                                 Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                                 onActionSuccess(token.trim())
-                                onDismiss()
+                                onBack()
                             }.onFailure { err ->
                                 Toast.makeText(context, "Publish Failed: ${err.message}", Toast.LENGTH_LONG).show()
                             }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = CorrectGreen)
+                    colors = ButtonDefaults.buttonColors(containerColor = CorrectGreen),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    Text(if (isBusy) "Encrypting..." else "🚀 Publish Encrypted", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(if (isBusy) "Publishing..." else "🚀 Publish", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isBusy) { Text("Close", color = TextMuted) }
         }
-    )
+
+        // Tabs
+        TabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = CardDark,
+            contentColor = PrimaryRose
+        ) {
+            Tab(
+                selected = selectedTab == 0,
+                onClick = { if (!isBusy) selectedTab = 0 },
+                text = { Text("Publish New", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
+            )
+            Tab(
+                selected = selectedTab == 1,
+                onClick = { if (!isBusy) selectedTab = 1 },
+                text = { Text("Delete / Manage", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
+            )
+        }
+
+        // Stable Full-Screen LazyColumn Body
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(top = 14.dp, bottom = 90.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                OutlinedTextField(
+                    value = token,
+                    onValueChange = { token = it },
+                    label = { Text("GitHub Fine-Grained PAT (Keystore Encrypted)") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (selectedTab == 0) {
+                item {
+                    OutlinedTextField(
+                        value = subject,
+                        onValueChange = { subject = it },
+                        label = { Text("Subject / Folder Name") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (existingSubjects.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            existingSubjects.forEach { sub ->
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(HomeBox)
+                                        .clickable { subject = sub }
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(sub, color = TextMain, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+                item {
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Quiz Title") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                item {
+                    OutlinedTextField(
+                        value = subtitle,
+                        onValueChange = { subtitle = it },
+                        label = { Text("Subtitle / Description") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = timeStr,
+                            onValueChange = { timeStr = it },
+                            label = { Text("Time (Min)") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = marksStr,
+                            onValueChange = { marksStr = it },
+                            label = { Text("Marks") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = negStr,
+                            onValueChange = { negStr = it },
+                            label = { Text("Negative") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("प्रश्न पेस्ट करें या .TXT चुनें:", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = selectedFileName,
+                            color = PrimaryRose,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(PrimaryRose.copy(alpha = 0.14f))
+                                .border(1.dp, PrimaryRose, RoundedCornerShape(8.dp))
+                                .clickable { filePicker.launch("text/plain") }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+                item {
+                    OutlinedTextField(
+                        value = rawTextContent,
+                        onValueChange = { rawTextContent = it },
+                        placeholder = { Text("TOPIC: विषय...\nQ: 1. प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या...", color = TextMuted, fontSize = 12.sp) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                    )
+                    if (rawTextContent.isNotBlank()) {
+                        val previewCount = remember(rawTextContent) { TxtQuestionParser.parse(rawTextContent).size }
+                        Text(
+                            text = "✅ पब्लिश के लिए तैयार प्रश्न: $previewCount",
+                            color = if (previewCount > 0) CorrectGreen else WrongRed,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                    }
+                }
+            } else {
+                if (groupedSubjects.isEmpty()) {
+                    item {
+                        Text("अभी कोई ऑनलाइन टेस्ट मौजूद नहीं है।", color = TextMuted, fontSize = 13.sp)
+                    }
+                } else {
+                    items(groupedSubjects.entries.toList()) { (subName, testList) ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(CardDark)
+                                .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "📁 $subName (${testList.size})",
+                                    color = SecondarySky,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                TextButton(
+                                    enabled = !isBusy,
+                                    onClick = {
+                                        if (token.isBlank()) {
+                                            Toast.makeText(context, "पहले ऊपर GitHub Token डालें!", Toast.LENGTH_SHORT).show()
+                                            return@TextButton
+                                        }
+                                        isBusy = true
+                                        scope.launch {
+                                            val res = GitHubCloudService.deleteSubjectFolderFromGitHub(
+                                                token = token.trim(),
+                                                subjectName = subName,
+                                                quizzesInFolder = testList
+                                            )
+                                            isBusy = false
+                                            res.onSuccess { msg ->
+                                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                                onActionSuccess(token.trim())
+                                            }.onFailure { err ->
+                                                Toast.makeText(context, "Error: ${err.message}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Text("🗑️ Del Folder", color = WrongRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            HorizontalDivider(color = BorderColor, modifier = Modifier.padding(vertical = 6.dp))
+                            testList.forEach { quiz ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "• ${quiz.title}",
+                                        color = TextMain,
+                                        fontSize = 13.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    TextButton(
+                                        enabled = !isBusy,
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        onClick = {
+                                            if (token.isBlank()) {
+                                                Toast.makeText(context, "पहले ऊपर GitHub Token डालें!", Toast.LENGTH_SHORT).show()
+                                                return@TextButton
+                                            }
+                                            isBusy = true
+                                            scope.launch {
+                                                val res = GitHubCloudService.deleteQuizFromGitHub(token.trim(), quiz)
+                                                isBusy = false
+                                                res.onSuccess { msg ->
+                                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                                    onActionSuccess(token.trim())
+                                                }.onFailure { err ->
+                                                    Toast.makeText(context, "Error: ${err.message}", Toast.LENGTH_LONG).show()
+                                                }
+                                            }
+                                        }
+                                    ) {
+                                        Text("🗑️", fontSize = 14.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // ==================== 17. ESCAPED TWO-COLUMN A4 PDF PRINT HELPER (NO WATERMARK) ====================
