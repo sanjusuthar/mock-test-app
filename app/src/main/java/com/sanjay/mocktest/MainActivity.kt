@@ -1,6 +1,7 @@
 package com.sanjay.mocktest
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.print.PrintAttributes
@@ -17,10 +18,11 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +30,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,10 +41,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -769,6 +774,7 @@ fun MockTestAppRoot() {
     val scope = rememberCoroutineScope()
     val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
 
+    var showSplashScreen by remember { mutableStateOf(true) }
     var currentScreen by remember { mutableStateOf(AppScreen.HOME) }
     var previousScreenBeforeTest by remember { mutableStateOf(AppScreen.HOME) }
     var selectedSubjectFolder by remember { mutableStateOf("") }
@@ -891,6 +897,11 @@ fun MockTestAppRoot() {
                 isDownloadingQuiz = false
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        delay(1800L)
+        showSplashScreen = false
     }
 
     LaunchedEffect(Unit) {
@@ -1340,6 +1351,53 @@ fun MockTestAppRoot() {
                     currentScreen = AppScreen.ADMIN_PORTAL
                 }
             )
+        }
+
+        // Full-Screen Branded Splash Screen (Shows splash_bg.png when app opens)
+        if (showSplashScreen) {
+            SplashScreenOverlay()
+        }
+    }
+}
+
+@Composable
+fun SplashScreenOverlay() {
+    val context = LocalContext.current
+    val splashBitmap = remember {
+        try {
+            val resId = context.resources.getIdentifier("splash_bg", "drawable", context.packageName)
+            if (resId != 0) {
+                BitmapFactory.decodeResource(context.resources, resId)?.asImageBitmap()
+            } else {
+                context.assets.open("splash_bg.png").use { stream ->
+                    BitmapFactory.decodeStream(stream)?.asImageBitmap()
+                }
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF040B24)),
+        contentAlignment = Alignment.Center
+    ) {
+        if (splashBitmap != null) {
+            Image(
+                bitmap = splashBitmap,
+                contentDescription = "Online Mock Test Splash Screen",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("🎓", fontSize = 56.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("ONLINE MOCK TEST", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                Text("Target Preparation & Revision Test", color = SecondarySky, fontSize = 13.sp)
+            }
         }
     }
 }
@@ -2442,6 +2500,7 @@ fun CustomQuizScreenUI(
 }
 
 // ==================== 16. FULL-SCREEN TEACHER ADMIN PORTAL (SWIPE TABS + BOTTOM PUBLISH + LAST USED DEFAULTS) ====================
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AdminPortalScreenUI(
     savedToken: String,
@@ -2454,7 +2513,7 @@ fun AdminPortalScreenUI(
     val scope = rememberCoroutineScope()
     val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
 
-    var selectedTab by remember { mutableStateOf(0) }
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
     var token by remember { mutableStateOf(savedToken) }
     var isBusy by remember { mutableStateOf(false) }
 
@@ -2524,46 +2583,35 @@ fun AdminPortalScreenUI(
             Text("🔒 Teacher Admin Panel", color = TextMain, fontWeight = FontWeight.Bold, fontSize = 17.sp)
         }
 
-        // Tabs (Tap OR Swipe left/right!)
+        // Tabs synced with smooth HorizontalPager (slides smoothly with finger like phone app drawer!)
         TabRow(
-            selectedTabIndex = selectedTab,
+            selectedTabIndex = pagerState.currentPage,
             containerColor = CardDark,
             contentColor = PrimaryRose
         ) {
             Tab(
-                selected = selectedTab == 0,
-                onClick = { if (!isBusy) selectedTab = 0 },
+                selected = pagerState.currentPage == 0,
+                onClick = {
+                    if (!isBusy) scope.launch { pagerState.animateScrollToPage(0) }
+                },
                 text = { Text("Publish New", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
             )
             Tab(
-                selected = selectedTab == 1,
-                onClick = { if (!isBusy) selectedTab = 1 },
+                selected = pagerState.currentPage == 1,
+                onClick = {
+                    if (!isBusy) scope.launch { pagerState.animateScrollToPage(1) }
+                },
                 text = { Text("Delete / Manage", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
             )
         }
 
-        // Swipeable Content Area (Uses stable detectHorizontalDragGestures - no Experimental API error!)
-        var totalDragX by remember { mutableStateOf(0f) }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(isBusy) {
-                    detectHorizontalDragGestures(
-                        onDragStart = { totalDragX = 0f },
-                        onHorizontalDrag = { _, dragAmount -> totalDragX += dragAmount },
-                        onDragEnd = {
-                            if (!isBusy) {
-                                if (totalDragX < -90f && selectedTab == 0) {
-                                    selectedTab = 1
-                                } else if (totalDragX > 90f && selectedTab == 1) {
-                                    selectedTab = 0
-                                }
-                            }
-                        }
-                    )
-                }
-        ) {
-            if (selectedTab == 0) {
+        // Smooth App-Drawer Style HorizontalPager
+        HorizontalPager(
+            state = pagerState,
+            userScrollEnabled = !isBusy,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            if (page == 0) {
                 // PAGE 0: PUBLISH NEW QUIZ
                 LazyColumn(
                     modifier = Modifier
