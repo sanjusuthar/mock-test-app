@@ -1,7 +1,7 @@
 package com.sanjay.mocktest
 
 import android.content.Context
-import android.graphics.BitmapFactory
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.print.PrintAttributes
@@ -19,7 +19,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,8 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -754,6 +751,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            LaunchedEffect(Unit) {
+                window.setBackgroundDrawable(ColorDrawable(0xFF09090B.toInt()))
+            }
             MaterialTheme(
                 colorScheme = darkColorScheme(
                     primary = PrimaryRose,
@@ -774,7 +774,6 @@ fun MockTestAppRoot() {
     val scope = rememberCoroutineScope()
     val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
 
-    var showSplashScreen by remember { mutableStateOf(true) }
     var currentScreen by remember { mutableStateOf(AppScreen.HOME) }
     var previousScreenBeforeTest by remember { mutableStateOf(AppScreen.HOME) }
     var selectedSubjectFolder by remember { mutableStateOf("") }
@@ -897,11 +896,6 @@ fun MockTestAppRoot() {
                 isDownloadingQuiz = false
             }
         }
-    }
-
-    LaunchedEffect(Unit) {
-        delay(1800L)
-        showSplashScreen = false
     }
 
     LaunchedEffect(Unit) {
@@ -1353,52 +1347,6 @@ fun MockTestAppRoot() {
             )
         }
 
-        // Full-Screen Branded Splash Screen (Shows splash_bg.png when app opens)
-        if (showSplashScreen) {
-            SplashScreenOverlay()
-        }
-    }
-}
-
-@Composable
-fun SplashScreenOverlay() {
-    val context = LocalContext.current
-    val splashBitmap = remember {
-        try {
-            val resId = context.resources.getIdentifier("splash_bg", "drawable", context.packageName)
-            if (resId != 0) {
-                BitmapFactory.decodeResource(context.resources, resId)?.asImageBitmap()
-            } else {
-                context.assets.open("splash_bg.png").use { stream ->
-                    BitmapFactory.decodeStream(stream)?.asImageBitmap()
-                }
-            }
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF040B24)),
-        contentAlignment = Alignment.Center
-    ) {
-        if (splashBitmap != null) {
-            Image(
-                bitmap = splashBitmap,
-                contentDescription = "Online Mock Test Splash Screen",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("🎓", fontSize = 56.sp)
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("ONLINE MOCK TEST", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
-                Text("Target Preparation & Revision Test", color = SecondarySky, fontSize = 13.sp)
-            }
-        }
     }
 }
 
