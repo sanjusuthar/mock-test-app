@@ -20,6 +20,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,8 +28,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,6 +37,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -2454,7 +2454,7 @@ fun AdminPortalScreenUI(
     val scope = rememberCoroutineScope()
     val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
 
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
+    var selectedTab by remember { mutableStateOf(0) }
     var token by remember { mutableStateOf(savedToken) }
     var isBusy by remember { mutableStateOf(false) }
 
@@ -2524,34 +2524,46 @@ fun AdminPortalScreenUI(
             Text("🔒 Teacher Admin Panel", color = TextMain, fontWeight = FontWeight.Bold, fontSize = 17.sp)
         }
 
-        // Tabs synced with HorizontalPager (Tap OR Swipe left/right!)
+        // Tabs (Tap OR Swipe left/right!)
         TabRow(
-            selectedTabIndex = pagerState.currentPage,
+            selectedTabIndex = selectedTab,
             containerColor = CardDark,
             contentColor = PrimaryRose
         ) {
             Tab(
-                selected = pagerState.currentPage == 0,
-                onClick = {
-                    if (!isBusy) scope.launch { pagerState.animateScrollToPage(0) }
-                },
+                selected = selectedTab == 0,
+                onClick = { if (!isBusy) selectedTab = 0 },
                 text = { Text("Publish New", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
             )
             Tab(
-                selected = pagerState.currentPage == 1,
-                onClick = {
-                    if (!isBusy) scope.launch { pagerState.animateScrollToPage(1) }
-                },
+                selected = selectedTab == 1,
+                onClick = { if (!isBusy) selectedTab = 1 },
                 text = { Text("Delete / Manage", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
             )
         }
 
-        // Swipeable HorizontalPager
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
-            if (page == 0) {
+        // Swipeable Content Area (Uses stable detectHorizontalDragGestures - no Experimental API error!)
+        var totalDragX by remember { mutableStateOf(0f) }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(isBusy) {
+                    detectHorizontalDragGestures(
+                        onDragStart = { totalDragX = 0f },
+                        onHorizontalDrag = { _, dragAmount -> totalDragX += dragAmount },
+                        onDragEnd = {
+                            if (!isBusy) {
+                                if (totalDragX < -90f && selectedTab == 0) {
+                                    selectedTab = 1
+                                } else if (totalDragX > 90f && selectedTab == 1) {
+                                    selectedTab = 0
+                                }
+                            }
+                        }
+                    )
+                }
+        ) {
+            if (selectedTab == 0) {
                 // PAGE 0: PUBLISH NEW QUIZ
                 LazyColumn(
                     modifier = Modifier
