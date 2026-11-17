@@ -1,18 +1,5 @@
 [
   {
-    "id": "quiz_1794888702270",
-    "title": "इकाई 3: राजस्थान के लोक वाद्यों का वर्गीकरण एवं अध्ययन (तत्, सुषिर, अवनद्ध एवं घन लोक वाद्य)",
-    "subtitle": "Target Preparation & Revision Test",
-    "subject": "Music",
-    "timeMinutes": 30,
-    "marksPerCorrect": 2,
-    "negativeMark": 0.66,
-    "questionCount": 30,
-    "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794888702270.enc",
-    "repoPath": "quizzes\/music\/quiz_1794888702270.enc",
-    "publishedDate": "17 Nov 2026"
-  },
-  {
     "id": "quiz_1794888137314",
     "title": "इकाई 2: प्रमुख वाद्यों की संरचना का अध्ययन (तानपूरा, सितार, तबला एवं पखावज)",
     "subtitle": "Target Preparation & Revision Test",
