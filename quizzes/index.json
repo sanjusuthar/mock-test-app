@@ -1,5 +1,18 @@
 [
   {
+    "id": "quiz_1794888137314",
+    "title": "इकाई 2: प्रमुख वाद्यों की संरचना का अध्ययन (तानपूरा, सितार, तबला एवं पखावज)",
+    "subtitle": "Target Preparation & Revision Test",
+    "subject": "Music",
+    "timeMinutes": 30,
+    "marksPerCorrect": 2,
+    "negativeMark": 0.66,
+    "questionCount": 30,
+    "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794888137314.enc",
+    "repoPath": "quizzes\/music\/quiz_1794888137314.enc",
+    "publishedDate": "17 Nov 2026"
+  },
+  {
     "id": "quiz_1794744629050",
     "title": "इकाई 1: संगीत की पारिभाषिक शब्दावली",
     "subtitle": "Target Preparation & Revision Test",
