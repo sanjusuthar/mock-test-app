@@ -149,7 +149,25 @@ data class SavedResumeState(
     val markedForReview: List<Boolean>
 )
 
-enum class AppScreen { HOME, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
+data class UserProfile(
+    val name: String,
+    val targetExam: String,
+    val districtOrCity: String,
+    val avatarEmoji: String
+)
+
+data class CompletedTestResult(
+    val config: TestConfig,
+    val rawTxt: String,
+    val userAnswers: List<Int?>,
+    val timeSpentSeconds: Int,
+    val obtainedMarks: Double,
+    val maxMarks: Double,
+    val percentage: Double,
+    val completedDate: String
+)
+
+enum class AppScreen { PROFILE_SETUP, HOME, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
 
 // ==================== 4. ANDROID KEYSTORE SECURE STORAGE FOR PAT & ADMIN PIN ====================
 object SecureAdminStore {
@@ -452,6 +470,116 @@ object ResumeStorage {
     }
 }
 
+// ==================== 7B. STUDENT PROFILE & COMPLETED TEST HISTORY STORAGE ====================
+object ProfileAndHistoryStorage {
+    private const val PREF_NAME = "mock_test_prefs"
+    private const val KEY_PROFILE = "user_profile_v1"
+    private const val KEY_RESULTS_MAP = "completed_results_map_v1"
+
+    fun loadProfile(context: Context): UserProfile? {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val raw = prefs.getString(KEY_PROFILE, null) ?: return null
+        return try {
+            val obj = JSONObject(raw)
+            val name = obj.optString("name", "").trim()
+            if (name.isEmpty()) return null
+            UserProfile(
+                name = name,
+                targetExam = obj.optString("targetExam", "RPSC / UGC NET"),
+                districtOrCity = obj.optString("districtOrCity", "Rajasthan"),
+                avatarEmoji = obj.optString("avatarEmoji", "🎓")
+            )
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun saveProfile(context: Context, profile: UserProfile) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val obj = JSONObject().apply {
+            put("name", profile.name.trim())
+            put("targetExam", profile.targetExam.trim())
+            put("districtOrCity", profile.districtOrCity.trim())
+            put("avatarEmoji", profile.avatarEmoji)
+        }
+        prefs.edit()
+            .putString(KEY_PROFILE, obj.toString())
+            .putString("student_name", profile.name.trim())
+            .apply()
+    }
+
+    fun saveCompletedResult(context: Context, result: CompletedTestResult) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val existingRaw = prefs.getString(KEY_RESULTS_MAP, "{}") ?: "{}"
+        val rootObj = try { JSONObject(existingRaw) } catch (_: Exception) { JSONObject() }
+
+        val ansArr = JSONArray()
+        result.userAnswers.forEach { a ->
+            if (a == null) ansArr.put(JSONObject.NULL) else ansArr.put(a)
+        }
+
+        val entry = JSONObject().apply {
+            put("id", result.config.id)
+            put("title", result.config.title)
+            put("subtitle", result.config.subtitle)
+            put("subject", result.config.subject)
+            put("timeMinutes", result.config.timeMinutes)
+            put("marksPerCorrect", result.config.marksPerCorrect)
+            put("negativeMark", result.config.negativeMark)
+            put("rawTxt", result.rawTxt)
+            put("userAnswers", ansArr)
+            put("timeSpentSeconds", result.timeSpentSeconds)
+            put("obtainedMarks", result.obtainedMarks)
+            put("maxMarks", result.maxMarks)
+            put("percentage", result.percentage)
+            put("completedDate", result.completedDate)
+        }
+
+        rootObj.put(result.config.id, entry)
+        prefs.edit().putString(KEY_RESULTS_MAP, rootObj.toString()).apply()
+    }
+
+    fun loadAllCompletedResults(context: Context): Map<String, CompletedTestResult> {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val existingRaw = prefs.getString(KEY_RESULTS_MAP, "{}") ?: "{}"
+        val map = mutableMapOf<String, CompletedTestResult>()
+        try {
+            val rootObj = JSONObject(existingRaw)
+            val keys = rootObj.keys()
+            while (keys.hasNext()) {
+                val key = keys.next()
+                val obj = rootObj.optJSONObject(key) ?: continue
+                val ansArr = obj.optJSONArray("userAnswers") ?: JSONArray()
+                val ansList = mutableListOf<Int?>()
+                for (i in 0 until ansArr.length()) {
+                    ansList.add(if (ansArr.isNull(i)) null else ansArr.getInt(i))
+                }
+                val cfg = TestConfig(
+                    id = obj.optString("id", key),
+                    title = obj.optString("title", "Mock Test"),
+                    subtitle = obj.optString("subtitle", ""),
+                    subject = obj.optString("subject", "General"),
+                    timeMinutes = obj.optInt("timeMinutes", 60),
+                    marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
+                    negativeMark = obj.optDouble("negativeMark", 0.0)
+                )
+                map[key] = CompletedTestResult(
+                    config = cfg,
+                    rawTxt = obj.optString("rawTxt", ""),
+                    userAnswers = ansList,
+                    timeSpentSeconds = obj.optInt("timeSpentSeconds", 0),
+                    obtainedMarks = obj.optDouble("obtainedMarks", 0.0),
+                    maxMarks = obj.optDouble("maxMarks", 0.0),
+                    percentage = obj.optDouble("percentage", 0.0),
+                    completedDate = obj.optString("completedDate", "")
+                )
+            }
+        } catch (_: Exception) {
+        }
+        return map
+    }
+}
+
 // ==================== 8. GITHUB CLOUD SYNC (WITH OFFLINE CACHE & HTTP CHECKS) ====================
 object GitHubCloudService {
     suspend fun fetchOnlineQuizzes(): List<OnlineQuizMeta> = withContext(Dispatchers.IO) {
@@ -504,7 +632,10 @@ object GitHubCloudService {
                 )
             )
         }
-        list
+        // Sort chronologically by creation timestamp in id (quiz_<timestamp>) so Unit 1 stays at the TOP and Unit 2, 3 follow below!
+        list.sortedBy { meta ->
+            meta.id.substringAfter("quiz_", "").toLongOrNull() ?: 0L
+        }
     }
 
     suspend fun downloadAndDecryptQuizText(context: Context, meta: OnlineQuizMeta): String = withContext(Dispatchers.IO) {
@@ -583,11 +714,12 @@ object GitHubCloudService {
                 put("publishedDate", today)
             }
 
+            // Append new test after existing tests so Unit 1 remains at the top and new units follow in order
             val updatedArray = JSONArray()
-            updatedArray.put(newEntry)
             for (i in 0 until currentArray.length()) {
                 updatedArray.put(currentArray.getJSONObject(i))
             }
+            updatedArray.put(newEntry)
 
             putFileToGitHub(
                 token = token,
@@ -774,23 +906,33 @@ fun MockTestAppRoot() {
     val scope = rememberCoroutineScope()
     val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
 
-    var currentScreen by remember { mutableStateOf(AppScreen.HOME) }
+    val initialProfile = remember { ProfileAndHistoryStorage.loadProfile(context) }
+    var userProfile by remember { mutableStateOf(initialProfile) }
+    var currentScreen by remember {
+        mutableStateOf(if (initialProfile == null) AppScreen.PROFILE_SETUP else AppScreen.HOME)
+    }
     var previousScreenBeforeTest by remember { mutableStateOf(AppScreen.HOME) }
     var selectedSubjectFolder by remember { mutableStateOf("") }
 
     var testConfig by remember { mutableStateOf(TestConfig()) }
     var activeRawTxt by remember { mutableStateOf("") }
     var questions by remember { mutableStateOf<List<Question>>(emptyList()) }
-    var candidateName by remember { mutableStateOf(prefs.getString("student_name", "") ?: "") }
+    var candidateName by remember {
+        mutableStateOf(initialProfile?.name ?: prefs.getString("student_name", "") ?: "")
+    }
     var hasCustomSavedQuiz by remember { mutableStateOf(false) }
 
     var savedResumeState by remember { mutableStateOf<SavedResumeState?>(null) }
+    var completedResultsMap by remember {
+        mutableStateOf(ProfileAndHistoryStorage.loadAllCompletedResults(context))
+    }
 
     // Test Active State
     var currentQIndex by remember { mutableStateOf(0) }
     var userAnswers by remember { mutableStateOf<List<Int?>>(emptyList()) }
     var markedForReview by remember { mutableStateOf<List<Boolean>>(emptyList()) }
     var remainingSeconds by remember { mutableStateOf(0) }
+    var resultTimeSpentSeconds by remember { mutableStateOf(0) }
 
     var showPaletteSheet by remember { mutableStateOf(false) }
     var showSubmitConfirm by remember { mutableStateOf(false) }
@@ -824,6 +966,37 @@ fun MockTestAppRoot() {
     }
 
     fun finishAndSubmitExam() {
+        val spent = ((testConfig.timeMinutes * 60) - remainingSeconds).coerceAtLeast(0)
+        resultTimeSpentSeconds = spent
+
+        var correct = 0
+        var wrong = 0
+        questions.forEachIndexed { idx, q ->
+            val ans = userAnswers.getOrNull(idx)
+            if (ans != null) {
+                if (ans == q.correctAnswer) correct++ else wrong++
+            }
+        }
+        val obtained = (correct * testConfig.marksPerCorrect) - (wrong * testConfig.negativeMark)
+        val maxM = questions.size * testConfig.marksPerCorrect
+        val pct = if (maxM > 0) ((obtained / maxM) * 100.0).coerceIn(0.0, 100.0) else 0.0
+        val today = SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).format(Date())
+
+        if (activeRawTxt.isNotBlank() && questions.isNotEmpty()) {
+            val completed = CompletedTestResult(
+                config = testConfig,
+                rawTxt = activeRawTxt,
+                userAnswers = userAnswers,
+                timeSpentSeconds = spent,
+                obtainedMarks = obtained,
+                maxMarks = maxM,
+                percentage = pct,
+                completedDate = today
+            )
+            ProfileAndHistoryStorage.saveCompletedResult(context, completed)
+            completedResultsMap = ProfileAndHistoryStorage.loadAllCompletedResults(context)
+        }
+
         ResumeStorage.clear(context)
         savedResumeState = null
         currentScreen = AppScreen.RESULT
@@ -839,6 +1012,13 @@ fun MockTestAppRoot() {
             AppScreen.SUBJECT_TESTS -> currentScreen = AppScreen.HOME
             AppScreen.CUSTOM_BUILDER -> currentScreen = AppScreen.HOME
             AppScreen.ADMIN_PORTAL -> currentScreen = AppScreen.HOME
+            AppScreen.PROFILE_SETUP -> {
+                if (userProfile != null) {
+                    currentScreen = AppScreen.HOME
+                } else {
+                    (context as? ComponentActivity)?.finish()
+                }
+            }
             AppScreen.HOME -> {
                 when {
                     showPinGateModal -> showPinGateModal = false
@@ -898,8 +1078,24 @@ fun MockTestAppRoot() {
         }
     }
 
+    fun openSavedResult(saved: CompletedTestResult, fromScreen: AppScreen) {
+        val parsed = TxtQuestionParser.parse(saved.rawTxt)
+        if (parsed.isNotEmpty()) {
+            testConfig = saved.config
+            activeRawTxt = saved.rawTxt
+            questions = parsed
+            userAnswers = if (saved.userAnswers.size == parsed.size) saved.userAnswers else List(parsed.size) { null }
+            resultTimeSpentSeconds = saved.timeSpentSeconds
+            previousScreenBeforeTest = fromScreen
+            currentScreen = AppScreen.RESULT
+        } else {
+            Toast.makeText(context, "रिजल्ट डेटा उपलब्ध नहीं है, कृपया Re-Test दें।", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     LaunchedEffect(Unit) {
         savedResumeState = ResumeStorage.load(context)
+        completedResultsMap = ProfileAndHistoryStorage.loadAllCompletedResults(context)
 
         val savedTxt = prefs.getString("saved_custom_txt", null)
         if (!savedTxt.isNullOrBlank()) {
@@ -954,13 +1150,27 @@ fun MockTestAppRoot() {
             .systemBarsPadding()
     ) {
         when (currentScreen) {
+            AppScreen.PROFILE_SETUP -> {
+                ProfileSetupScreenUI(
+                    existingProfile = userProfile,
+                    onSaveProfile = { newProfile ->
+                        ProfileAndHistoryStorage.saveProfile(context, newProfile)
+                        userProfile = newProfile
+                        candidateName = newProfile.name
+                        currentScreen = AppScreen.HOME
+                    }
+                )
+            }
+
             AppScreen.HOME -> {
                 HomeScreenUI(
-                    candidateName = candidateName,
-                    onCandidateNameChange = {
-                        candidateName = it
-                        prefs.edit().putString("student_name", it.trim()).apply()
-                    },
+                    userProfile = userProfile ?: UserProfile(
+                        name = candidateName.ifBlank { "Student" },
+                        targetExam = "RPSC • RSSB • CTET • UGC NET",
+                        districtOrCity = "Rajasthan",
+                        avatarEmoji = "🎓"
+                    ),
+                    onEditProfile = { currentScreen = AppScreen.PROFILE_SETUP },
                     savedResumeState = savedResumeState,
                     onResumeTest = { state ->
                         val parsed = TxtQuestionParser.parse(state.rawTxt)
@@ -981,6 +1191,7 @@ fun MockTestAppRoot() {
                         savedResumeState = null
                     },
                     groupedSubjects = groupedBySubject,
+                    completedResultsMap = completedResultsMap,
                     totalOnlineTests = onlineQuizzes.size,
                     isLoadingOnline = isLoadingOnline,
                     hasCustomSavedQuiz = hasCustomSavedQuiz,
@@ -1000,31 +1211,30 @@ fun MockTestAppRoot() {
                         selectedSubjectFolder = subjectName
                         currentScreen = AppScreen.SUBJECT_TESTS
                     },
+                    onOpenLatestResult = { saved ->
+                        openSavedResult(saved, AppScreen.HOME)
+                    },
                     onStartCustomQuiz = {
-                        if (candidateName.isBlank()) {
-                            Toast.makeText(context, "कृपया पहले ऊपर अपना नाम लिखें!", Toast.LENGTH_SHORT).show()
-                        } else {
-                            val savedTxt = prefs.getString("saved_custom_txt", "") ?: ""
-                            val parsed = TxtQuestionParser.parse(savedTxt)
-                            if (parsed.isNotEmpty()) {
-                                activeRawTxt = savedTxt
-                                questions = parsed
-                                val tMins = prefs.getInt("saved_time", 60)
-                                testConfig = TestConfig(
-                                    id = "custom",
-                                    title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
-                                    timeMinutes = tMins,
-                                    marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
-                                    negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
-                                )
-                                userAnswers = List(parsed.size) { null }
-                                markedForReview = List(parsed.size) { false }
-                                currentQIndex = 0
-                                remainingSeconds = tMins * 60
-                                previousScreenBeforeTest = AppScreen.HOME
-                                currentScreen = AppScreen.TEST
-                                persistActiveProgress()
-                            }
+                        val savedTxt = prefs.getString("saved_custom_txt", "") ?: ""
+                        val parsed = TxtQuestionParser.parse(savedTxt)
+                        if (parsed.isNotEmpty()) {
+                            activeRawTxt = savedTxt
+                            questions = parsed
+                            val tMins = prefs.getInt("saved_time", 60)
+                            testConfig = TestConfig(
+                                id = "custom",
+                                title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                                timeMinutes = tMins,
+                                marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
+                                negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
+                            )
+                            userAnswers = List(parsed.size) { null }
+                            markedForReview = List(parsed.size) { false }
+                            currentQIndex = 0
+                            remainingSeconds = tMins * 60
+                            previousScreenBeforeTest = AppScreen.HOME
+                            currentScreen = AppScreen.TEST
+                            persistActiveProgress()
                         }
                     },
                     onOpenCustomModal = { currentScreen = AppScreen.CUSTOM_BUILDER },
@@ -1037,9 +1247,13 @@ fun MockTestAppRoot() {
                 SubjectTestsScreenUI(
                     subjectName = selectedSubjectFolder,
                     tests = folderTests,
+                    completedResultsMap = completedResultsMap,
                     isDownloading = isDownloadingQuiz,
                     onBack = { currentScreen = AppScreen.HOME },
-                    onStartTest = { meta -> launchOnlineQuiz(meta) }
+                    onStartTest = { meta -> launchOnlineQuiz(meta) },
+                    onViewSavedResult = { saved ->
+                        openSavedResult(saved, AppScreen.SUBJECT_TESTS)
+                    }
                 )
             }
 
@@ -1069,7 +1283,7 @@ fun MockTestAppRoot() {
                 AdminPortalScreenUI(
                     savedToken = SecureAdminStore.loadPat(context),
                     groupedSubjects = groupedBySubject,
-                    latestQuiz = onlineQuizzes.firstOrNull(),
+                    latestQuiz = onlineQuizzes.lastOrNull(),
                     onBack = { currentScreen = AppScreen.HOME },
                     onActionSuccess = { tokenUsed ->
                         SecureAdminStore.savePat(context, tokenUsed)
@@ -1140,7 +1354,7 @@ fun MockTestAppRoot() {
                     candidateName = candidateName,
                     questions = questions,
                     userAnswers = userAnswers,
-                    timeSpentSeconds = ((testConfig.timeMinutes * 60) - remainingSeconds).coerceAtLeast(0),
+                    timeSpentSeconds = resultTimeSpentSeconds,
                     onBackHome = { currentScreen = previousScreenBeforeTest },
                     onPrintPdf = {
                         printTwoColumnA4ResultPdf(
@@ -1332,7 +1546,6 @@ fun MockTestAppRoot() {
             )
         }
 
-        // PIN Gate Before Opening Full-Screen Admin Panel
         if (showPinGateModal) {
             AdminPinGateDialog(
                 isSettingNewPin = !SecureAdminStore.hasPin(context),
@@ -1346,11 +1559,181 @@ fun MockTestAppRoot() {
                 }
             )
         }
-
     }
 }
 
-// ==================== 10. ADMIN PIN LOCK DIALOG ====================
+// ==================== 10. STUDENT DEMO PROFILE SETUP SCREEN ====================
+@Composable
+fun ProfileSetupScreenUI(
+    existingProfile: UserProfile?,
+    onSaveProfile: (UserProfile) -> Unit
+) {
+    val context = LocalContext.current
+    var name by remember { mutableStateOf(existingProfile?.name ?: "") }
+    var selectedExam by remember { mutableStateOf(existingProfile?.targetExam ?: "RPSC (Rajasthan Public Service Commission)") }
+    var district by remember { mutableStateOf(existingProfile?.districtOrCity ?: "Rajasthan") }
+    var selectedAvatar by remember { mutableStateOf(existingProfile?.avatarEmoji ?: "🎓") }
+
+    val avatars = listOf("🎓", "👨‍🎓", "👩‍🎓", "📚", "🏆", "🎯")
+    val examOptions = listOf(
+        "RPSC (Rajasthan Public Service Commission)",
+        "RSSB (Rajasthan Staff Selection Board)",
+        "CTET (Central Teacher Eligibility Test)",
+        "UGC NET (National Eligibility Test)"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(Color(0xFF06102B), Color(0xFF020617))))
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Study Smart... Score High...",
+            color = AmberGold,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = "ONLINE MOCK TEST",
+            color = Color.White,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.sp
+        )
+        Text(
+            text = "Create Your Student Profile",
+            color = SecondarySky,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = 2.dp, bottom = 20.dp)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(HomeCard)
+                .border(1.dp, PrimaryRose.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("अपना प्रोफाइल आइकन चुनें", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.horizontalScroll(rememberScrollState())
+            ) {
+                avatars.forEach { emoji ->
+                    val isSel = selectedAvatar == emoji
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(if (isSel) PrimaryRose else HomeBox)
+                            .border(2.dp, if (isSel) AmberGold else Color.Transparent, CircleShape)
+                            .clickable { selectedAvatar = emoji }
+                    ) {
+                        Text(emoji, fontSize = 22.sp)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("आपका पूरा नाम (Student Name)") },
+                placeholder = { Text("उदा. संजय सुथार", color = TextMuted) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = district,
+                onValueChange = { district = it },
+                label = { Text("शहर / जिला (City / District)") },
+                placeholder = { Text("उदा. हनुमानगढ़, राजस्थान", color = TextMuted) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "अपनी मुख्य परीक्षा चुनें (Target Exam):",
+                color = TextMain,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            examOptions.forEach { exam ->
+                val isSelected = selectedExam == exam
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (isSelected) PrimaryRose.copy(alpha = 0.16f) else HomeBgTop)
+                        .border(1.dp, if (isSelected) PrimaryRose else BorderColor, RoundedCornerShape(10.dp))
+                        .clickable { selectedExam = exam }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (isSelected) "🔘" else "⚪",
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = exam,
+                        color = if (isSelected) Color.White else TextMuted,
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = {
+                    if (name.trim().isEmpty()) {
+                        Toast.makeText(context, "कृपया आगे बढ़ने के लिए अपना नाम लिखें!", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    onSaveProfile(
+                        UserProfile(
+                            name = name.trim(),
+                            targetExam = selectedExam,
+                            districtOrCity = district.trim().ifEmpty { "Rajasthan" },
+                            avatarEmoji = selectedAvatar
+                        )
+                    )
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Text("🚀 प्रोफाइल सेव करें व ऐप खोलें", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+// ==================== 10B. ADMIN PIN LOCK DIALOG ====================
 @Composable
 fun AdminPinGateDialog(
     isSettingNewPin: Boolean,
@@ -1417,15 +1800,16 @@ fun AdminPinGateDialog(
     )
 }
 
-// ==================== 11. HOME SCREEN UI ====================
+// ==================== 11. PROFESSIONAL QUIZ HOME SCREEN UI (MATCHING UPLOADED POSTER DESIGN) ====================
 @Composable
 fun HomeScreenUI(
-    candidateName: String,
-    onCandidateNameChange: (String) -> Unit,
+    userProfile: UserProfile,
+    onEditProfile: () -> Unit,
     savedResumeState: SavedResumeState?,
     onResumeTest: (SavedResumeState) -> Unit,
     onDiscardResume: () -> Unit,
     groupedSubjects: Map<String, List<OnlineQuizMeta>>,
+    completedResultsMap: Map<String, CompletedTestResult>,
     totalOnlineTests: Int,
     isLoadingOnline: Boolean,
     hasCustomSavedQuiz: Boolean,
@@ -1433,84 +1817,202 @@ fun HomeScreenUI(
     customQuizCount: Int,
     onRefreshOnline: () -> Unit,
     onOpenSubjectFolder: (String) -> Unit,
+    onOpenLatestResult: (CompletedTestResult) -> Unit,
     onStartCustomQuiz: () -> Unit,
     onOpenCustomModal: () -> Unit,
     onOpenAdminModal: () -> Unit
 ) {
+    val context = LocalContext.current
+    val completedList = remember(completedResultsMap) { completedResultsMap.values.toList() }
+    val avgPercentage = remember(completedList) {
+        if (completedList.isNotEmpty()) completedList.map { it.percentage }.average() else 0.0
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(HomeBgTop, HomeBgBot)))
+            .background(Brush.verticalGradient(listOf(Color(0xFF06102B), HomeBgTop, HomeBgBot)))
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 18.dp, vertical = 16.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
+        // 1. TOP STUDENT PROFILE BAR
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(HomeCard.copy(alpha = 0.9f))
+                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .clickable { onEditProfile() }
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .background(Brush.linearGradient(listOf(PrimaryRose, SecondarySky)))
+                ) {
+                    Text(userProfile.avatarEmoji, fontSize = 22.sp)
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "नमस्ते, ${userProfile.name}",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "🎯 ${userProfile.targetExam.substringBefore(" (")} • 📍 ${userProfile.districtOrCity}",
+                        color = SecondarySky,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(HomeBox)
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Text("✏️ Profile", color = TextMain, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // 2. HERO BANNER (INSPIRED BY YOUR UPLOADED IMAGE)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(HomeCard)
-                .border(1.dp, PrimaryRose.copy(alpha = 0.25f), RoundedCornerShape(18.dp))
-                .padding(18.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(Color(0xFF0A194E), Color(0xFF0F172A), Color(0xFF1E1B4B))
+                    )
+                )
+                .border(1.5.dp, Brush.horizontalGradient(listOf(PrimaryRose, SecondarySky)), RoundedCornerShape(20.dp))
+                .padding(18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column {
                     Text(
-                        text = if (candidateName.isNotBlank()) "नमस्ते, ${candidateName.trim()}! 👋" else "स्वागत है! 👋",
-                        color = Color.White,
-                        fontSize = 20.sp,
+                        text = "Study Smart... Score High...",
+                        color = AmberGold,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
-                    Text(
-                        text = "अपनी तैयारी को परखें और रोज़ाना नए मॉक टेस्ट दें",
-                        color = TextMuted,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 3.dp)
-                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "▶ ",
+                            color = PrimaryRose,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            text = "Online",
+                            color = Color.White,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
                 }
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(54.dp)
                         .clip(CircleShape)
-                        .background(PrimaryRose.copy(alpha = 0.15f))
+                        .background(SecondarySky.copy(alpha = 0.15f))
+                        .border(1.dp, SecondarySky, CircleShape)
                 ) {
-                    Text("🎓", fontSize = 20.sp)
+                    Text("🎓", fontSize = 28.sp)
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            OutlinedTextField(
-                value = candidateName,
-                onValueChange = onCandidateNameChange,
-                placeholder = { Text("यहाँ अपना नाम लिखें (रिजल्ट के लिए)...", color = TextMuted, fontSize = 13.sp) },
-                singleLine = true,
+            // Split Pink & Blue "Mock | Test" Pill Badge
+            Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(HomeBgTop, RoundedCornerShape(12.dp)),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PrimaryRose,
-                    unfocusedBorderColor = BorderColor,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
-                )
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(PrimaryRose)
+                        .padding(horizontal = 18.dp, vertical = 6.dp)
+                ) {
+                    Text("Mock", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                }
+                Box(
+                    modifier = Modifier
+                        .background(SecondarySky)
+                        .padding(horizontal = 18.dp, vertical = 6.dp)
+                ) {
+                    Text("Test", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "— Target Preparation & Revision Test —",
+                color = Color(0xFFE2E8F0),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatInfoBox(Modifier.weight(1f), "${groupedSubjects.size}", "SUBJECTS", SecondarySky)
-                StatInfoBox(Modifier.weight(1f), "$totalOnlineTests", "LIVE TESTS", PrimaryRose)
+            // Golden "Rajasthan Exams" Ribbon
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFFF59E0B), Color(0xFFFBBF24), Color(0xFFF59E0B))))
+                    .padding(horizontal = 20.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = "Rajasthan & National Exams",
+                    color = Color.Black,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // 4 Exam Badges Grid (RPSC | RSSB | CTET | UGC NET)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color.White)
+                    .padding(vertical = 10.dp, horizontal = 6.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                ExamBadgeMini("🏛️", "RPSC", "State PSC", Modifier.weight(1f))
+                ExamBadgeMini("🏢", "RSSB", "Staff Board", Modifier.weight(1f))
+                ExamBadgeMini("📘", "CTET", "Central TET", Modifier.weight(1f))
+                ExamBadgeMini("🎓", "UGC NET", "National", Modifier.weight(1f))
             }
         }
 
+        // 3. RESUME TEST BANNER (IF ANY ACTIVE UNFINISHED TEST)
         if (savedResumeState != null) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
             val answered = savedResumeState.userAnswers.count { it != null }
             val total = savedResumeState.userAnswers.size
             val minsLeft = savedResumeState.remainingSeconds / 60
@@ -1519,12 +2021,12 @@ fun HomeScreenUI(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(AmberGold.copy(alpha = 0.12f))
+                    .background(AmberGold.copy(alpha = 0.14f))
                     .border(1.dp, AmberGold, RoundedCornerShape(14.dp))
                     .padding(14.dp)
             ) {
                 Text(
-                    text = "⏳ अधूरा टेस्ट जारी रखें (Resume)",
+                    text = "⏳ Resume Your Interrupted Test",
                     color = AmberGold,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
@@ -1534,7 +2036,7 @@ fun HomeScreenUI(
                     color = Color.White,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 3.dp)
                 )
                 Text(
                     text = "उत्तर दिए: $answered/$total • बचा समय: %02d:%02d".format(minsLeft, secsLeft),
@@ -1549,12 +2051,7 @@ fun HomeScreenUI(
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(
-                            "▶ Resume Test",
-                            color = Color.Black,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
-                        )
+                        Text("▶ Resume Now", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                     OutlinedButton(
                         onClick = onDiscardResume,
@@ -1566,15 +2063,29 @@ fun HomeScreenUI(
             }
         }
 
-        Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
+        // 4. TRACK YOUR PROGRESS SUMMARY ROW (MATCHING POSTER FEATURES)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            StatInfoBox(Modifier.weight(1f), "${groupedSubjects.size}", "FOLDERS", SecondarySky)
+            StatInfoBox(Modifier.weight(1f), "$totalOnlineTests", "LIVE TESTS", PrimaryRose)
+            StatInfoBox(Modifier.weight(1f), "${completedList.size}", "COMPLETED", CorrectGreen)
+            StatInfoBox(Modifier.weight(1f), "%.0f%%".format(avgPercentage), "AVG SCORE", AmberGold)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // 5. SUBJECT-WISE FOLDERS SECTION (Online Test Series)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "📚 विषय के अनुसार टेस्ट (Subjects)",
+                text = "📋 Online Test Series (Subject Folders)",
                 color = TextMain,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
@@ -1628,13 +2139,14 @@ fun HomeScreenUI(
             val folderColors = listOf(PrimaryRose, SecondarySky, CorrectGreen, AmberGold, SkippedPurple)
             groupedSubjects.entries.forEachIndexed { index, (subjectName, testList) ->
                 val accent = folderColors[index % folderColors.size]
+                val completedInFolder = testList.count { completedResultsMap.containsKey(it.id) }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 5.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(HomeCard)
-                        .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
+                        .border(1.dp, accent.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
                         .clickable { onOpenSubjectFolder(subjectName) }
                         .padding(15.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -1642,11 +2154,11 @@ fun HomeScreenUI(
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(46.dp)
+                            .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(accent.copy(alpha = 0.16f))
                     ) {
-                        Text("📁", fontSize = 22.sp)
+                        Text("📁", fontSize = 24.sp)
                     }
                     Spacer(modifier = Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -1657,81 +2169,97 @@ fun HomeScreenUI(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "${testList.size} मॉक टेस्ट उपलब्ध",
+                            text = "${testList.size} टेस्ट उपलब्ध • $completedInFolder पूर्ण (Completed)",
                             color = TextMuted,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 2.dp)
                         )
                     }
-                    Text(
-                        text = "खोलें ›",
-                        color = accent,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(accent.copy(alpha = 0.18f))
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "खोलें ›",
+                            color = accent,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
+        // 6. POSTER-STYLE QUICK FEATURE PILLS (Custom Mock Test, Recent Result & PDF)
         Text(
-            text = "📂 खुद का कस्टम टेस्ट (.TXT फाइल से)",
+            text = "⚡ Quick Study Tools & Progress",
             color = TextMain,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .background(HomeCard)
-                .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
-                .padding(15.dp)
-        ) {
-            if (hasCustomSavedQuiz && customQuizCount > 0) {
-                Text(
-                    text = "सेव किया गया टेस्ट: $customQuizTitle ($customQuizCount प्रश्न)",
-                    color = TextMain,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = onStartCustomQuiz,
-                        colors = ButtonDefaults.buttonColors(containerColor = CorrectGreen),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("▶ टेस्ट शुरू करें", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
-                    OutlinedButton(
-                        onClick = onOpenCustomModal,
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text("बदलें", color = TextMain, fontSize = 13.sp)
-                    }
-                }
-            } else {
-                Text(
-                    text = "अपने फोन की किसी भी .txt फाइल से तुरंत ऑफलाइन टेस्ट बनाएं और अभ्यास करें।",
-                    color = TextMuted,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
-                OutlinedButton(
-                    onClick = onOpenCustomModal,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("⚙️ Create Custom Quiz / Upload .TXT", color = TextMain, fontSize = 13.sp)
+
+        // Pill 1: Custom Mock Test
+        PosterActionPill(
+            icon = "⚙️",
+            title = if (hasCustomSavedQuiz && customQuizCount > 0) "Custom Mock Test ($customQuizTitle)" else "Custom Mock Test (.TXT / Paste)",
+            subtitle = if (hasCustomSavedQuiz && customQuizCount > 0) "$customQuizCount प्रश्न तैयार — टैप करके शुरू करें या बदलें" else "अपनी .txt फाइल या कॉपी-पेस्ट से खुद का टेस्ट बनाएं",
+            accentColor = PrimaryRose,
+            actionText = if (hasCustomSavedQuiz && customQuizCount > 0) "▶ Start" else "Create",
+            onClick = {
+                if (hasCustomSavedQuiz && customQuizCount > 0) onStartCustomQuiz()
+                else onOpenCustomModal()
+            },
+            secondaryActionText = if (hasCustomSavedQuiz && customQuizCount > 0) "Edit" else null,
+            onSecondaryClick = { onOpenCustomModal() }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Pill 2: Get Result & PDF (Opens most recent completed test result)
+        val latestCompleted = completedList.lastOrNull()
+        PosterActionPill(
+            icon = "📄",
+            title = "Get Result & 2-Column PDF",
+            subtitle = if (latestCompleted != null)
+                "पिछला रिजल्ट: ${latestCompleted.config.title} (%.1f%%)".format(latestCompleted.percentage)
+            else
+                "टेस्ट पूरा करने के बाद अपना रिजल्ट और A4 PDF यहाँ से देखें",
+            accentColor = SecondarySky,
+            actionText = if (latestCompleted != null) "📊 Result" else "Info",
+            onClick = {
+                if (latestCompleted != null) {
+                    onOpenLatestResult(latestCompleted)
+                } else {
+                    Toast.makeText(context, "पहले कोई एक टेस्ट सबमिट करें, फिर उसका रिजल्ट व PDF यहाँ दिखेगा!", Toast.LENGTH_SHORT).show()
                 }
             }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Footer Banner ("Prepare • Practice • Succeed") + Teacher Admin Button
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Brush.horizontalGradient(listOf(AmberGold.copy(alpha = 0.2f), PrimaryRose.copy(alpha = 0.2f))))
+                .padding(vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "✨ Prepare • Practice • Succeed ✨",
+                color = AmberGold,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             TextButton(onClick = onOpenAdminModal) {
@@ -1741,14 +2269,95 @@ fun HomeScreenUI(
     }
 }
 
-// ==================== 12. SUBJECT FOLDER TESTS SCREEN ====================
+@Composable
+fun ExamBadgeMini(icon: String, title: String, sub: String, modifier: Modifier) {
+    Column(
+        modifier = modifier.padding(horizontal = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(icon, fontSize = 18.sp)
+        Text(
+            text = title,
+            color = Color(0xFF0F172A),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Black,
+            maxLines = 1
+        )
+        Text(
+            text = sub,
+            color = Color(0xFF475569),
+            fontSize = 9.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+fun PosterActionPill(
+    icon: String,
+    title: String,
+    subtitle: String,
+    accentColor: Color,
+    actionText: String,
+    onClick: () -> Unit,
+    secondaryActionText: String? = null,
+    onSecondaryClick: (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(HomeCard)
+            .border(1.dp, accentColor.copy(alpha = 0.5f), RoundedCornerShape(28.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .background(accentColor.copy(alpha = 0.2f))
+                .border(1.5.dp, accentColor, CircleShape)
+        ) {
+            Text(icon, fontSize = 18.sp)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(subtitle, color = TextMuted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        if (secondaryActionText != null && onSecondaryClick != null) {
+            TextButton(
+                onClick = onSecondaryClick,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(secondaryActionText, color = TextMain, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(accentColor)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
+        ) {
+            Text(actionText, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// ==================== 12. SUBJECT FOLDER TESTS SCREEN (ORDERED + SAVED MARKS + RESULT & RE-TEST BUTTONS) ====================
 @Composable
 fun SubjectTestsScreenUI(
     subjectName: String,
     tests: List<OnlineQuizMeta>,
+    completedResultsMap: Map<String, CompletedTestResult>,
     isDownloading: Boolean,
     onBack: () -> Unit,
-    onStartTest: (OnlineQuizMeta) -> Unit
+    onStartTest: (OnlineQuizMeta) -> Unit,
+    onViewSavedResult: (CompletedTestResult) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -1779,7 +2388,7 @@ fun SubjectTestsScreenUI(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "${tests.size} उपलब्ध टेस्ट",
+                    text = "${tests.size} उपलब्ध टेस्ट (क्रमानुसार: Unit 1 से आगे)",
                     color = TextMuted,
                     fontSize = 11.sp
                 )
@@ -1790,42 +2399,129 @@ fun SubjectTestsScreenUI(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(tests) { quiz ->
+            itemsIndexed(tests) { idx, quiz ->
+                val savedResult = completedResultsMap[quiz.id]
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
                         .background(HomeCard)
-                        .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
+                        .border(
+                            width = 1.dp,
+                            color = if (savedResult != null) CorrectGreen.copy(alpha = 0.5f) else BorderColor,
+                            shape = RoundedCornerShape(14.dp)
+                        )
                         .padding(16.dp)
                 ) {
-                    Text(quiz.title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    if (quiz.subtitle.isNotBlank()) {
-                        Text(quiz.subtitle, color = TextMuted, fontSize = 12.sp, modifier = Modifier.padding(top = 3.dp))
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top
                     ) {
-                        val negStr = if (quiz.negativeMark > 0) "-${quiz.negativeMark}" else "No Neg"
                         Text(
-                            text = "${quiz.questionCount} प्रश्न • ${quiz.timeMinutes} Min • $negStr",
-                            color = SecondarySky,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
+                            text = "${idx + 1}. ${quiz.title}",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
                         )
+                        if (savedResult != null) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(CorrectGreen.copy(alpha = 0.16f))
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                            ) {
+                                Text(
+                                    text = "✅ Completed",
+                                    color = CorrectGreen,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    if (quiz.subtitle.isNotBlank()) {
+                        Text(quiz.subtitle, color = TextMuted, fontSize = 12.sp, modifier = Modifier.padding(top = 3.dp))
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    val negStr = if (quiz.negativeMark > 0) "-${quiz.negativeMark}" else "No Neg"
+                    Text(
+                        text = "${quiz.questionCount} प्रश्न • ${quiz.timeMinutes} Min • +${quiz.marksPerCorrect} / $negStr",
+                        color = SecondarySky,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    // Show saved marks & percentage badge if already completed!
+                    if (savedResult != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(BgDark)
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "🏆 प्राप्तांक: %.2f / %.2f".format(savedResult.obtainedMarks, savedResult.maxMarks),
+                                color = AmberGold,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "📊 प्रतिशत: %.1f%%".format(savedResult.percentage),
+                                color = CorrectGreen,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (savedResult != null) {
+                        // 2 Buttons after completion: Result & Re-Test
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Button(
+                                enabled = !isDownloading,
+                                onClick = { onViewSavedResult(savedResult) },
+                                colors = ButtonDefaults.buttonColors(containerColor = SecondarySky),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.weight(1f).height(42.dp)
+                            ) {
+                                Text("📊 Result", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(
+                                enabled = !isDownloading,
+                                onClick = { onStartTest(quiz) },
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.weight(1f).height(42.dp)
+                            ) {
+                                Text("🔄 Re-Test", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    } else {
+                        // Single Start Now button when not yet attempted
                         Button(
                             enabled = !isDownloading,
                             onClick = { onStartTest(quiz) },
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose),
                             shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                            modifier = Modifier.fillMaxWidth().height(42.dp)
                         ) {
-                            Text("▶ Start Test", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("▶ Start Now", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1840,11 +2536,11 @@ fun StatInfoBox(modifier: Modifier, value: String, label: String, valueColor: Co
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .background(HomeBox)
-            .padding(vertical = 10.dp, horizontal = 8.dp),
+            .padding(vertical = 10.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(value, color = valueColor, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-        Text(label, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+        Text(value, color = valueColor, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+        Text(label, color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
     }
 }
 
@@ -2093,7 +2789,7 @@ fun TestScreenUI(
     }
 }
 
-// ==================== 14. RESULT SCREEN UI (TRUE NEGATIVE SCORE SUPPORT) ====================
+// ==================== 14. RESULT SCREEN UI (WITH PERCENTAGE % & TRUE NEGATIVE SCORE) ====================
 @Composable
 fun ResultScreenUI(
     testConfig: TestConfig,
@@ -2117,6 +2813,7 @@ fun ResultScreenUI(
 
     val totalMarks = (correct * testConfig.marksPerCorrect) - (wrong * testConfig.negativeMark)
     val maxMarks = questions.size * testConfig.marksPerCorrect
+    val percentage = if (maxMarks > 0) ((totalMarks / maxMarks) * 100.0).coerceIn(0.0, 100.0) else 0.0
     val attempted = correct + wrong
     val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).roundToInt() else 0
     val letters = listOf("A", "B", "C", "D", "E")
@@ -2155,9 +2852,9 @@ fun ResultScreenUI(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(14.dp))
                         .background(CardDark)
-                        .border(1.dp, PrimaryRose, RoundedCornerShape(12.dp))
+                        .border(1.dp, PrimaryRose, RoundedCornerShape(14.dp))
                         .padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -2167,6 +2864,22 @@ fun ResultScreenUI(
                         fontSize = 32.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(CorrectGreen.copy(alpha = 0.16f))
+                            .border(1.dp, CorrectGreen, RoundedCornerShape(20.dp))
+                            .padding(horizontal = 14.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "📊 कुल प्रतिशत (Percentage): %.2f%%".format(percentage),
+                            color = CorrectGreen,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
                     val negInfo = if (testConfig.negativeMark > 0) "-%.2f Negative".format(testConfig.negativeMark) else "No Negative"
                     Text("Total Marks ($negInfo)", color = TextMuted, fontSize = 12.sp)
                 }
@@ -2181,11 +2894,10 @@ fun ResultScreenUI(
                 Spacer(modifier = Modifier.height(8.dp))
                 val mins = timeSpentSeconds / 60
                 val secs = timeSpentSeconds % 60
-                val avgSec = if (questions.isNotEmpty()) timeSpentSeconds / questions.size else 0
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StatInfoBox(Modifier.weight(1f), "%.1f%%".format(percentage), "प्रतिशत (%)", AmberGold)
                     StatInfoBox(Modifier.weight(1f), "$accuracy%", "सटीकता", PrimaryRose)
-                    StatInfoBox(Modifier.weight(1f), "${mins}m ${secs}s", "समय", PrimaryRose)
-                    StatInfoBox(Modifier.weight(1f), "${avgSec}s", "औसत/प्रश्न", PrimaryRose)
+                    StatInfoBox(Modifier.weight(1f), "${mins}m ${secs}s", "समय", SecondarySky)
                 }
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -2201,11 +2913,11 @@ fun ResultScreenUI(
                     }
                     Button(
                         onClick = onRetake,
-                        colors = ButtonDefaults.buttonColors(containerColor = WrongRed),
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.weight(1f).height(46.dp)
                     ) {
-                        Text("🔄 Retake Test", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("🔄 Re-Test", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -2917,6 +3629,7 @@ fun printTwoColumnA4ResultPdf(
 
     val totalMarks = (correct * config.marksPerCorrect) - (wrong * config.negativeMark)
     val maxMarks = questions.size * config.marksPerCorrect
+    val percentage = if (maxMarks > 0) ((totalMarks / maxMarks) * 100.0).coerceIn(0.0, 100.0) else 0.0
     val attempted = correct + wrong
     val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).roundToInt() else 0
     val negInfo = if (config.negativeMark > 0) "-%.2f Negative".format(config.negativeMark) else "No Negative"
@@ -2974,7 +3687,7 @@ fun printTwoColumnA4ResultPdf(
                 <h3>Candidate: ${esc(studentName)} | Total Questions: ${questions.size}</h3>
                 <p>Marking: +${"%.2f".format(config.marksPerCorrect)} / Correct | $negInfo</p>
                 <div class="print-score-row">
-                    <span>Score: ${"%.2f".format(totalMarks)} / ${"%.2f".format(maxMarks)}</span>
+                    <span>Score: ${"%.2f".format(totalMarks)} / ${"%.2f".format(maxMarks)} (${"%.1f".format(percentage)}%)</span>
                     <span>Correct: $correct</span>
                     <span>Wrong: $wrong</span>
                     <span>Skipped: $skipped</span>
