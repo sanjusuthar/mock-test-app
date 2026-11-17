@@ -172,10 +172,13 @@ data class CompletedTestResult(
     val maxMarks: Double,
     val percentage: Double,
     val completedDate: String,
-    val completedAtMillis: Long = 0L
+    val completedAtMillis: Long = 0L,
+    val correctCount: Int = 0,
+    val wrongCount: Int = 0,
+    val skippedCount: Int = 0
 )
 
-enum class AppScreen { PROFILE_SETUP, HOME, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
+enum class AppScreen { PROFILE_SETUP, HOME, SETTINGS, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
 
 // ==================== 4. ANDROID KEYSTORE SECURE STORAGE FOR PAT & ADMIN PIN ====================
 object SecureAdminStore {
@@ -561,7 +564,10 @@ object ProfileAndHistoryStorage {
         obtainedMarks: Double,
         maxMarks: Double,
         percentage: Double,
-        completedDate: String
+        completedDate: String,
+        correctCount: Int,
+        wrongCount: Int,
+        skippedCount: Int
     ) {
         saveQuizTextToCache(context, config.id, rawTxt)
 
@@ -594,6 +600,9 @@ object ProfileAndHistoryStorage {
             put("percentage", percentage)
             put("completedDate", completedDate)
             put("completedAtMillis", System.currentTimeMillis())
+            put("correctCount", correctCount)
+            put("wrongCount", wrongCount)
+            put("skippedCount", skippedCount)
         }
 
         historyArr.put(entry)
@@ -668,7 +677,10 @@ object ProfileAndHistoryStorage {
                             maxMarks = obj.optDouble("maxMarks", 0.0),
                             percentage = obj.optDouble("percentage", 0.0),
                             completedDate = obj.optString("completedDate", ""),
-                            completedAtMillis = obj.optLong("completedAtMillis", 0L)
+                            completedAtMillis = obj.optLong("completedAtMillis", 0L),
+                            correctCount = obj.optInt("correctCount", ansList.count { it != null }),
+                            wrongCount = obj.optInt("wrongCount", 0),
+                            skippedCount = obj.optInt("skippedCount", ansList.count { it == null })
                         )
                     )
                 }
@@ -679,6 +691,24 @@ object ProfileAndHistoryStorage {
         } catch (_: Exception) {
         }
         return map
+    }
+
+    fun clearAllStudentData(context: Context) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .remove(KEY_ATTEMPTS_MAP)
+            .remove(LEGACY_KEY_RESULTS_MAP)
+            .remove("saved_custom_txt")
+            .apply()
+        ResumeStorage.clear(context)
+    }
+
+    fun logoutProfile(context: Context) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .remove(KEY_PROFILE)
+            .remove("student_name")
+            .apply()
     }
 }
 
@@ -1087,11 +1117,12 @@ fun MockTestAppRoot() {
 
         var correct = 0
         var wrong = 0
+        var skipped = 0
         questions.forEachIndexed { idx, q ->
             val ans = userAnswers.getOrNull(idx)
-            if (ans != null) {
-                if (ans == q.correctAnswer) correct++ else wrong++
-            }
+            if (ans == null) skipped++
+            else if (ans == q.correctAnswer) correct++
+            else wrong++
         }
         val obtained = (correct * testConfig.marksPerCorrect) - (wrong * testConfig.negativeMark)
         val maxM = questions.size * testConfig.marksPerCorrect
@@ -1108,7 +1139,10 @@ fun MockTestAppRoot() {
                 obtainedMarks = obtained,
                 maxMarks = maxM,
                 percentage = pct,
-                completedDate = today
+                completedDate = today,
+                correctCount = correct,
+                wrongCount = wrong,
+                skippedCount = skipped
             )
             completedResultsMap = ProfileAndHistoryStorage.loadAllAttemptsHistory(context)
         }
@@ -1126,6 +1160,7 @@ fun MockTestAppRoot() {
             }
             AppScreen.RESULT -> currentScreen = previousScreenBeforeTest
             AppScreen.SUBJECT_TESTS -> currentScreen = AppScreen.HOME
+            AppScreen.SETTINGS -> currentScreen = AppScreen.HOME
             AppScreen.CUSTOM_BUILDER -> currentScreen = AppScreen.HOME
             AppScreen.ADMIN_PORTAL -> currentScreen = AppScreen.HOME
             AppScreen.PROFILE_SETUP -> {
@@ -1358,7 +1393,58 @@ fun MockTestAppRoot() {
                         }
                     },
                     onOpenCustomModal = { currentScreen = AppScreen.CUSTOM_BUILDER },
+                    onOpenSettingsScreen = { currentScreen = AppScreen.SETTINGS },
                     onOpenAdminModal = { showPinGateModal = true }
+                )
+            }
+
+            AppScreen.SETTINGS -> {
+                SettingsScreenUI(
+                    userProfile = userProfile ?: UserProfile(
+                        name = candidateName.ifBlank { "Sanjay Suthar" },
+                        targetExam = "RPSC • RSSB • CTET • UGC NET",
+                        districtOrCity = "Rajasthan",
+                        avatarEmoji = "🎓"
+                    ),
+                    totalOnlineTests = onlineQuizzes.size,
+                    completedResultsMap = completedResultsMap,
+                    onNavigateHome = { currentScreen = AppScreen.HOME },
+                    onNavigateMyTests = {
+                        val firstSub = groupedBySubject.keys.firstOrNull()
+                        if (firstSub != null) {
+                            selectedSubjectFolder = firstSub
+                            currentScreen = AppScreen.SUBJECT_TESTS
+                        } else {
+                            currentScreen = AppScreen.CUSTOM_BUILDER
+                        }
+                    },
+                    onEditProfile = { currentScreen = AppScreen.PROFILE_SETUP },
+                    onOpenLatestResult = { saved ->
+                        openSavedResult(saved, AppScreen.SETTINGS)
+                    },
+                    onOpenTeacherAdmin = { showPinGateModal = true },
+                    onRefreshOnline = {
+                        scope.launch {
+                            isLoadingOnline = true
+                            try {
+                                onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
+                            } catch (_: Exception) {
+                            }
+                            isLoadingOnline = false
+                        }
+                    },
+                    onClearAllData = {
+                        ProfileAndHistoryStorage.clearAllStudentData(context)
+                        completedResultsMap = emptyMap()
+                        savedResumeState = null
+                        hasCustomSavedQuiz = false
+                        Toast.makeText(context, "सभी टेस्ट हिस्ट्री और कैश डेटा साफ कर दिया गया!", Toast.LENGTH_SHORT).show()
+                    },
+                    onLogout = {
+                        ProfileAndHistoryStorage.logoutProfile(context)
+                        userProfile = null
+                        currentScreen = AppScreen.PROFILE_SETUP
+                    }
                 )
             }
 
@@ -1940,6 +2026,7 @@ fun HomeScreenUI(
     onOpenLatestResult: (CompletedTestResult) -> Unit,
     onStartCustomQuiz: () -> Unit,
     onOpenCustomModal: () -> Unit,
+    onOpenSettingsScreen: () -> Unit,
     onOpenAdminModal: () -> Unit
 ) {
     val context = LocalContext.current
@@ -2744,8 +2831,7 @@ fun HomeScreenUI(
                 label = "Settings",
                 isSelected = selectedBottomNav == 3,
                 onClick = {
-                    selectedBottomNav = 3
-                    onOpenAdminModal()
+                    onOpenSettingsScreen()
                 }
             )
         }
@@ -2956,6 +3042,797 @@ fun BottomNavTabItem(
             color = if (isSelected) PrimaryRose else Color(0xFFCBD5E1),
             fontSize = 11.sp,
             fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium
+        )
+    }
+}
+
+// ==================== 11B. EXACT MOCKUP SETTINGS & PROFILE ANALYTICS SCREEN ====================
+@Composable
+fun SettingsScreenUI(
+    userProfile: UserProfile,
+    totalOnlineTests: Int,
+    completedResultsMap: Map<String, List<CompletedTestResult>>,
+    onNavigateHome: () -> Unit,
+    onNavigateMyTests: () -> Unit,
+    onEditProfile: () -> Unit,
+    onOpenLatestResult: (CompletedTestResult) -> Unit,
+    onOpenTeacherAdmin: () -> Unit,
+    onRefreshOnline: () -> Unit,
+    onClearAllData: () -> Unit,
+    onLogout: () -> Unit
+) {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
+
+    var isDarkThemeEnabled by remember { mutableStateOf(prefs.getBoolean("pref_dark_theme", true)) }
+    var isNotificationsEnabled by remember { mutableStateOf(prefs.getBoolean("pref_notifications", true)) }
+    var showDownloadCenterDialog by remember { mutableStateOf(false) }
+    var infoDialogTitle by remember { mutableStateOf<String?>(null) }
+    var infoDialogBody by remember { mutableStateOf("") }
+    var showClearConfirm by remember { mutableStateOf(false) }
+
+    val allAttempts = remember(completedResultsMap) {
+        completedResultsMap.values.flatten().sortedByDescending { it.completedAtMillis }
+    }
+    val latestPerQuiz = remember(completedResultsMap) {
+        completedResultsMap.values.mapNotNull { it.lastOrNull() }
+    }
+    val totalTestsAttempted = allAttempts.size
+    val overallScorePct = remember(latestPerQuiz) {
+        if (latestPerQuiz.isNotEmpty()) latestPerQuiz.map { it.percentage }.average() else 0.0
+    }
+    val totalCorrect = remember(allAttempts) { allAttempts.sumOf { it.correctCount } }
+    val totalWrong = remember(allAttempts) { allAttempts.sumOf { it.wrongCount } }
+    val totalSkipped = remember(allAttempts) { allAttempts.sumOf { it.skippedCount } }
+    val progressRingPct = remember(overallScorePct, totalTestsAttempted) {
+        if (totalTestsAttempted > 0) overallScorePct.roundToInt().coerceIn(0, 100) else 0
+    }
+
+    val emailSlug = remember(userProfile.name) {
+        userProfile.name.lowercase(Locale.ENGLISH).replace(Regex("[^a-z0-9]"), "").ifEmpty { "student" } + "@mocktest.in"
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF050C24), Color(0xFF09153E), Color(0xFF04091A))
+                )
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 92.dp)
+        ) {
+            // 1. TOP HEADER BAR (Hamburger + Brand Logo + Notification Bell)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.White.copy(alpha = 0.06f))
+                        .clickable { onOpenTeacherAdmin() }
+                ) {
+                    Text("☰", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🎓", fontSize = 28.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Column {
+                            Text(
+                                text = "Online",
+                                color = Color.White,
+                                fontSize = 19.sp,
+                                fontWeight = FontWeight.Black,
+                                lineHeight = 19.sp
+                            )
+                            Text(
+                                text = "Mock Test",
+                                color = PrimaryRose,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Black,
+                                lineHeight = 20.sp
+                            )
+                        }
+                    }
+                    Text(
+                        text = "Target Preparation & Revision Test",
+                        color = Color(0xFFCBD5E1),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.06f))
+                        .clickable { onRefreshOnline() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("🔔", fontSize = 17.sp)
+                    if (totalOnlineTests > 0) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = (-2).dp, y = 2.dp)
+                                .size(16.dp)
+                                .clip(CircleShape)
+                                .background(PrimaryRose)
+                        ) {
+                            Text(
+                                text = "$totalOnlineTests",
+                                color = Color.White,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 2. USER PROFILE CARD (Dual-Neon Avatar Ring + Premium User Pill + Total Tests | Overall Score)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFF0A1636), Color(0xFF0E1E48), Color(0xFF0A1636))
+                        )
+                    )
+                    .border(
+                        width = 1.2.dp,
+                        brush = Brush.horizontalGradient(listOf(PrimaryRose.copy(alpha = 0.7f), SecondarySky.copy(alpha = 0.7f))),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Avatar with Pink-Cyan Ring & Camera Badge
+                Box(
+                    modifier = Modifier
+                        .size(74.dp)
+                        .clickable { onEditProfile() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF09132C))
+                            .border(
+                                width = 3.dp,
+                                brush = Brush.sweepGradient(listOf(PrimaryRose, SecondarySky, PrimaryRose)),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Text(userProfile.avatarEmoji, fontSize = 32.sp)
+                    }
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(SecondarySky)
+                            .border(1.5.dp, Color(0xFF09132C), CircleShape)
+                    ) {
+                        Text("📷", fontSize = 11.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Name, Email & Premium User Pill
+                Column(modifier = Modifier.weight(1.3f)) {
+                    Text(
+                        text = userProfile.name,
+                        color = Color.White,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "✉️ $emailSlug",
+                        color = Color(0xFFCBD5E1),
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 2.dp, bottom = 6.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0xFF1E1B18))
+                            .border(1.dp, AmberGold, RoundedCornerShape(16.dp))
+                            .padding(horizontal = 10.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "👑 Premium User",
+                            color = AmberGold,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                // Vertical Divider
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(54.dp)
+                        .background(Color.White.copy(alpha = 0.14f))
+                )
+
+                // Total Tests Column
+                Column(
+                    modifier = Modifier.weight(0.75f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("📋", fontSize = 16.sp)
+                    Text("Total Tests", color = Color(0xFFCBD5E1), fontSize = 9.5.sp, modifier = Modifier.padding(top = 2.dp))
+                    Text(
+                        text = "$totalTestsAttempted",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+
+                // Vertical Divider
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(54.dp)
+                        .background(Color.White.copy(alpha = 0.14f))
+                )
+
+                // Overall Score Column
+                Column(
+                    modifier = Modifier.weight(0.85f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("⭐", fontSize = 16.sp)
+                    Text("Overall Score", color = Color(0xFFCBD5E1), fontSize = 9.5.sp, modifier = Modifier.padding(top = 2.dp))
+                    Text(
+                        text = "%.1f%%".format(overallScorePct),
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 3. YOUR PROGRESS ANALYTICS CARD (Dual Ring + Correct/Wrong/Skipped + Golden Trophy)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFF141233), Color(0xFF0D1B3E), Color(0xFF0A1636))
+                        )
+                    )
+                    .border(
+                        width = 1.2.dp,
+                        brush = Brush.horizontalGradient(listOf(PrimaryRose.copy(alpha = 0.6f), SecondarySky.copy(alpha = 0.6f))),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .padding(14.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("📊", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Your Progress",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                    Text(
+                        text = "View Analytics ➔",
+                        color = Color(0xFF00F0FF),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { showDownloadCenterDialog = true }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Dual-Color Circular Progress Ring
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(72.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            progress = { 1f },
+                            color = PrimaryRose.copy(alpha = 0.45f),
+                            strokeWidth = 7.dp,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        CircularProgressIndicator(
+                            progress = { (progressRingPct / 100f).coerceIn(0.05f, 1f) },
+                            color = Color(0xFF00F0FF),
+                            strokeWidth = 7.dp,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        Text(
+                            text = "$progressRingPct%",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // Correct / Wrong / Skipped Breakdown
+                    Column(
+                        modifier = Modifier.weight(1.25f),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        ProgressStatLine("✔", CorrectGreen, "Correct Answers", "$totalCorrect")
+                        ProgressStatLine("✖", PrimaryRose, "Wrong Answers", "$totalWrong")
+                        ProgressStatLine("−", Color(0xFF64748B), "Skipped", "$totalSkipped")
+                    }
+
+                    // Vertical Divider
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .width(1.dp)
+                            .height(64.dp)
+                            .background(Color.White.copy(alpha = 0.14f))
+                    )
+
+                    // Motivational Quote + Golden Trophy
+                    Column(
+                        modifier = Modifier.weight(0.95f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "“Keep Going...\nYou're Doing Great!”",
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            lineHeight = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("🏆", fontSize = 30.sp)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 4. SETTINGS MENU LIST CONTAINER (8 ROWS EXACTLY MATCHING MOCKUP)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFF0A1430))
+                    .border(1.dp, SecondarySky.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                    .padding(vertical = 4.dp)
+            ) {
+                SettingsMenuRowItem(
+                    icon = "👤",
+                    iconBg = Color(0xFF1D4ED8),
+                    title = "Edit Profile",
+                    subtitle = "Update your personal information",
+                    onClick = onEditProfile
+                )
+                HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+
+                SettingsMenuToggleRow(
+                    icon = "🎨",
+                    iconBg = PrimaryRose,
+                    title = "App Theme",
+                    subtitle = "Change app theme (Dark / Light)",
+                    checked = isDarkThemeEnabled,
+                    activeTrackColor = SecondarySky,
+                    onCheckedChange = {
+                        isDarkThemeEnabled = it
+                        prefs.edit().putBoolean("pref_dark_theme", it).apply()
+                        Toast.makeText(context, "Theme preference saved!", Toast.LENGTH_SHORT).show()
+                    }
+                )
+                HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+
+                SettingsMenuToggleRow(
+                    icon = "🔔",
+                    iconBg = Color(0xFF2563EB),
+                    title = "Notifications",
+                    subtitle = "Get alerts for new tests & updates",
+                    checked = isNotificationsEnabled,
+                    activeTrackColor = PrimaryRose,
+                    onCheckedChange = {
+                        isNotificationsEnabled = it
+                        prefs.edit().putBoolean("pref_notifications", it).apply()
+                        Toast.makeText(
+                            context,
+                            if (it) "नए टेस्ट अलर्ट चालू किए गए!" else "नोटिफिकेशन बंद किए गए",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+                HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+
+                SettingsMenuRowItem(
+                    icon = "⬇️",
+                    iconBg = Color(0xFF0284C7),
+                    title = "Download Center",
+                    subtitle = "Download PDFs & Study Material",
+                    onClick = { showDownloadCenterDialog = true }
+                )
+                HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+
+                SettingsMenuRowItem(
+                    icon = "🛡️",
+                    iconBg = Color(0xFF0EA5E9),
+                    title = "Privacy Policy",
+                    subtitle = "Read our privacy policy",
+                    onClick = {
+                        infoDialogTitle = "🛡️ Privacy Policy"
+                        infoDialogBody = "आपका नाम, प्रोफाइल और परीक्षा परिणाम पूरी तरह आपके फोन की लोकल मेमोरी में सुरक्षित रहते हैं। सभी ऑनलाइन प्रश्न पत्र AES-256 एन्क्रिप्शन के साथ सुरक्षित रूप से लोड किए जाते हैं।"
+                    }
+                )
+                HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+
+                SettingsMenuRowItem(
+                    icon = "ℹ️",
+                    iconBg = Color(0xFF2563EB),
+                    title = "About Us",
+                    subtitle = "Know more about Online Mock Test",
+                    onClick = {
+                        infoDialogTitle = "ℹ️ About Online Mock Test"
+                        infoDialogBody = "Online Mock Test Portal विशेष रूप से RPSC, RSSB, CTET और UGC NET परीक्षाओं की तैयारी करने वाले विद्यार्थियों के लिए बनाया गया है। यहाँ आप विषयवार मॉक टेस्ट दे सकते हैं और 2-कॉलम A4 PDF डाउनलोड कर सकते हैं।"
+                    }
+                )
+                HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+
+                SettingsMenuRowItem(
+                    icon = "✉️",
+                    iconBg = Color(0xFF0284C7),
+                    title = "Contact Us",
+                    subtitle = "Have any query? Contact us",
+                    onClick = {
+                        infoDialogTitle = "✉️ Contact & Teacher Admin"
+                        infoDialogBody = "किसी भी सहायता या नए टेस्ट अपडेट के लिए अपने शिक्षक से संपर्क करें।\n\n(यदि आप शिक्षक हैं, तो ऊपर बाईं ओर ☰ बटन दबाकर Teacher Admin Panel खोल सकते हैं।)"
+                    }
+                )
+                HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+
+                SettingsMenuRowItem(
+                    icon = "⭐",
+                    iconBg = Color(0xFFD97706),
+                    title = "Rate App",
+                    subtitle = "Give us your valuable rating",
+                    onClick = {
+                        Toast.makeText(context, "⭐⭐⭐⭐⭐ आपकी 5-स्टार रेटिंग और सहयोग के लिए धन्यवाद!", Toast.LENGTH_LONG).show()
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 5. BOTTOM LOGOUT & CLEAR DATA BUTTONS
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Outlined Logout Button
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Color(0xFF0A1430))
+                        .border(1.5.dp, SecondarySky, RoundedCornerShape(24.dp))
+                        .clickable { onLogout() },
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("🚪  Logout", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                }
+
+                // Pink-Red Clear Data Button
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Brush.horizontalGradient(listOf(PrimaryRose, Color(0xFFBE123C))))
+                        .clickable { showClearConfirm = true },
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("🗑️  Clear Data", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 6. VERSION FOOTER
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Version 1.0.0", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Made with ❤️ for Your Success",
+                    color = Color(0xFFCBD5E1),
+                    fontSize = 11.sp,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        }
+
+        // 7. FIXED BOTTOM NAVIGATION BAR (Settings Highlighted)
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color(0xFF081229))
+                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BottomNavTabItem(
+                icon = "🏠",
+                label = "Home",
+                isSelected = false,
+                onClick = onNavigateHome
+            )
+            BottomNavTabItem(
+                icon = "📊",
+                label = "My Tests",
+                isSelected = false,
+                onClick = onNavigateMyTests
+            )
+            BottomNavTabItem(
+                icon = "⭐",
+                label = "Favourites",
+                isSelected = false,
+                onClick = { showDownloadCenterDialog = true }
+            )
+            BottomNavTabItem(
+                icon = "⚙️",
+                label = "Settings",
+                isSelected = true,
+                onClick = {}
+            )
+        }
+
+        // Download Center / Analytics History Dialog
+        if (showDownloadCenterDialog) {
+            AlertDialog(
+                onDismissRequest = { showDownloadCenterDialog = false },
+                containerColor = CardDark,
+                title = { Text("⬇️ Download Center & Results", color = SecondarySky, fontWeight = FontWeight.Bold, fontSize = 17.sp) },
+                text = {
+                    if (allAttempts.isEmpty()) {
+                        Text("अभी कोई टेस्ट पूरा नहीं किया गया है। किसी भी टेस्ट को सबमिट करने के बाद आप यहाँ से उसका 2-Column A4 PDF और विस्तृत हल डाउनलोड कर सकते हैं।", color = TextMuted, fontSize = 13.sp)
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 360.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(allAttempts) { att ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(HomeCard)
+                                        .border(1.dp, BorderColor, RoundedCornerShape(10.dp))
+                                        .clickable {
+                                            showDownloadCenterDialog = false
+                                            onOpenLatestResult(att)
+                                        }
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(att.config.title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text("Attempt ${att.attemptNumber} • ${att.completedDate}", color = TextMuted, fontSize = 11.sp)
+                                    }
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text("🖨️ PDF / View", color = SecondarySky, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Text("%.1f%%".format(att.percentage), color = CorrectGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showDownloadCenterDialog = false }) {
+                        Text("Close", color = PrimaryRose, fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
+        }
+
+        // Info Dialog (Privacy / About / Contact)
+        if (infoDialogTitle != null) {
+            AlertDialog(
+                onDismissRequest = { infoDialogTitle = null },
+                containerColor = CardDark,
+                title = { Text(infoDialogTitle!!, color = Color.White, fontWeight = FontWeight.Bold) },
+                text = { Text(infoDialogBody, color = TextMuted, fontSize = 13.sp, lineHeight = 19.sp) },
+                confirmButton = {
+                    Button(
+                        onClick = { infoDialogTitle = null },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose)
+                    ) {
+                        Text("ठीक है", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
+        }
+
+        // Clear Data Confirmation Dialog
+        if (showClearConfirm) {
+            AlertDialog(
+                onDismissRequest = { showClearConfirm = false },
+                containerColor = CardDark,
+                title = { Text("🗑️ Clear All Test Data?", color = WrongRed, fontWeight = FontWeight.Bold) },
+                text = { Text("क्या आप वाकई अपने सभी दिए गए टेस्ट के स्कोर, Attempts हिस्ट्री और अधूरे टेस्ट का डेटा साफ करना चाहते हैं?", color = TextMuted, fontSize = 13.sp) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showClearConfirm = false
+                            onClearAllData()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = WrongRed)
+                    ) {
+                        Text("हाँ, साफ करें", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = { showClearConfirm = false }) {
+                        Text("रद्द करें", color = TextMain)
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun ProgressStatLine(symbol: String, badgeColor: Color, label: String, countText: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(18.dp)
+                    .clip(CircleShape)
+                    .background(badgeColor)
+            ) {
+                Text(symbol, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black)
+            }
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(label, color = Color(0xFFE2E8F0), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+        }
+        Text(countText, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+    }
+}
+
+@Composable
+fun SettingsMenuRowItem(
+    icon: String,
+    iconBg: Color,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(iconBg.copy(alpha = 0.25f))
+                .border(1.dp, iconBg, CircleShape)
+        ) {
+            Text(icon, fontSize = 17.sp)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(subtitle, color = TextMuted, fontSize = 11.sp)
+        }
+        Text("›", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun SettingsMenuToggleRow(
+    icon: String,
+    iconBg: Color,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    activeTrackColor: Color,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(iconBg.copy(alpha = 0.25f))
+                .border(1.dp, iconBg, CircleShape)
+        ) {
+            Text(icon, fontSize = 17.sp)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(subtitle, color = TextMuted, fontSize = 11.sp)
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = activeTrackColor,
+                uncheckedThumbColor = Color(0xFF94A3B8),
+                uncheckedTrackColor = Color(0xFF1E293B)
+            )
         )
     }
 }
