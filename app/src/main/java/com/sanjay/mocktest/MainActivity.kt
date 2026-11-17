@@ -41,8 +41,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -1913,7 +1920,7 @@ fun AdminPinGateDialog(
     )
 }
 
-// ==================== 11. PROFESSIONAL QUIZ HOME SCREEN UI (MATCHING UPLOADED POSTER DESIGN) ====================
+// ==================== 11. EXACT MOCKUP HOME SCREEN UI (100% PURE COMPOSE CODE) ====================
 @Composable
 fun HomeScreenUI(
     userProfile: UserProfile,
@@ -1936,475 +1943,950 @@ fun HomeScreenUI(
     onOpenAdminModal: () -> Unit
 ) {
     val context = LocalContext.current
-    // Latest attempt of each completed test + all attempts list
+    var selectedBottomNav by remember { mutableStateOf(0) } // 0=Home, 1=My Tests, 2=Results, 3=Settings
+    var showResultsHistorySheet by remember { mutableStateOf(false) }
+    var showPerformanceDialog by remember { mutableStateOf(false) }
+
     val latestAttemptsPerQuiz = remember(completedResultsMap) {
         completedResultsMap.values.mapNotNull { it.lastOrNull() }
     }
+    val allAttemptsSorted = remember(completedResultsMap) {
+        completedResultsMap.values.flatten().sortedByDescending { it.completedAtMillis }
+    }
+    val completedCount = latestAttemptsPerQuiz.size
     val avgPercentage = remember(latestAttemptsPerQuiz) {
         if (latestAttemptsPerQuiz.isNotEmpty()) latestAttemptsPerQuiz.map { it.percentage }.average() else 0.0
     }
+    val completionRatio = remember(completedCount, totalOnlineTests) {
+        if (totalOnlineTests > 0) (completedCount.toFloat() / totalOnlineTests.toFloat()).coerceIn(0f, 1f)
+        else if (completedCount > 0) 1f else 0f
+    }
+    val displayPercentInt = remember(avgPercentage, completedCount, completionRatio) {
+        if (completedCount > 0) avgPercentage.roundToInt().coerceIn(0, 100)
+        else (completionRatio * 100).roundToInt()
+    }
 
-    Column(
+    val firstSubjectName = groupedSubjects.keys.firstOrNull()
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF06102B), HomeBgTop, HomeBgBot)))
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF050C24), Color(0xFF09153E), Color(0xFF04091A))
+                )
+            )
     ) {
-        // 1. TOP STUDENT PROFILE BAR
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(HomeCard.copy(alpha = 0.9f))
-                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-                .clickable { onEditProfile() }
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(46.dp)
-                        .clip(CircleShape)
-                        .background(Brush.linearGradient(listOf(PrimaryRose, SecondarySky)))
-                ) {
-                    Text(userProfile.avatarEmoji, fontSize = 22.sp)
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = "नमस्ते, ${userProfile.name}",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "🎯 ${userProfile.targetExam.substringBefore(" (")} • 📍 ${userProfile.districtOrCity}",
-                        color = SecondarySky,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(HomeBox)
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
-            ) {
-                Text("✏️ Profile", color = TextMain, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // 2. HERO BANNER (INSPIRED BY YOUR UPLOADED IMAGE)
+        // Main Scrollable Content
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
-                .background(
-                    Brush.linearGradient(
-                        listOf(Color(0xFF0A194E), Color(0xFF0F172A), Color(0xFF1E1B4B))
-                    )
-                )
-                .border(1.5.dp, Brush.horizontalGradient(listOf(PrimaryRose, SecondarySky)), RoundedCornerShape(20.dp))
-                .padding(18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 92.dp)
         ) {
+            // ==================== 1. TOP HEADER BAR (Menu + Grad Cap Logo + Bell + Profile) ====================
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "Study Smart... Score High...",
-                        color = AmberGold,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+                // Hamburger Menu Icon -> Opens Admin / Settings
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.White.copy(alpha = 0.06f))
+                        .clickable { onOpenAdminModal() }
+                ) {
+                    Text("☰", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+
+                // Center Brand Logo (Graduation Cap + Online Mock Test)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🎓", fontSize = 28.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Column {
+                            Text(
+                                text = "Online",
+                                color = Color.White,
+                                fontSize = 19.sp,
+                                fontWeight = FontWeight.Black,
+                                lineHeight = 19.sp
+                            )
+                            Text(
+                                text = "Mock Test",
+                                color = PrimaryRose,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Black,
+                                lineHeight = 20.sp
+                            )
+                        }
+                    }
+                    Text(
+                        text = "Target Preparation & Revision Test",
+                        color = Color(0xFFCBD5E1),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+
+                // Right Icons: Notification Bell with Live Tests Count Badge + User Profile Avatar
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.06f))
+                            .clickable { onRefreshOnline() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(if (isLoadingOnline) "⏳" else "🔔", fontSize = 17.sp)
+                        if (totalOnlineTests > 0) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-2).dp, y = 2.dp)
+                                    .size(16.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimaryRose)
+                            ) {
+                                Text(
+                                    text = "$totalOnlineTests",
+                                    color = Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF1E293B))
+                            .border(1.5.dp, SecondarySky.copy(alpha = 0.7f), CircleShape)
+                            .clickable { onEditProfile() }
+                    ) {
+                        Text(userProfile.avatarEmoji, fontSize = 18.sp)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // ==================== 2. HERO BANNER (Prepare Smart... Score High... + Rajasthan Fort Graphic) ====================
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(182.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFF07163B), Color(0xFF0D235A), Color(0xFF1E3A8A))
+                        )
+                    )
+                    .border(
+                        width = 1.5.dp,
+                        brush = Brush.horizontalGradient(listOf(SecondarySky, PrimaryRose, SecondarySky)),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+            ) {
+                // Right Side Pure-Code Rajasthan Golden Fort & Sky Illustration
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val w = size.width
+                    val h = size.height
+
+                    // Warm Golden-Sky Glow on Right Side
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(Color(0xFF38BDF8).copy(alpha = 0.45f), Color.Transparent),
+                            center = Offset(w * 0.80f, h * 0.35f),
+                            radius = w * 0.45f
+                        ),
+                        center = Offset(w * 0.80f, h * 0.35f),
+                        radius = w * 0.45f
+                    )
+
+                    // Neon Pink Sweeping Arc Divider (like mockup banner)
+                    val arcPath = Path().apply {
+                        moveTo(w * 0.56f, 0f)
+                        quadraticBezierTo(w * 0.44f, h * 0.55f, w * 0.65f, h)
+                        lineTo(w, h)
+                        lineTo(w, 0f)
+                        close()
+                    }
+                    drawPath(
+                        path = arcPath,
+                        brush = Brush.verticalGradient(
+                            listOf(Color(0xFF7DD3FC).copy(alpha = 0.25f), Color(0xFFF59E0B).copy(alpha = 0.22f))
+                        )
+                    )
+
+                    val neonCurve = Path().apply {
+                        moveTo(w * 0.57f, 0f)
+                        quadraticBezierTo(w * 0.44f, h * 0.55f, w * 0.64f, h)
+                    }
+                    drawPath(
+                        path = neonCurve,
+                        brush = Brush.verticalGradient(listOf(PrimaryRose, Color(0xFFFF6B8B), SecondarySky)),
+                        style = Stroke(width = 5f, cap = StrokeCap.Round)
+                    )
+
+                    // Stylized Golden Rajasthan Fort Silhouette on the Right Half
+                    val fortBaseY = h * 0.82f
+                    val fortLeft = w * 0.58f
+                    val fortColor = Color(0xFFD97706)
+                    val fortLight = Color(0xFFFBBF24)
+
+                    // Fort Hill
+                    val hillPath = Path().apply {
+                        moveTo(w * 0.50f, h)
+                        quadraticBezierTo(w * 0.72f, h * 0.68f, w, h * 0.74f)
+                        lineTo(w, h)
+                        close()
+                    }
+                    drawPath(hillPath, color = Color(0xFF78350F))
+
+                    // Fort Battlements & Towers
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(listOf(fortLight, fortColor)),
+                        topLeft = Offset(fortLeft, h * 0.44f),
+                        size = Size(w * 0.38f, h * 0.34f),
+                        cornerRadius = CornerRadius(6f, 6f)
+                    )
+                    // Left & Right Royal Turrets (Chhatris)
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(listOf(fortLight, fortColor)),
+                        topLeft = Offset(w * 0.62f, h * 0.30f),
+                        size = Size(w * 0.09f, h * 0.45f),
+                        cornerRadius = CornerRadius(8f, 8f)
+                    )
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(listOf(fortLight, fortColor)),
+                        topLeft = Offset(w * 0.76f, h * 0.24f),
+                        size = Size(w * 0.11f, h * 0.52f),
+                        cornerRadius = CornerRadius(8f, 8f)
+                    )
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(listOf(fortLight, fortColor)),
+                        topLeft = Offset(w * 0.90f, h * 0.32f),
+                        size = Size(w * 0.08f, h * 0.44f),
+                        cornerRadius = CornerRadius(8f, 8f)
+                    )
+                    // Green Trees at Fort Base
+                    drawCircle(color = Color(0xFF15803D), radius = 26f, center = Offset(w * 0.66f, fortBaseY))
+                    drawCircle(color = Color(0xFF166534), radius = 32f, center = Offset(w * 0.78f, fortBaseY + 6f))
+                    drawCircle(color = Color(0xFF15803D), radius = 24f, center = Offset(w * 0.90f, fortBaseY + 4f))
+                }
+
+                // Left Content Inside Hero Banner
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.68f)
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
                         Text(
-                            text = "▶ ",
-                            color = PrimaryRose,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Black
+                            text = "Prepare Smart...",
+                            color = Color.White,
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            lineHeight = 21.sp
                         )
                         Text(
-                            text = "Online",
+                            text = "Score High...",
+                            color = AmberGold,
+                            fontSize = 21.sp,
+                            fontWeight = FontWeight.Black,
+                            lineHeight = 23.sp
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // Pink "Rajasthan Exams" Pill
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Brush.horizontalGradient(listOf(PrimaryRose, Color(0xFFBE123C))))
+                                .padding(horizontal = 12.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = "Rajasthan Exams",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "RPSC  |  RSSB  |  CTET  |  UGC NET",
                             color = Color.White,
-                            fontSize = 26.sp,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1
+                        )
+                    }
+
+                    // Golden Yellow "Start Mock Test ->" Button
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Brush.horizontalGradient(listOf(Color(0xFFFACC15), Color(0xFFF59E0B))))
+                            .clickable {
+                                if (firstSubjectName != null) {
+                                    onOpenSubjectFolder(firstSubjectName)
+                                } else {
+                                    Toast.makeText(context, "नीचे किसी भी Subject या Custom Test पर टैप करें!", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            .padding(horizontal = 16.dp, vertical = 7.dp)
+                    ) {
+                        Text(
+                            text = "Start Mock Test  ➔",
+                            color = Color(0xFF09090B),
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Black
                         )
                     }
                 }
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(54.dp)
-                        .clip(CircleShape)
-                        .background(SecondarySky.copy(alpha = 0.15f))
-                        .border(1.dp, SecondarySky, CircleShape)
-                ) {
-                    Text("🎓", fontSize = 28.sp)
-                }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Split Pink & Blue "Mock | Test" Pill Badge
+            // ==================== 3. 4 GLOWING QUICK ACTION TILES (Mock Tests | Custom Test | Performance | Results) ====================
             Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .background(PrimaryRose)
-                        .padding(horizontal = 18.dp, vertical = 6.dp)
-                ) {
-                    Text("Mock", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black)
-                }
-                Box(
-                    modifier = Modifier
-                        .background(SecondarySky)
-                        .padding(horizontal = 18.dp, vertical = 6.dp)
-                ) {
-                    Text("Test", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black)
-                }
+                QuickFeatureSquareCard(
+                    modifier = Modifier.weight(1f),
+                    icon = "📋",
+                    label = "Mock Tests",
+                    glowColor = PrimaryRose,
+                    onClick = {
+                        if (firstSubjectName != null) onOpenSubjectFolder(firstSubjectName)
+                        else onRefreshOnline()
+                    }
+                )
+                QuickFeatureSquareCard(
+                    modifier = Modifier.weight(1f),
+                    icon = "📝",
+                    label = "Custom Test",
+                    glowColor = SecondarySky,
+                    onClick = { onOpenCustomModal() }
+                )
+                QuickFeatureSquareCard(
+                    modifier = Modifier.weight(1f),
+                    icon = "📈",
+                    label = "Performance",
+                    glowColor = SkippedPurple,
+                    onClick = { showPerformanceDialog = true }
+                )
+                QuickFeatureSquareCard(
+                    modifier = Modifier.weight(1f),
+                    icon = "🏆",
+                    label = "Results",
+                    glowColor = AmberGold,
+                    onClick = { showResultsHistorySheet = true }
+                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "— Target Preparation & Revision Test —",
-                color = Color(0xFFE2E8F0),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            Spacer(modifier = Modifier.height(18.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Golden "Rajasthan Exams" Ribbon
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(Brush.horizontalGradient(listOf(Color(0xFFF59E0B), Color(0xFFFBBF24), Color(0xFFF59E0B))))
-                    .padding(horizontal = 20.dp, vertical = 4.dp)
+            // ==================== 4. POPULAR EXAMS (4 WHITE CARDS: RPSC | RSSB | CTET | UGC NET) ====================
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .width(4.dp)
+                            .height(18.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(PrimaryRose)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Popular Exams",
+                        color = Color.White,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
                 Text(
-                    text = "Rajasthan & National Exams",
-                    color = Color.Black,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Black
+                    text = if (isLoadingOnline) "Syncing..." else "Refresh ➔",
+                    color = SecondarySky,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onRefreshOnline() }
                 )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 4 Exam Badges Grid (RPSC | RSSB | CTET | UGC NET)
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(Color.White)
-                    .padding(vertical = 10.dp, horizontal = 6.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                ExamBadgeMini("🏛️", "RPSC", "State PSC", Modifier.weight(1f))
-                ExamBadgeMini("🏢", "RSSB", "Staff Board", Modifier.weight(1f))
-                ExamBadgeMini("📘", "CTET", "Central TET", Modifier.weight(1f))
-                ExamBadgeMini("🎓", "UGC NET", "National", Modifier.weight(1f))
-            }
-        }
-
-        // 3. RESUME TEST BANNER (IF ANY ACTIVE UNFINISHED TEST)
-        if (savedResumeState != null) {
-            Spacer(modifier = Modifier.height(14.dp))
-            val answered = savedResumeState.userAnswers.count { it != null }
-            val total = savedResumeState.userAnswers.size
-            val minsLeft = savedResumeState.remainingSeconds / 60
-            val secsLeft = savedResumeState.remainingSeconds % 60
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(AmberGold.copy(alpha = 0.14f))
-                    .border(1.dp, AmberGold, RoundedCornerShape(14.dp))
-                    .padding(14.dp)
-            ) {
-                Text(
-                    text = "⏳ Resume Your Interrupted Test",
-                    color = AmberGold,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = savedResumeState.config.title,
-                    color = Color.White,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 3.dp)
-                )
-                Text(
-                    text = "उत्तर दिए: $answered/$total • बचा समय: %02d:%02d".format(minsLeft, secsLeft),
-                    color = TextMuted,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 2.dp, bottom = 10.dp)
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = { onResumeTest(savedResumeState) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AmberGold),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("▶ Resume Now", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                PopularExamWhiteCard(
+                    modifier = Modifier.weight(1f),
+                    emblem = "🏛️",
+                    title = "RPSC",
+                    subtitle = "Rajasthan Public\nService Commission",
+                    bottomAccent = PrimaryRose,
+                    onClick = {
+                        val match = groupedSubjects.keys.firstOrNull { it.contains("RPSC", true) || it.contains("Sociology", true) || it.contains("Music", true) }
+                            ?: firstSubjectName
+                        if (match != null) onOpenSubjectFolder(match)
                     }
-                    OutlinedButton(
-                        onClick = onDiscardResume,
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text("हटाएं", color = WrongRed, fontSize = 13.sp)
+                )
+                PopularExamWhiteCard(
+                    modifier = Modifier.weight(1f),
+                    emblem = "🏢",
+                    title = "RSSB",
+                    subtitle = "Rajasthan Staff\nSelection Board",
+                    bottomAccent = SecondarySky,
+                    onClick = {
+                        val match = groupedSubjects.keys.firstOrNull { it.contains("RSSB", true) } ?: firstSubjectName
+                        if (match != null) onOpenSubjectFolder(match)
                     }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        // 4. TRACK YOUR PROGRESS SUMMARY ROW (MATCHING POSTER FEATURES)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            StatInfoBox(Modifier.weight(1f), "${groupedSubjects.size}", "FOLDERS", SecondarySky)
-            StatInfoBox(Modifier.weight(1f), "$totalOnlineTests", "LIVE TESTS", PrimaryRose)
-            StatInfoBox(Modifier.weight(1f), "${latestAttemptsPerQuiz.size}", "COMPLETED", CorrectGreen)
-            StatInfoBox(Modifier.weight(1f), "%.0f%%".format(avgPercentage), "AVG SCORE", AmberGold)
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // 5. SUBJECT-WISE FOLDERS SECTION (Online Test Series)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "📋 Online Test Series (Subject Folders)",
-                color = TextMain,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-            TextButton(
-                onClick = onRefreshOnline,
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = if (isLoadingOnline) "Loading..." else "🔄 Refresh",
-                    color = SecondarySky,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    softWrap = false
+                )
+                PopularExamWhiteCard(
+                    modifier = Modifier.weight(1f),
+                    emblem = "📘",
+                    title = "CTET",
+                    subtitle = "Central Teacher\nEligibility Test",
+                    bottomAccent = SkippedPurple,
+                    onClick = {
+                        val match = groupedSubjects.keys.firstOrNull { it.contains("CTET", true) } ?: firstSubjectName
+                        if (match != null) onOpenSubjectFolder(match)
+                    }
+                )
+                PopularExamWhiteCard(
+                    modifier = Modifier.weight(1f),
+                    emblem = "☸️",
+                    title = "UGC NET",
+                    subtitle = "National Eligibility\nTest",
+                    bottomAccent = CorrectGreen,
+                    onClick = {
+                        val match = groupedSubjects.keys.firstOrNull { it.contains("NET", true) || it.contains("Sociology", true) || it.contains("Music", true) }
+                            ?: firstSubjectName
+                        if (match != null) onOpenSubjectFolder(match)
+                    }
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        if (isLoadingOnline && groupedSubjects.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(HomeCard)
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
+            // ==================== 5. TWO SPLIT BOTTOM CARDS (Time Matters! + Circular Progress 75% Ring) ====================
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                CircularProgressIndicator(color = PrimaryRose, modifier = Modifier.size(28.dp))
-            }
-        } else if (groupedSubjects.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(HomeCard)
-                    .padding(20.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "अभी कोई ऑनलाइन टेस्ट उपलब्ध नहीं है। ऊपर Refresh दबाएं।",
-                    color = TextMuted,
-                    fontSize = 13.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-        } else {
-            val folderColors = listOf(PrimaryRose, SecondarySky, CorrectGreen, AmberGold, SkippedPurple)
-            groupedSubjects.entries.forEachIndexed { index, (subjectName, testList) ->
-                val accent = folderColors[index % folderColors.size]
-                val completedInFolder = testList.count { completedResultsMap.containsKey(it.id) }
+                // Left Card: Time Matters! (Starts Resume Test or Custom/Online Test)
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(HomeCard)
-                        .border(1.dp, accent.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
-                        .clickable { onOpenSubjectFolder(subjectName) }
-                        .padding(15.dp),
+                        .weight(1f)
+                        .height(118.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF0F1E46), Color(0xFF1E1B4B))
+                            )
+                        )
+                        .border(1.dp, PrimaryRose.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
+                        .clickable {
+                            when {
+                                savedResumeState != null -> onResumeTest(savedResumeState)
+                                hasCustomSavedQuiz && customQuizCount > 0 -> onStartCustomQuiz()
+                                firstSubjectName != null -> onOpenSubjectFolder(firstSubjectName)
+                                else -> onOpenCustomModal()
+                            }
+                        }
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Pure-Code 3D Stopwatch Graphic
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(54.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.radialGradient(
+                                    listOf( Color(0xFF38BDF8).copy(alpha = 0.35f), Color(0xFF1E3A8A))
+                                )
+                            )
+                            .border(2.dp, SecondarySky, CircleShape)
+                    ) {
+                        Text("⏱️", fontSize = 26.sp)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = if (savedResumeState != null) "Resume Test!" else "Time Matters!",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = if (savedResumeState != null)
+                                "बचा समय: %02d:%02d".format(savedResumeState.remainingSeconds / 60, savedResumeState.remainingSeconds % 60)
+                            else
+                                "Practice Regularly\n& Boost Your Score",
+                            color = Color(0xFFCBD5E1),
+                            fontSize = 9.5.sp,
+                            lineHeight = 12.sp,
+                            maxLines = 2
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(PrimaryRose)
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = if (savedResumeState != null) "Resume ➔" else "Start Now ➔",
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                // Right Card: Your Progress with Neon Cyan Circular Ring
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(118.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF0F1E46), Color(0xFF091534))
+                            )
+                        )
+                        .border(1.dp, SecondarySky.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
+                        .clickable { showResultsHistorySheet = true }
+                        .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(accent.copy(alpha = 0.16f))
+                        modifier = Modifier.size(60.dp)
                     ) {
-                        Text("📁", fontSize = 24.sp)
-                    }
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Column(modifier = Modifier.weight(1f)) {
+                        CircularProgressIndicator(
+                            progress = { 1f },
+                            color = Color(0xFF1E293B),
+                            strokeWidth = 6.dp,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        CircularProgressIndicator(
+                            progress = { (displayPercentInt / 100f).coerceIn(0.05f, 1f) },
+                            color = Color(0xFF00F0FF),
+                            strokeWidth = 6.dp,
+                            modifier = Modifier.fillMaxSize()
+                        )
                         Text(
-                            text = subjectName,
+                            text = "$displayPercentInt%",
                             color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "${testList.size} टेस्ट उपलब्ध • $completedInFolder पूर्ण (Completed)",
-                            color = TextMuted,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(top = 2.dp)
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.ExtraBold
                         )
                     }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Your Progress",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = "$completedCount / $totalOnlineTests Tests",
+                            color = Color(0xFFCBD5E1),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(SecondarySky)
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "View Details ➔",
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Optional Resume Discard Strip if a test is paused
+            if (savedResumeState != null) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(AmberGold.copy(alpha = 0.14f))
+                        .border(1.dp, AmberGold.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "⏳ अधूरा टेस्ट: ${savedResumeState.config.title}",
+                        color = AmberGold,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "✕ हटाएं",
+                        color = WrongRed,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(start = 10.dp)
+                            .clickable { onDiscardResume() }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // ==================== 6. ALL SUBJECT FOLDERS LIST (Direct Access on Home) ====================
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(accent.copy(alpha = 0.18f))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .width(4.dp)
+                            .height(18.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(SecondarySky)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Subject-Wise Test Folders",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+                Text(
+                    text = "${groupedSubjects.size} Folders",
+                    color = TextMuted,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            if (isLoadingOnline && groupedSubjects.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(HomeCard)
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = PrimaryRose, modifier = Modifier.size(28.dp))
+                }
+            } else if (groupedSubjects.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(HomeCard)
+                        .padding(18.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "अभी कोई ऑनलाइन फोल्डर नहीं मिला। ऊपर 🔔 या Refresh पर टैप करें।",
+                        color = TextMuted,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                val folderColors = listOf(PrimaryRose, SecondarySky, CorrectGreen, AmberGold, SkippedPurple)
+                groupedSubjects.entries.forEachIndexed { index, (subjectName, testList) ->
+                    val accent = folderColors[index % folderColors.size]
+                    val completedInFolder = testList.count { completedResultsMap.containsKey(it.id) }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 5.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFF111C38))
+                            .border(1.dp, accent.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                            .clickable { onOpenSubjectFolder(subjectName) }
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "खोलें ›",
-                            color = accent,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(46.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(accent.copy(alpha = 0.18f))
+                        ) {
+                            Text("📁", fontSize = 22.sp)
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = subjectName,
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "${testList.size} मॉक टेस्ट • $completedInFolder पूर्ण (Completed)",
+                                color = TextMuted,
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(accent)
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "खोलें ➔",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(18.dp))
-
-        // 6. POSTER-STYLE QUICK FEATURE PILLS (Custom Mock Test, Recent Result & PDF)
-        Text(
-            text = "⚡ Quick Study Tools & Progress",
-            color = TextMain,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        // Pill 1: Custom Mock Test
-        PosterActionPill(
-            icon = "⚙️",
-            title = if (hasCustomSavedQuiz && customQuizCount > 0) "Custom Mock Test ($customQuizTitle)" else "Custom Mock Test (.TXT / Paste)",
-            subtitle = if (hasCustomSavedQuiz && customQuizCount > 0) "$customQuizCount प्रश्न तैयार — टैप करके शुरू करें या बदलें" else "अपनी .txt फाइल या कॉपी-पेस्ट से खुद का टेस्ट बनाएं",
-            accentColor = PrimaryRose,
-            actionText = if (hasCustomSavedQuiz && customQuizCount > 0) "▶ Start" else "Create",
-            onClick = {
-                if (hasCustomSavedQuiz && customQuizCount > 0) onStartCustomQuiz()
-                else onOpenCustomModal()
-            },
-            secondaryActionText = if (hasCustomSavedQuiz && customQuizCount > 0) "Edit" else null,
-            onSecondaryClick = { onOpenCustomModal() }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Pill 2: Get Result & PDF (Opens most recent completed test result)
-        val latestCompleted = remember(completedResultsMap) {
-            completedResultsMap.values.flatten().maxByOrNull { it.completedAtMillis }
-        }
-        PosterActionPill(
-            icon = "📄",
-            title = "Get Result & 2-Column PDF",
-            subtitle = if (latestCompleted != null)
-                "पिछला रिजल्ट: ${latestCompleted.config.title} (%.1f%%)".format(latestCompleted.percentage)
-            else
-                "टेस्ट पूरा करने के बाद अपना रिजल्ट और A4 PDF यहाँ से देखें",
-            accentColor = SecondarySky,
-            actionText = if (latestCompleted != null) "📊 Result" else "Info",
-            onClick = {
-                if (latestCompleted != null) {
-                    onOpenLatestResult(latestCompleted)
-                } else {
-                    Toast.makeText(context, "पहले कोई एक टेस्ट सबमिट करें, फिर उसका रिजल्ट व PDF यहाँ दिखेगा!", Toast.LENGTH_SHORT).show()
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Footer Banner ("Prepare • Practice • Succeed") + Teacher Admin Button
-        Box(
+        // ==================== 7. FIXED BOTTOM NAVIGATION BAR (Home | My Tests | Favourites/Results | Settings) ====================
+        Row(
             modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Brush.horizontalGradient(listOf(AmberGold.copy(alpha = 0.2f), PrimaryRose.copy(alpha = 0.2f))))
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color(0xFF081229))
+                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
                 .padding(vertical = 8.dp),
-            contentAlignment = Alignment.Center
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "✨ Prepare • Practice • Succeed ✨",
-                color = AmberGold,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.ExtraBold
+            BottomNavTabItem(
+                icon = "🏠",
+                label = "Home",
+                isSelected = selectedBottomNav == 0,
+                onClick = { selectedBottomNav = 0 }
+            )
+            BottomNavTabItem(
+                icon = "📊",
+                label = "My Tests",
+                isSelected = selectedBottomNav == 1,
+                onClick = {
+                    selectedBottomNav = 1
+                    if (firstSubjectName != null) onOpenSubjectFolder(firstSubjectName)
+                    else onOpenCustomModal()
+                }
+            )
+            BottomNavTabItem(
+                icon = "⭐",
+                label = "Favourites",
+                isSelected = selectedBottomNav == 2,
+                onClick = {
+                    selectedBottomNav = 2
+                    showResultsHistorySheet = true
+                }
+            )
+            BottomNavTabItem(
+                icon = "⚙️",
+                label = "Settings",
+                isSelected = selectedBottomNav == 3,
+                onClick = {
+                    selectedBottomNav = 3
+                    onOpenAdminModal()
+                }
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        // Performance Overview Popup
+        if (showPerformanceDialog) {
+            AlertDialog(
+                onDismissRequest = { showPerformanceDialog = false },
+                containerColor = CardDark,
+                title = { Text("📈 Your Performance Report", color = Color.White, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("👤 छात्र: ${userProfile.name}", color = TextMain, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("🎯 लक्ष्य: ${userProfile.targetExam}", color = SecondarySky, fontSize = 12.sp)
+                        HorizontalDivider(color = BorderColor)
+                        Text("✅ कुल पूर्ण किए गए टेस्ट: $completedCount / $totalOnlineTests", color = CorrectGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("🔄 कुल दिए गए Attempts: ${allAttemptsSorted.size}", color = TextMain, fontSize = 13.sp)
+                        Text("📊 औसत प्रतिशत (Average Score): %.2f%%".format(avgPercentage), color = AmberGold, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showPerformanceDialog = false
+                            showResultsHistorySheet = true
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryRose)
+                    ) {
+                        Text("सभी रिजल्ट देखें", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showPerformanceDialog = false }) {
+                        Text("बंद करें", color = TextMuted)
+                    }
+                }
+            )
+        }
 
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            TextButton(onClick = onOpenAdminModal) {
-                Text("🔒 Teacher Admin: Publish / Delete Tests", color = TextMuted, fontSize = 12.sp)
-            }
+        // All Completed Results & Attempts Dialog
+        if (showResultsHistorySheet) {
+            AlertDialog(
+                onDismissRequest = {
+                    showResultsHistorySheet = false
+                    selectedBottomNav = 0
+                },
+                containerColor = CardDark,
+                title = { Text("🏆 Saved Results & Attempts", color = AmberGold, fontWeight = FontWeight.Bold, fontSize = 17.sp) },
+                text = {
+                    if (allAttemptsSorted.isEmpty()) {
+                        Text("आपने अभी तक कोई टेस्ट सबमिट नहीं किया है। किसी भी टेस्ट को पूरा करने के बाद उसका रिजल्ट और 2-Column PDF यहाँ दिखेगा।", color = TextMuted, fontSize = 13.sp)
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 360.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(allAttemptsSorted) { att ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(HomeCard)
+                                        .border(1.dp, BorderColor, RoundedCornerShape(10.dp))
+                                        .clickable {
+                                            showResultsHistorySheet = false
+                                            selectedBottomNav = 0
+                                            onOpenLatestResult(att)
+                                        }
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(att.config.title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text("Attempt ${att.attemptNumber} • ${att.completedDate}", color = TextMuted, fontSize = 11.sp)
+                                    }
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text("%.2f / %.2f".format(att.obtainedMarks, att.maxMarks), color = AmberGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text("%.1f%% ➔".format(att.percentage), color = CorrectGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showResultsHistorySheet = false
+                            selectedBottomNav = 0
+                        }
+                    ) {
+                        Text("Close", color = PrimaryRose, fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
         }
     }
 }
 
 @Composable
-fun ExamBadgeMini(icon: String, title: String, sub: String, modifier: Modifier) {
+fun QuickFeatureSquareCard(
+    modifier: Modifier,
+    icon: String,
+    label: String,
+    glowColor: Color,
+    onClick: () -> Unit
+) {
     Column(
-        modifier = modifier.padding(horizontal = 2.dp),
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF132046), Color(0xFF0B132B))
+                )
+            )
+            .border(1.dp, glowColor.copy(alpha = 0.55f), RoundedCornerShape(16.dp))
+            .clickable { onClick() }
+            .padding(vertical = 12.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(icon, fontSize = 18.sp)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(
+                        listOf(glowColor, glowColor.copy(alpha = 0.25f))
+                    )
+                )
+                .border(1.5.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+        ) {
+            Text(icon, fontSize = 20.sp)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = title,
-            color = Color(0xFF0F172A),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Black,
-            maxLines = 1
-        )
-        Text(
-            text = sub,
-            color = Color(0xFF475569),
-            fontSize = 9.sp,
+            text = label,
+            color = Color.White,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -2412,57 +2894,69 @@ fun ExamBadgeMini(icon: String, title: String, sub: String, modifier: Modifier) 
 }
 
 @Composable
-fun PosterActionPill(
-    icon: String,
+fun PopularExamWhiteCard(
+    modifier: Modifier,
+    emblem: String,
     title: String,
     subtitle: String,
-    accentColor: Color,
-    actionText: String,
-    onClick: () -> Unit,
-    secondaryActionText: String? = null,
-    onSecondaryClick: (() -> Unit)? = null
+    bottomAccent: Color,
+    onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .background(HomeCard)
-            .border(1.dp, accentColor.copy(alpha = 0.5f), RoundedCornerShape(28.dp))
+    Column(
+        modifier = modifier
+            .height(108.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White)
+            .border(1.5.dp, bottomAccent.copy(alpha = 0.7f), RoundedCornerShape(14.dp))
             .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 6.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(42.dp)
-                .clip(CircleShape)
-                .background(accentColor.copy(alpha = 0.2f))
-                .border(1.5.dp, accentColor, CircleShape)
-        ) {
-            Text(icon, fontSize = 18.sp)
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(subtitle, color = TextMuted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        if (secondaryActionText != null && onSecondaryClick != null) {
-            TextButton(
-                onClick = onSecondaryClick,
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(secondaryActionText, color = TextMain, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(accentColor)
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Text(actionText, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
+        Text(emblem, fontSize = 24.sp)
+        Text(
+            text = title,
+            color = Color(0xFF0F172A),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Black,
+            maxLines = 1
+        )
+        Text(
+            text = subtitle,
+            color = Color(0xFF334155),
+            fontSize = 8.5.sp,
+            lineHeight = 10.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+fun BottomNavTabItem(
+    icon: String,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = icon,
+            fontSize = 18.sp
+        )
+        Text(
+            text = label,
+            color = if (isSelected) PrimaryRose else Color(0xFFCBD5E1),
+            fontSize = 11.sp,
+            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium
+        )
     }
 }
 
