@@ -157,8 +157,8 @@ data class UserProfile(
 )
 
 data class CompletedTestResult(
+    val attemptNumber: Int,
     val config: TestConfig,
-    val rawTxt: String,
     val userAnswers: List<Int?>,
     val timeSpentSeconds: Int,
     val obtainedMarks: Double,
@@ -327,10 +327,10 @@ object TxtQuestionParser {
             if (line.isEmpty()) continue
 
             val topicMatch = Regex("^(?i)TOPIC\\s*:\\s*(.*)").find(line)
-            val qMatch = Regex("^(?i)(?:Q|Question|प्र|प्रश्न)\\s*[:.]?\\s*(.*)").find(line)
+            val qMatch = Regex("^(?i)(?:Q|Question|प्र|प्रश्न)\\s*[:.]\\s*(.*)").find(line)
             val optMatch = Regex("^(?i)([A-E])[).:-]\\s*(.*)").find(line)
-            val ansMatch = Regex("^(?i)(?:ANS|Answer|उत्तर)\\s*[:.-]?\\s*(.*)").find(line)
-            val solMatch = Regex("^(?i)(?:SOL|SOLUTION|व्याख्या)\\s*[:.-]?\\s*(.*)").find(line)
+            val ansMatch = Regex("^(?i)(?:ANS|Answer|उत्तर)\\s*[:.-]\\s*(.*)").find(line)
+            val solMatch = Regex("^(?i)(?:SOL|SOLUTION|व्याख्या)\\s*[:.-]\\s*(.*)").find(line)
 
             when {
                 topicMatch != null -> {
@@ -470,11 +470,12 @@ object ResumeStorage {
     }
 }
 
-// ==================== 7B. STUDENT PROFILE & COMPLETED TEST HISTORY STORAGE ====================
+// ==================== 7B. STUDENT PROFILE & MULTI-ATTEMPT LIGHTWEIGHT RESULT STORAGE ====================
 object ProfileAndHistoryStorage {
     private const val PREF_NAME = "mock_test_prefs"
     private const val KEY_PROFILE = "user_profile_v1"
-    private const val KEY_RESULTS_MAP = "completed_results_map_v1"
+    private const val KEY_ATTEMPTS_MAP = "completed_attempts_map_v2"
+    private const val LEGACY_KEY_RESULTS_MAP = "completed_results_map_v1"
 
     fun loadProfile(context: Context): UserProfile? {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -508,71 +509,154 @@ object ProfileAndHistoryStorage {
             .apply()
     }
 
-    fun saveCompletedResult(context: Context, result: CompletedTestResult) {
+    // Cache question text in filesDir/quiz_cache/<id>.enc so SharedPreferences stays tiny and fast!
+    fun saveQuizTextToCache(context: Context, quizId: String, plainTxt: String) {
+        if (plainTxt.isBlank()) return
+        try {
+            val cacheDir = File(context.filesDir, "quiz_cache").apply { mkdirs() }
+            val cacheFile = File(cacheDir, "$quizId.enc")
+            if (!cacheFile.exists()) {
+                cacheFile.writeText(QuizCrypto.encrypt(plainTxt), Charsets.UTF_8)
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    fun loadCachedQuizText(context: Context, quizId: String): String? {
+        return try {
+            val cacheFile = File(File(context.filesDir, "quiz_cache"), "$quizId.enc")
+            if (cacheFile.exists()) {
+                QuizCrypto.decryptIfNeeded(cacheFile.readText(Charsets.UTF_8))
+            } else {
+                val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                prefs.getString("saved_custom_txt", null)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun saveCompletedAttempt(
+        context: Context,
+        config: TestConfig,
+        rawTxt: String,
+        userAnswers: List<Int?>,
+        timeSpentSeconds: Int,
+        obtainedMarks: Double,
+        maxMarks: Double,
+        percentage: Double,
+        completedDate: String
+    ) {
+        saveQuizTextToCache(context, config.id, rawTxt)
+
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val existingRaw = prefs.getString(KEY_RESULTS_MAP, "{}") ?: "{}"
+        val existingRaw = prefs.getString(KEY_ATTEMPTS_MAP, "{}") ?: "{}"
         val rootObj = try { JSONObject(existingRaw) } catch (_: Exception) { JSONObject() }
 
+        val historyArr = rootObj.optJSONArray(config.id) ?: JSONArray()
+        val nextAttemptNumber = historyArr.length() + 1
+
         val ansArr = JSONArray()
-        result.userAnswers.forEach { a ->
+        userAnswers.forEach { a ->
             if (a == null) ansArr.put(JSONObject.NULL) else ansArr.put(a)
         }
 
+        // Lightweight JSON entry (NO rawTxt stored in SharedPreferences!)
         val entry = JSONObject().apply {
-            put("id", result.config.id)
-            put("title", result.config.title)
-            put("subtitle", result.config.subtitle)
-            put("subject", result.config.subject)
-            put("timeMinutes", result.config.timeMinutes)
-            put("marksPerCorrect", result.config.marksPerCorrect)
-            put("negativeMark", result.config.negativeMark)
-            put("rawTxt", result.rawTxt)
+            put("attemptNumber", nextAttemptNumber)
+            put("id", config.id)
+            put("title", config.title)
+            put("subtitle", config.subtitle)
+            put("subject", config.subject)
+            put("timeMinutes", config.timeMinutes)
+            put("marksPerCorrect", config.marksPerCorrect)
+            put("negativeMark", config.negativeMark)
             put("userAnswers", ansArr)
-            put("timeSpentSeconds", result.timeSpentSeconds)
-            put("obtainedMarks", result.obtainedMarks)
-            put("maxMarks", result.maxMarks)
-            put("percentage", result.percentage)
-            put("completedDate", result.completedDate)
+            put("timeSpentSeconds", timeSpentSeconds)
+            put("obtainedMarks", obtainedMarks)
+            put("maxMarks", maxMarks)
+            put("percentage", percentage)
+            put("completedDate", completedDate)
         }
 
-        rootObj.put(result.config.id, entry)
-        prefs.edit().putString(KEY_RESULTS_MAP, rootObj.toString()).apply()
+        historyArr.put(entry)
+        rootObj.put(config.id, historyArr)
+        prefs.edit()
+            .putString(KEY_ATTEMPTS_MAP, rootObj.toString())
+            .remove(LEGACY_KEY_RESULTS_MAP)
+            .apply()
     }
 
-    fun loadAllCompletedResults(context: Context): Map<String, CompletedTestResult> {
+    fun loadAllAttemptsHistory(context: Context): Map<String, List<CompletedTestResult>> {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val existingRaw = prefs.getString(KEY_RESULTS_MAP, "{}") ?: "{}"
-        val map = mutableMapOf<String, CompletedTestResult>()
+        val map = mutableMapOf<String, List<CompletedTestResult>>()
+
+        // Migrate any v1 single-result entries seamlessly if present
+        val legacyRaw = prefs.getString(LEGACY_KEY_RESULTS_MAP, null)
+        if (!legacyRaw.isNullOrBlank()) {
+            try {
+                val legacyRoot = JSONObject(legacyRaw)
+                val v2Root = JSONObject(prefs.getString(KEY_ATTEMPTS_MAP, "{}") ?: "{}")
+                val keys = legacyRoot.keys()
+                while (keys.hasNext()) {
+                    val k = keys.next()
+                    val obj = legacyRoot.optJSONObject(k) ?: continue
+                    val oldTxt = obj.optString("rawTxt", "")
+                    if (oldTxt.isNotBlank()) saveQuizTextToCache(context, k, oldTxt)
+                    obj.remove("rawTxt")
+                    obj.put("attemptNumber", 1)
+                    if (!v2Root.has(k)) {
+                        v2Root.put(k, JSONArray().put(obj))
+                    }
+                }
+                prefs.edit()
+                    .putString(KEY_ATTEMPTS_MAP, v2Root.toString())
+                    .remove(LEGACY_KEY_RESULTS_MAP)
+                    .apply()
+            } catch (_: Exception) {
+            }
+        }
+
+        val existingRaw = prefs.getString(KEY_ATTEMPTS_MAP, "{}") ?: "{}"
         try {
             val rootObj = JSONObject(existingRaw)
             val keys = rootObj.keys()
             while (keys.hasNext()) {
                 val key = keys.next()
-                val obj = rootObj.optJSONObject(key) ?: continue
-                val ansArr = obj.optJSONArray("userAnswers") ?: JSONArray()
-                val ansList = mutableListOf<Int?>()
-                for (i in 0 until ansArr.length()) {
-                    ansList.add(if (ansArr.isNull(i)) null else ansArr.getInt(i))
+                val arr = rootObj.optJSONArray(key) ?: continue
+                val attemptList = mutableListOf<CompletedTestResult>()
+                for (j in 0 until arr.length()) {
+                    val obj = arr.optJSONObject(j) ?: continue
+                    val ansArr = obj.optJSONArray("userAnswers") ?: JSONArray()
+                    val ansList = mutableListOf<Int?>()
+                    for (i in 0 until ansArr.length()) {
+                        ansList.add(if (ansArr.isNull(i)) null else ansArr.getInt(i))
+                    }
+                    val cfg = TestConfig(
+                        id = obj.optString("id", key),
+                        title = obj.optString("title", "Mock Test"),
+                        subtitle = obj.optString("subtitle", ""),
+                        subject = obj.optString("subject", "General"),
+                        timeMinutes = obj.optInt("timeMinutes", 60),
+                        marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
+                        negativeMark = obj.optDouble("negativeMark", 0.0)
+                    )
+                    attemptList.add(
+                        CompletedTestResult(
+                            attemptNumber = obj.optInt("attemptNumber", j + 1),
+                            config = cfg,
+                            userAnswers = ansList,
+                            timeSpentSeconds = obj.optInt("timeSpentSeconds", 0),
+                            obtainedMarks = obj.optDouble("obtainedMarks", 0.0),
+                            maxMarks = obj.optDouble("maxMarks", 0.0),
+                            percentage = obj.optDouble("percentage", 0.0),
+                            completedDate = obj.optString("completedDate", "")
+                        )
+                    )
                 }
-                val cfg = TestConfig(
-                    id = obj.optString("id", key),
-                    title = obj.optString("title", "Mock Test"),
-                    subtitle = obj.optString("subtitle", ""),
-                    subject = obj.optString("subject", "General"),
-                    timeMinutes = obj.optInt("timeMinutes", 60),
-                    marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
-                    negativeMark = obj.optDouble("negativeMark", 0.0)
-                )
-                map[key] = CompletedTestResult(
-                    config = cfg,
-                    rawTxt = obj.optString("rawTxt", ""),
-                    userAnswers = ansList,
-                    timeSpentSeconds = obj.optInt("timeSpentSeconds", 0),
-                    obtainedMarks = obj.optDouble("obtainedMarks", 0.0),
-                    maxMarks = obj.optDouble("maxMarks", 0.0),
-                    percentage = obj.optDouble("percentage", 0.0),
-                    completedDate = obj.optString("completedDate", "")
-                )
+                if (attemptList.isNotEmpty()) {
+                    map[key] = attemptList
+                }
             }
         } catch (_: Exception) {
         }
@@ -582,28 +666,41 @@ object ProfileAndHistoryStorage {
 
 // ==================== 8. GITHUB CLOUD SYNC (WITH OFFLINE CACHE & HTTP CHECKS) ====================
 object GitHubCloudService {
-    suspend fun fetchOnlineQuizzes(): List<OnlineQuizMeta> = withContext(Dispatchers.IO) {
-        val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/quizzes/index.json?ref=$GITHUB_BRANCH&t=${System.currentTimeMillis()}"
-        val apiConn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 10000
-            readTimeout = 10000
-            useCaches = false
-            setRequestProperty("Accept", "application/vnd.github.raw+json")
-            setRequestProperty("Cache-Control", "no-cache")
-        }
+    suspend fun fetchOnlineQuizzes(context: Context): List<OnlineQuizMeta> = withContext(Dispatchers.IO) {
+        val cacheDir = File(context.filesDir, "quiz_cache").apply { mkdirs() }
+        val indexCacheFile = File(cacheDir, "cached_index.json")
 
-        val jsonText = if (apiConn.responseCode == 200) {
-            apiConn.inputStream.bufferedReader().use { it.readText() }
-        } else {
-            val rawUrl = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/quizzes/index.json?t=${System.currentTimeMillis()}"
-            val rawConn = (URL(rawUrl).openConnection() as HttpURLConnection).apply {
+        val jsonText: String = try {
+            val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/quizzes/index.json?ref=$GITHUB_BRANCH&t=${System.currentTimeMillis()}"
+            val apiConn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 10000
                 readTimeout = 10000
                 useCaches = false
+                setRequestProperty("Accept", "application/vnd.github.raw+json")
                 setRequestProperty("Cache-Control", "no-cache")
             }
-            if (rawConn.responseCode != 200) return@withContext emptyList()
-            rawConn.inputStream.bufferedReader().use { it.readText() }
+
+            val fetched = if (apiConn.responseCode == 200) {
+                apiConn.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                val rawUrl = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/quizzes/index.json?t=${System.currentTimeMillis()}"
+                val rawConn = (URL(rawUrl).openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 10000
+                    readTimeout = 10000
+                    useCaches = false
+                    setRequestProperty("Cache-Control", "no-cache")
+                }
+                if (rawConn.responseCode != 200) throw Exception("HTTP ${rawConn.responseCode}")
+                rawConn.inputStream.bufferedReader().use { it.readText() }
+            }
+            indexCacheFile.writeText(fetched, Charsets.UTF_8)
+            fetched
+        } catch (_: Exception) {
+            if (indexCacheFile.exists()) {
+                indexCacheFile.readText(Charsets.UTF_8)
+            } else {
+                return@withContext emptyList()
+            }
         }
 
         val arr = JSONArray(jsonText)
@@ -924,7 +1021,7 @@ fun MockTestAppRoot() {
 
     var savedResumeState by remember { mutableStateOf<SavedResumeState?>(null) }
     var completedResultsMap by remember {
-        mutableStateOf(ProfileAndHistoryStorage.loadAllCompletedResults(context))
+        mutableStateOf(ProfileAndHistoryStorage.loadAllAttemptsHistory(context))
     }
 
     // Test Active State
@@ -983,7 +1080,8 @@ fun MockTestAppRoot() {
         val today = SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).format(Date())
 
         if (activeRawTxt.isNotBlank() && questions.isNotEmpty()) {
-            val completed = CompletedTestResult(
+            ProfileAndHistoryStorage.saveCompletedAttempt(
+                context = context,
                 config = testConfig,
                 rawTxt = activeRawTxt,
                 userAnswers = userAnswers,
@@ -993,8 +1091,7 @@ fun MockTestAppRoot() {
                 percentage = pct,
                 completedDate = today
             )
-            ProfileAndHistoryStorage.saveCompletedResult(context, completed)
-            completedResultsMap = ProfileAndHistoryStorage.loadAllCompletedResults(context)
+            completedResultsMap = ProfileAndHistoryStorage.loadAllAttemptsHistory(context)
         }
 
         ResumeStorage.clear(context)
@@ -1079,23 +1176,27 @@ fun MockTestAppRoot() {
     }
 
     fun openSavedResult(saved: CompletedTestResult, fromScreen: AppScreen) {
-        val parsed = TxtQuestionParser.parse(saved.rawTxt)
-        if (parsed.isNotEmpty()) {
+        val cachedTxt = ProfileAndHistoryStorage.loadCachedQuizText(context, saved.config.id)
+        val parsed = if (!cachedTxt.isNullOrBlank()) TxtQuestionParser.parse(cachedTxt) else emptyList()
+        if (parsed.isNotEmpty() && cachedTxt != null) {
             testConfig = saved.config
-            activeRawTxt = saved.rawTxt
+            activeRawTxt = cachedTxt
             questions = parsed
             userAnswers = if (saved.userAnswers.size == parsed.size) saved.userAnswers else List(parsed.size) { null }
             resultTimeSpentSeconds = saved.timeSpentSeconds
             previousScreenBeforeTest = fromScreen
             currentScreen = AppScreen.RESULT
         } else {
-            Toast.makeText(context, "रिजल्ट डेटा उपलब्ध नहीं है, कृपया Re-Test दें।", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "रिजल्ट डेटा कैश में उपलब्ध नहीं है, कृपया एक बार Re-Test दें।", Toast.LENGTH_SHORT).show()
         }
     }
 
     LaunchedEffect(Unit) {
+        // Cleanup legacy unencrypted token if present from earlier versions
+        prefs.edit().remove("gh_pat_token").apply()
+
         savedResumeState = ResumeStorage.load(context)
-        completedResultsMap = ProfileAndHistoryStorage.loadAllCompletedResults(context)
+        completedResultsMap = ProfileAndHistoryStorage.loadAllAttemptsHistory(context)
 
         val savedTxt = prefs.getString("saved_custom_txt", null)
         if (!savedTxt.isNullOrBlank()) {
@@ -1118,7 +1219,7 @@ fun MockTestAppRoot() {
 
         isLoadingOnline = true
         try {
-            onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes()
+            onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
         } catch (_: Exception) {
         } finally {
             isLoadingOnline = false
@@ -1201,7 +1302,7 @@ fun MockTestAppRoot() {
                         scope.launch {
                             isLoadingOnline = true
                             try {
-                                onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes()
+                                onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
                             } catch (_: Exception) {
                             }
                             isLoadingOnline = false
@@ -1290,7 +1391,7 @@ fun MockTestAppRoot() {
                         scope.launch {
                             isLoadingOnline = true
                             try {
-                                onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes()
+                                onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
                             } catch (_: Exception) {
                             }
                             isLoadingOnline = false
@@ -1809,7 +1910,7 @@ fun HomeScreenUI(
     onResumeTest: (SavedResumeState) -> Unit,
     onDiscardResume: () -> Unit,
     groupedSubjects: Map<String, List<OnlineQuizMeta>>,
-    completedResultsMap: Map<String, CompletedTestResult>,
+    completedResultsMap: Map<String, List<CompletedTestResult>>,
     totalOnlineTests: Int,
     isLoadingOnline: Boolean,
     hasCustomSavedQuiz: Boolean,
@@ -1823,9 +1924,12 @@ fun HomeScreenUI(
     onOpenAdminModal: () -> Unit
 ) {
     val context = LocalContext.current
-    val completedList = remember(completedResultsMap) { completedResultsMap.values.toList() }
-    val avgPercentage = remember(completedList) {
-        if (completedList.isNotEmpty()) completedList.map { it.percentage }.average() else 0.0
+    // Latest attempt of each completed test + all attempts list
+    val latestAttemptsPerQuiz = remember(completedResultsMap) {
+        completedResultsMap.values.mapNotNull { it.lastOrNull() }
+    }
+    val avgPercentage = remember(latestAttemptsPerQuiz) {
+        if (latestAttemptsPerQuiz.isNotEmpty()) latestAttemptsPerQuiz.map { it.percentage }.average() else 0.0
     }
 
     Column(
@@ -2072,7 +2176,7 @@ fun HomeScreenUI(
         ) {
             StatInfoBox(Modifier.weight(1f), "${groupedSubjects.size}", "FOLDERS", SecondarySky)
             StatInfoBox(Modifier.weight(1f), "$totalOnlineTests", "LIVE TESTS", PrimaryRose)
-            StatInfoBox(Modifier.weight(1f), "${completedList.size}", "COMPLETED", CorrectGreen)
+            StatInfoBox(Modifier.weight(1f), "${latestAttemptsPerQuiz.size}", "COMPLETED", CorrectGreen)
             StatInfoBox(Modifier.weight(1f), "%.0f%%".format(avgPercentage), "AVG SCORE", AmberGold)
         }
 
@@ -2221,7 +2325,7 @@ fun HomeScreenUI(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Pill 2: Get Result & PDF (Opens most recent completed test result)
-        val latestCompleted = completedList.lastOrNull()
+        val latestCompleted = latestAttemptsPerQuiz.lastOrNull()
         PosterActionPill(
             icon = "📄",
             title = "Get Result & 2-Column PDF",
@@ -2348,12 +2452,12 @@ fun PosterActionPill(
     }
 }
 
-// ==================== 12. SUBJECT FOLDER TESTS SCREEN (ORDERED + SAVED MARKS + RESULT & RE-TEST BUTTONS) ====================
+// ==================== 12. SUBJECT FOLDER TESTS SCREEN (ORDERED + MULTI-ATTEMPT HISTORY + RESULT & RE-TEST BUTTONS) ====================
 @Composable
 fun SubjectTestsScreenUI(
     subjectName: String,
     tests: List<OnlineQuizMeta>,
-    completedResultsMap: Map<String, CompletedTestResult>,
+    completedResultsMap: Map<String, List<CompletedTestResult>>,
     isDownloading: Boolean,
     onBack: () -> Unit,
     onStartTest: (OnlineQuizMeta) -> Unit,
@@ -2402,7 +2506,10 @@ fun SubjectTestsScreenUI(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             itemsIndexed(tests) { idx, quiz ->
-                val savedResult = completedResultsMap[quiz.id]
+                val attemptsList = completedResultsMap[quiz.id] ?: emptyList()
+                val latestAttempt = attemptsList.lastOrNull()
+                var showAllAttempts by remember { mutableStateOf(false) }
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -2410,7 +2517,7 @@ fun SubjectTestsScreenUI(
                         .background(HomeCard)
                         .border(
                             width = 1.dp,
-                            color = if (savedResult != null) CorrectGreen.copy(alpha = 0.5f) else BorderColor,
+                            color = if (latestAttempt != null) CorrectGreen.copy(alpha = 0.5f) else BorderColor,
                             shape = RoundedCornerShape(14.dp)
                         )
                         .padding(16.dp)
@@ -2427,7 +2534,7 @@ fun SubjectTestsScreenUI(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f)
                         )
-                        if (savedResult != null) {
+                        if (latestAttempt != null) {
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
@@ -2435,7 +2542,7 @@ fun SubjectTestsScreenUI(
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
-                                    text = "✅ Completed",
+                                    text = "✅ ${attemptsList.size}x Attempted",
                                     color = CorrectGreen,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold
@@ -2458,36 +2565,88 @@ fun SubjectTestsScreenUI(
                         fontWeight = FontWeight.SemiBold
                     )
 
-                    // Show saved marks & percentage badge if already completed!
-                    if (savedResult != null) {
+                    // Show Latest Attempt Score + Expandable Attempts History (Attempt 1, Attempt 2, Attempt 3...)
+                    if (latestAttempt != null) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Row(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(BgDark)
-                                .padding(horizontal = 10.dp, vertical = 6.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(horizontal = 10.dp, vertical = 8.dp)
                         ) {
-                            Text(
-                                text = "🏆 प्राप्तांक: %.2f / %.2f".format(savedResult.obtainedMarks, savedResult.maxMarks),
-                                color = AmberGold,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "📊 प्रतिशत: %.1f%%".format(savedResult.percentage),
-                                color = CorrectGreen,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "🏆 नवीनतम (Attempt ${latestAttempt.attemptNumber}): %.2f / %.2f".format(
+                                        latestAttempt.obtainedMarks,
+                                        latestAttempt.maxMarks
+                                    ),
+                                    color = AmberGold,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "📊 %.1f%%".format(latestAttempt.percentage),
+                                    color = CorrectGreen,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            if (attemptsList.size > 1) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = if (showAllAttempts) "▲ सभी ${attemptsList.size} Attempts छुपाएं" else "▼ सभी ${attemptsList.size} Attempts का स्कोर देखें",
+                                    color = SecondarySky,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.clickable { showAllAttempts = !showAllAttempts }
+                                )
+
+                                if (showAllAttempts) {
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    attemptsList.forEach { att ->
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 3.dp)
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(HomeCard)
+                                                .clickable { onViewSavedResult(att) }
+                                                .padding(horizontal = 8.dp, vertical = 5.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Attempt ${att.attemptNumber} (${att.completedDate})",
+                                                color = TextMain,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                            Text(
+                                                text = "%.2f / %.2f (%.1f%%) ›".format(
+                                                    att.obtainedMarks,
+                                                    att.maxMarks,
+                                                    att.percentage
+                                                ),
+                                                color = AmberGold,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    if (savedResult != null) {
+                    if (latestAttempt != null) {
                         // 2 Buttons after completion: Result & Re-Test
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -2495,7 +2654,7 @@ fun SubjectTestsScreenUI(
                         ) {
                             Button(
                                 enabled = !isDownloading,
-                                onClick = { onViewSavedResult(savedResult) },
+                                onClick = { onViewSavedResult(latestAttempt) },
                                 colors = ButtonDefaults.buttonColors(containerColor = SecondarySky),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.weight(1f).height(42.dp)
@@ -2513,7 +2672,6 @@ fun SubjectTestsScreenUI(
                             }
                         }
                     } else {
-                        // Single Start Now button when not yet attempted
                         Button(
                             enabled = !isDownloading,
                             onClick = { onStartTest(quiz) },
