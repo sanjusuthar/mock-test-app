@@ -164,7 +164,8 @@ data class CompletedTestResult(
     val obtainedMarks: Double,
     val maxMarks: Double,
     val percentage: Double,
-    val completedDate: String
+    val completedDate: String,
+    val completedAtMillis: Long = 0L
 )
 
 enum class AppScreen { PROFILE_SETUP, HOME, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
@@ -509,13 +510,19 @@ object ProfileAndHistoryStorage {
             .apply()
     }
 
+    fun customQuizIdForText(rawTxt: String): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(rawTxt.trim().toByteArray(Charsets.UTF_8))
+        val hex = digest.take(6).joinToString("") { "%02x".format(it) }
+        return "custom_$hex"
+    }
+
     // Cache question text in filesDir/quiz_cache/<id>.enc so SharedPreferences stays tiny and fast!
     fun saveQuizTextToCache(context: Context, quizId: String, plainTxt: String) {
         if (plainTxt.isBlank()) return
         try {
             val cacheDir = File(context.filesDir, "quiz_cache").apply { mkdirs() }
             val cacheFile = File(cacheDir, "$quizId.enc")
-            if (!cacheFile.exists()) {
+            if (!cacheFile.exists() || quizId.startsWith("custom")) {
                 cacheFile.writeText(QuizCrypto.encrypt(plainTxt), Charsets.UTF_8)
             }
         } catch (_: Exception) {
@@ -527,9 +534,11 @@ object ProfileAndHistoryStorage {
             val cacheFile = File(File(context.filesDir, "quiz_cache"), "$quizId.enc")
             if (cacheFile.exists()) {
                 QuizCrypto.decryptIfNeeded(cacheFile.readText(Charsets.UTF_8))
-            } else {
+            } else if (quizId.startsWith("custom")) {
                 val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
                 prefs.getString("saved_custom_txt", null)
+            } else {
+                null
             }
         } catch (_: Exception) {
             null
@@ -577,6 +586,7 @@ object ProfileAndHistoryStorage {
             put("maxMarks", maxMarks)
             put("percentage", percentage)
             put("completedDate", completedDate)
+            put("completedAtMillis", System.currentTimeMillis())
         }
 
         historyArr.put(entry)
@@ -650,7 +660,8 @@ object ProfileAndHistoryStorage {
                             obtainedMarks = obj.optDouble("obtainedMarks", 0.0),
                             maxMarks = obj.optDouble("maxMarks", 0.0),
                             percentage = obj.optDouble("percentage", 0.0),
-                            completedDate = obj.optString("completedDate", "")
+                            completedDate = obj.optString("completedDate", ""),
+                            completedAtMillis = obj.optLong("completedAtMillis", 0L)
                         )
                     )
                 }
@@ -1063,6 +1074,7 @@ fun MockTestAppRoot() {
     }
 
     fun finishAndSubmitExam() {
+        if (currentScreen == AppScreen.RESULT) return
         val spent = ((testConfig.timeMinutes * 60) - remainingSeconds).coerceAtLeast(0)
         resultTimeSpentSeconds = spent
 
@@ -1323,7 +1335,7 @@ fun MockTestAppRoot() {
                             questions = parsed
                             val tMins = prefs.getInt("saved_time", 60)
                             testConfig = TestConfig(
-                                id = "custom",
+                                id = ProfileAndHistoryStorage.customQuizIdForText(savedTxt),
                                 title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
                                 timeMinutes = tMins,
                                 marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
@@ -2325,7 +2337,9 @@ fun HomeScreenUI(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Pill 2: Get Result & PDF (Opens most recent completed test result)
-        val latestCompleted = latestAttemptsPerQuiz.lastOrNull()
+        val latestCompleted = remember(completedResultsMap) {
+            completedResultsMap.values.flatten().maxByOrNull { it.completedAtMillis }
+        }
         PosterActionPill(
             icon = "📄",
             title = "Get Result & 2-Column PDF",
@@ -3296,7 +3310,7 @@ fun CustomQuizScreenUI(
                             Toast.makeText(context, "${result.warnings.size} प्रश्न अधूरे होने के कारण छोड़े गए।", Toast.LENGTH_LONG).show()
                         }
                         val cfg = TestConfig(
-                            id = "custom_${System.currentTimeMillis()}",
+                            id = ProfileAndHistoryStorage.customQuizIdForText(rawTextContent),
                             title = title.ifBlank { "Custom Mock Test" },
                             timeMinutes = timeStr.toIntOrNull() ?: 60,
                             marksPerCorrect = marksStr.toDoubleOrNull() ?: 2.0,
