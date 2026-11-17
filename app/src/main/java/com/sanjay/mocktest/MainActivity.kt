@@ -127,6 +127,7 @@ data class TestConfig(
     val id: String = "custom",
     val title: String = "Online Mock Test",
     val subtitle: String = "Target Preparation & Revision Test",
+    val examName: String = "RPSC",
     val subject: String = "General",
     val timeMinutes: Int = 60,
     val marksPerCorrect: Double = 2.0,
@@ -137,6 +138,7 @@ data class OnlineQuizMeta(
     val id: String,
     val title: String,
     val subtitle: String,
+    val examName: String,
     val subject: String,
     val timeMinutes: Int,
     val marksPerCorrect: Double,
@@ -178,7 +180,7 @@ data class CompletedTestResult(
     val skippedCount: Int = 0
 )
 
-enum class AppScreen { PROFILE_SETUP, HOME, SETTINGS, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
+enum class AppScreen { PROFILE_SETUP, HOME, MY_TESTS, SETTINGS, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
 
 // ==================== 4. ANDROID KEYSTORE SECURE STORAGE FOR PAT & ADMIN PIN ====================
 object SecureAdminStore {
@@ -424,6 +426,7 @@ object ResumeStorage {
             put("id", state.config.id)
             put("title", state.config.title)
             put("subtitle", state.config.subtitle)
+            put("examName", state.config.examName)
             put("subject", state.config.subject)
             put("timeMinutes", state.config.timeMinutes)
             put("marksPerCorrect", state.config.marksPerCorrect)
@@ -459,6 +462,7 @@ object ResumeStorage {
                     id = obj.optString("id", "custom"),
                     title = obj.optString("title", "Mock Test"),
                     subtitle = obj.optString("subtitle", ""),
+                    examName = obj.optString("examName", "RPSC"),
                     subject = obj.optString("subject", "General"),
                     timeMinutes = obj.optInt("timeMinutes", 60),
                     marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
@@ -589,6 +593,7 @@ object ProfileAndHistoryStorage {
             put("id", config.id)
             put("title", config.title)
             put("subtitle", config.subtitle)
+            put("examName", config.examName)
             put("subject", config.subject)
             put("timeMinutes", config.timeMinutes)
             put("marksPerCorrect", config.marksPerCorrect)
@@ -756,6 +761,14 @@ object GitHubCloudService {
         for (i in 0 until arr.length()) {
             val obj = arr.getJSONObject(i)
             val rawSubject = obj.optString("subject", "").trim()
+            val rawTitle = obj.optString("title", "Mock Test")
+            val rawExam = obj.optString("examName", "").trim()
+            // Legacy tests without examName: if subject or title mentions CTET -> "CTET", otherwise default to "RPSC"!
+            val resolvedExam = when {
+                rawExam.isNotEmpty() -> rawExam
+                rawSubject.contains("CTET", ignoreCase = true) || rawTitle.contains("CTET", ignoreCase = true) -> "CTET"
+                else -> "RPSC"
+            }
             val fileUrl = obj.optString("fileUrl", "")
             val derivedPath = obj.optString("repoPath", "").ifBlank {
                 val marker = "/$GITHUB_BRANCH/"
@@ -764,8 +777,9 @@ object GitHubCloudService {
             list.add(
                 OnlineQuizMeta(
                     id = obj.optString("id", "quiz_$i"),
-                    title = obj.optString("title", "Mock Test"),
+                    title = rawTitle,
                     subtitle = obj.optString("subtitle", "Online Practice Test"),
+                    examName = resolvedExam,
                     subject = if (rawSubject.isNotEmpty()) rawSubject else "General Tests",
                     timeMinutes = obj.optInt("timeMinutes", 60),
                     marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
@@ -813,6 +827,7 @@ object GitHubCloudService {
         token: String,
         title: String,
         subtitle: String,
+        examName: String,
         subject: String,
         timeMinutes: Int,
         marks: Double,
@@ -821,6 +836,11 @@ object GitHubCloudService {
         questionCount: Int
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            val safeExam = examName.trim()
+                .lowercase(Locale.ENGLISH)
+                .replace(Regex("[^a-z0-9]+"), "_")
+                .trim('_')
+                .ifEmpty { "rpsc" }
             val safeFolder = subject.trim()
                 .lowercase(Locale.ENGLISH)
                 .replace(Regex("[^a-z0-9]+"), "_")
@@ -828,7 +848,7 @@ object GitHubCloudService {
                 .ifEmpty { "general" }
 
             val fileId = "quiz_${System.currentTimeMillis()}"
-            val encPath = "quizzes/$safeFolder/$fileId.enc"
+            val encPath = "quizzes/$safeExam/$safeFolder/$fileId.enc"
             val encryptedPayload = QuizCrypto.encrypt(rawTxtContent)
 
             putFileToGitHub(
@@ -849,6 +869,7 @@ object GitHubCloudService {
                 put("id", fileId)
                 put("title", title)
                 put("subtitle", subtitle)
+                put("examName", examName.trim().ifEmpty { "RPSC" })
                 put("subject", subject.trim().ifEmpty { "General Tests" })
                 put("timeMinutes", timeMinutes)
                 put("marksPerCorrect", marks)
@@ -874,7 +895,7 @@ object GitHubCloudService {
                 sha = existingFile?.second
             )
 
-            Result.success("टेस्ट '$subject' फोल्डर में पब्लिश हो गया!")
+            Result.success("टेस्ट [$examName ➔ $subject] फोल्डर में पब्लिश हो गया!")
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -1024,6 +1045,17 @@ object GitHubCloudService {
 }
 
 // ==================== 9. MAIN ACTIVITY ====================
+fun normalizeExamCode(raw: String): String {
+    val upper = raw.uppercase(Locale.ENGLISH)
+    return when {
+        upper.contains("RPSC") -> "RPSC"
+        upper.contains("RSSB") -> "RSSB"
+        upper.contains("CTET") -> "CTET"
+        upper.contains("NET") -> "UGC NET"
+        else -> raw.substringBefore(" (").trim().ifEmpty { "RPSC" }
+    }
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -1057,6 +1089,10 @@ fun MockTestAppRoot() {
         mutableStateOf(if (initialProfile == null) AppScreen.PROFILE_SETUP else AppScreen.HOME)
     }
     var previousScreenBeforeTest by remember { mutableStateOf(AppScreen.HOME) }
+    var previousScreenBeforeSubject by remember { mutableStateOf(AppScreen.HOME) }
+    var selectedExamFilter by remember {
+        mutableStateOf(normalizeExamCode(initialProfile?.targetExam ?: "RPSC"))
+    }
     var selectedSubjectFolder by remember { mutableStateOf("") }
 
     var testConfig by remember { mutableStateOf(TestConfig()) }
@@ -1159,7 +1195,8 @@ fun MockTestAppRoot() {
                 else showExitTestConfirm = true
             }
             AppScreen.RESULT -> currentScreen = previousScreenBeforeTest
-            AppScreen.SUBJECT_TESTS -> currentScreen = AppScreen.HOME
+            AppScreen.SUBJECT_TESTS -> currentScreen = previousScreenBeforeSubject
+            AppScreen.MY_TESTS -> currentScreen = AppScreen.HOME
             AppScreen.SETTINGS -> currentScreen = AppScreen.HOME
             AppScreen.CUSTOM_BUILDER -> currentScreen = AppScreen.HOME
             AppScreen.ADMIN_PORTAL -> currentScreen = AppScreen.HOME
@@ -1206,6 +1243,7 @@ fun MockTestAppRoot() {
                         id = meta.id,
                         title = meta.title,
                         subtitle = meta.subtitle,
+                        examName = meta.examName,
                         subject = meta.subject,
                         timeMinutes = meta.timeMinutes,
                         marksPerCorrect = meta.marksPerCorrect,
@@ -1297,6 +1335,14 @@ fun MockTestAppRoot() {
     val groupedBySubject = remember(onlineQuizzes) {
         onlineQuizzes.groupBy { it.subject }
     }
+    val targetExamCode = remember(userProfile) {
+        normalizeExamCode(userProfile?.targetExam ?: "RPSC")
+    }
+    val activeExamSubjectsMap = remember(onlineQuizzes, selectedExamFilter) {
+        onlineQuizzes
+            .filter { normalizeExamCode(it.examName).equals(normalizeExamCode(selectedExamFilter), ignoreCase = true) }
+            .groupBy { it.subject }
+    }
 
     Box(
         modifier = Modifier
@@ -1312,6 +1358,7 @@ fun MockTestAppRoot() {
                         ProfileAndHistoryStorage.saveProfile(context, newProfile)
                         userProfile = newProfile
                         candidateName = newProfile.name
+                        selectedExamFilter = normalizeExamCode(newProfile.targetExam)
                         currentScreen = AppScreen.HOME
                     }
                 )
@@ -1345,7 +1392,13 @@ fun MockTestAppRoot() {
                         ResumeStorage.clear(context)
                         savedResumeState = null
                     },
-                    groupedSubjects = groupedBySubject,
+                    selectedExamFilter = selectedExamFilter,
+                    onSelectExamCategory = { examCode ->
+                        selectedExamFilter = examCode
+                        currentScreen = AppScreen.MY_TESTS
+                    },
+                    groupedSubjects = activeExamSubjectsMap,
+                    allOnlineQuizzes = onlineQuizzes,
                     completedResultsMap = completedResultsMap,
                     totalOnlineTests = onlineQuizzes.size,
                     isLoadingOnline = isLoadingOnline,
@@ -1364,7 +1417,12 @@ fun MockTestAppRoot() {
                     },
                     onOpenSubjectFolder = { subjectName ->
                         selectedSubjectFolder = subjectName
+                        previousScreenBeforeSubject = AppScreen.HOME
                         currentScreen = AppScreen.SUBJECT_TESTS
+                    },
+                    onOpenMyTestsScreen = {
+                        selectedExamFilter = targetExamCode
+                        currentScreen = AppScreen.MY_TESTS
                     },
                     onOpenLatestResult = { saved ->
                         openSavedResult(saved, AppScreen.HOME)
@@ -1410,13 +1468,8 @@ fun MockTestAppRoot() {
                     completedResultsMap = completedResultsMap,
                     onNavigateHome = { currentScreen = AppScreen.HOME },
                     onNavigateMyTests = {
-                        val firstSub = groupedBySubject.keys.firstOrNull()
-                        if (firstSub != null) {
-                            selectedSubjectFolder = firstSub
-                            currentScreen = AppScreen.SUBJECT_TESTS
-                        } else {
-                            currentScreen = AppScreen.CUSTOM_BUILDER
-                        }
+                        selectedExamFilter = targetExamCode
+                        currentScreen = AppScreen.MY_TESTS
                     },
                     onEditProfile = { currentScreen = AppScreen.PROFILE_SETUP },
                     onOpenLatestResult = { saved ->
@@ -1448,14 +1501,70 @@ fun MockTestAppRoot() {
                 )
             }
 
+            AppScreen.MY_TESTS -> {
+                MyTestsScreenUI(
+                    userProfile = userProfile ?: UserProfile(
+                        name = candidateName.ifBlank { "Student" },
+                        targetExam = "RPSC",
+                        districtOrCity = "Rajasthan",
+                        avatarEmoji = "🎓"
+                    ),
+                    selectedExamFilter = selectedExamFilter,
+                    onSelectExamFilter = { selectedExamFilter = it },
+                    examSubjectsMap = activeExamSubjectsMap,
+                    allOnlineQuizzes = onlineQuizzes,
+                    completedResultsMap = completedResultsMap,
+                    hasCustomSavedQuiz = hasCustomSavedQuiz,
+                    customQuizExam = prefs.getString("saved_exam", "RPSC") ?: "RPSC",
+                    customQuizSubject = prefs.getString("saved_subject", "General") ?: "General",
+                    customQuizTitle = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                    customQuizCount = TxtQuestionParser.parse(prefs.getString("saved_custom_txt", "") ?: "").size,
+                    onOpenSubjectFolder = { subjectName ->
+                        selectedSubjectFolder = subjectName
+                        previousScreenBeforeSubject = AppScreen.MY_TESTS
+                        currentScreen = AppScreen.SUBJECT_TESTS
+                    },
+                    onStartCustomQuiz = {
+                        val savedTxt = prefs.getString("saved_custom_txt", "") ?: ""
+                        val parsed = TxtQuestionParser.parse(savedTxt)
+                        if (parsed.isNotEmpty()) {
+                            activeRawTxt = savedTxt
+                            questions = parsed
+                            val tMins = prefs.getInt("saved_time", 60)
+                            testConfig = TestConfig(
+                                id = ProfileAndHistoryStorage.customQuizIdForText(savedTxt),
+                                title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                                examName = prefs.getString("saved_exam", "RPSC") ?: "RPSC",
+                                subject = prefs.getString("saved_subject", "General") ?: "General",
+                                timeMinutes = tMins,
+                                marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
+                                negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
+                            )
+                            userAnswers = List(parsed.size) { null }
+                            markedForReview = List(parsed.size) { false }
+                            currentQIndex = 0
+                            remainingSeconds = tMins * 60
+                            previousScreenBeforeTest = AppScreen.MY_TESTS
+                            currentScreen = AppScreen.TEST
+                            persistActiveProgress()
+                        }
+                    },
+                    onOpenCustomBuilder = { currentScreen = AppScreen.CUSTOM_BUILDER },
+                    onNavigateHome = { currentScreen = AppScreen.HOME },
+                    onNavigateSettings = { currentScreen = AppScreen.SETTINGS },
+                    onChangeTargetExamProfile = { currentScreen = AppScreen.PROFILE_SETUP }
+                )
+            }
+
             AppScreen.SUBJECT_TESTS -> {
-                val folderTests = groupedBySubject[selectedSubjectFolder] ?: emptyList()
+                val folderTests = (activeExamSubjectsMap[selectedSubjectFolder] ?: groupedBySubject[selectedSubjectFolder]) ?: emptyList()
                 SubjectTestsScreenUI(
+                    examName = selectedExamFilter,
                     subjectName = selectedSubjectFolder,
                     tests = folderTests,
                     completedResultsMap = completedResultsMap,
                     isDownloading = isDownloadingQuiz,
-                    onBack = { currentScreen = AppScreen.HOME },
+                    onBack = { currentScreen = previousScreenBeforeSubject },
                     onStartTest = { meta -> launchOnlineQuiz(meta) },
                     onViewSavedResult = { saved ->
                         openSavedResult(saved, AppScreen.SUBJECT_TESTS)
@@ -1474,6 +1583,8 @@ fun MockTestAppRoot() {
                         hasCustomSavedQuiz = true
                         prefs.edit()
                             .putString("saved_custom_txt", rawTxt)
+                            .putString("saved_exam", newCfg.examName)
+                            .putString("saved_subject", newCfg.subject)
                             .putString("saved_title", newCfg.title)
                             .putInt("saved_time", newCfg.timeMinutes)
                             .putFloat("saved_marks", newCfg.marksPerCorrect.toFloat())
@@ -2014,7 +2125,10 @@ fun HomeScreenUI(
     savedResumeState: SavedResumeState?,
     onResumeTest: (SavedResumeState) -> Unit,
     onDiscardResume: () -> Unit,
+    selectedExamFilter: String,
+    onSelectExamCategory: (String) -> Unit,
     groupedSubjects: Map<String, List<OnlineQuizMeta>>,
+    allOnlineQuizzes: List<OnlineQuizMeta>,
     completedResultsMap: Map<String, List<CompletedTestResult>>,
     totalOnlineTests: Int,
     isLoadingOnline: Boolean,
@@ -2023,6 +2137,7 @@ fun HomeScreenUI(
     customQuizCount: Int,
     onRefreshOnline: () -> Unit,
     onOpenSubjectFolder: (String) -> Unit,
+    onOpenMyTestsScreen: () -> Unit,
     onOpenLatestResult: (CompletedTestResult) -> Unit,
     onStartCustomQuiz: () -> Unit,
     onOpenCustomModal: () -> Unit,
@@ -2330,13 +2445,7 @@ fun HomeScreenUI(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
                             .background(Brush.horizontalGradient(listOf(Color(0xFFFACC15), Color(0xFFF59E0B))))
-                            .clickable {
-                                if (firstSubjectName != null) {
-                                    onOpenSubjectFolder(firstSubjectName)
-                                } else {
-                                    Toast.makeText(context, "नीचे किसी भी Subject या Custom Test पर टैप करें!", Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                            .clickable { onOpenMyTestsScreen() }
                             .padding(horizontal = 16.dp, vertical = 7.dp)
                     ) {
                         Text(
@@ -2361,10 +2470,7 @@ fun HomeScreenUI(
                     icon = "📋",
                     label = "Mock Tests",
                     glowColor = PrimaryRose,
-                    onClick = {
-                        if (firstSubjectName != null) onOpenSubjectFolder(firstSubjectName)
-                        else onRefreshOnline()
-                    }
+                    onClick = { onOpenMyTestsScreen() }
                 )
                 QuickFeatureSquareCard(
                     modifier = Modifier.weight(1f),
@@ -2434,11 +2540,7 @@ fun HomeScreenUI(
                     title = "RPSC",
                     subtitle = "Rajasthan Public\nService Commission",
                     bottomAccent = PrimaryRose,
-                    onClick = {
-                        val match = groupedSubjects.keys.firstOrNull { it.contains("RPSC", true) || it.contains("Sociology", true) || it.contains("Music", true) }
-                            ?: firstSubjectName
-                        if (match != null) onOpenSubjectFolder(match)
-                    }
+                    onClick = { onSelectExamCategory("RPSC") }
                 )
                 PopularExamWhiteCard(
                     modifier = Modifier.weight(1f),
@@ -2446,10 +2548,7 @@ fun HomeScreenUI(
                     title = "RSSB",
                     subtitle = "Rajasthan Staff\nSelection Board",
                     bottomAccent = SecondarySky,
-                    onClick = {
-                        val match = groupedSubjects.keys.firstOrNull { it.contains("RSSB", true) } ?: firstSubjectName
-                        if (match != null) onOpenSubjectFolder(match)
-                    }
+                    onClick = { onSelectExamCategory("RSSB") }
                 )
                 PopularExamWhiteCard(
                     modifier = Modifier.weight(1f),
@@ -2457,10 +2556,7 @@ fun HomeScreenUI(
                     title = "CTET",
                     subtitle = "Central Teacher\nEligibility Test",
                     bottomAccent = SkippedPurple,
-                    onClick = {
-                        val match = groupedSubjects.keys.firstOrNull { it.contains("CTET", true) } ?: firstSubjectName
-                        if (match != null) onOpenSubjectFolder(match)
-                    }
+                    onClick = { onSelectExamCategory("CTET") }
                 )
                 PopularExamWhiteCard(
                     modifier = Modifier.weight(1f),
@@ -2468,11 +2564,7 @@ fun HomeScreenUI(
                     title = "UGC NET",
                     subtitle = "National Eligibility\nTest",
                     bottomAccent = CorrectGreen,
-                    onClick = {
-                        val match = groupedSubjects.keys.firstOrNull { it.contains("NET", true) || it.contains("Sociology", true) || it.contains("Music", true) }
-                            ?: firstSubjectName
-                        if (match != null) onOpenSubjectFolder(match)
-                    }
+                    onClick = { onSelectExamCategory("UGC NET") }
                 )
             }
 
@@ -2687,7 +2779,7 @@ fun HomeScreenUI(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Subject-Wise Test Folders",
+                        text = "$selectedExamFilter Subject Folders",
                         color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.ExtraBold
@@ -2812,9 +2904,7 @@ fun HomeScreenUI(
                 label = "My Tests",
                 isSelected = selectedBottomNav == 1,
                 onClick = {
-                    selectedBottomNav = 1
-                    if (firstSubjectName != null) onOpenSubjectFolder(firstSubjectName)
-                    else onOpenCustomModal()
+                    onOpenMyTestsScreen()
                 }
             )
             BottomNavTabItem(
@@ -3837,9 +3927,302 @@ fun SettingsMenuToggleRow(
     }
 }
 
+// ==================== 11C. MY TESTS SCREEN (FILTERED BY PROFILE TARGET EXAM -> SUBJECT FOLDERS) ====================
+@Composable
+fun MyTestsScreenUI(
+    userProfile: UserProfile,
+    selectedExamFilter: String,
+    onSelectExamFilter: (String) -> Unit,
+    examSubjectsMap: Map<String, List<OnlineQuizMeta>>,
+    allOnlineQuizzes: List<OnlineQuizMeta>,
+    completedResultsMap: Map<String, List<CompletedTestResult>>,
+    hasCustomSavedQuiz: Boolean,
+    customQuizExam: String,
+    customQuizSubject: String,
+    customQuizTitle: String,
+    customQuizCount: Int,
+    onOpenSubjectFolder: (String) -> Unit,
+    onStartCustomQuiz: () -> Unit,
+    onOpenCustomBuilder: () -> Unit,
+    onNavigateHome: () -> Unit,
+    onNavigateSettings: () -> Unit,
+    onChangeTargetExamProfile: () -> Unit
+) {
+    val examTabs = listOf("RPSC", "RSSB", "CTET", "UGC NET")
+    val profileTargetCode = normalizeExamCode(userProfile.targetExam)
+    val totalTestsInExam = examSubjectsMap.values.sumOf { it.size }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF050C24), Color(0xFF09153E), Color(0xFF04091A))
+                )
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 92.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(
+                        onClick = onNavigateHome,
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text("← Back", color = PrimaryRose, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Column {
+                        Text(
+                            text = "📊 My Tests ($selectedExamFilter)",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            text = "🎯 Target Exam: $profileTargetCode • $totalTestsInExam Tests",
+                            color = SecondarySky,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(HomeBox)
+                        .clickable { onChangeTargetExamProfile() }
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text("🎯 Change Exam", color = AmberGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Exam Category Filter Pills (Defaults to Student's Profile Target Exam, can switch anytime)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                examTabs.forEach { examCode ->
+                    val isSelected = selectedExamFilter.equals(examCode, ignoreCase = true)
+                    val countForExam = allOnlineQuizzes.count {
+                        normalizeExamCode(it.examName).equals(examCode, ignoreCase = true)
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) PrimaryRose else Color(0xFF111C38))
+                            .border(
+                                width = 1.dp,
+                                color = if (isSelected) Color.White.copy(alpha = 0.7f) else BorderColor,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .clickable { onSelectExamFilter(examCode) }
+                            .padding(vertical = 8.dp, horizontal = 4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = examCode,
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = "$countForExam Tests",
+                            color = if (isSelected) Color.White.copy(alpha = 0.9f) else TextMuted,
+                            fontSize = 9.5.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Text(
+                text = "📚 $selectedExamFilter — विषय के अनुसार फोल्डर (Subject Folders)",
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            if (examSubjectsMap.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(HomeCard)
+                        .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
+                        .padding(22.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("📂", fontSize = 36.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "$selectedExamFilter में अभी कोई ऑनलाइन टेस्ट फोल्डर नहीं है",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "आप ऊपर दूसरी परीक्षा (जैसे RPSC या CTET) चुन सकते हैं या नीचे नया Custom Test बना सकते हैं।",
+                        color = TextMuted,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            } else {
+                val folderColors = listOf(PrimaryRose, SecondarySky, CorrectGreen, AmberGold, SkippedPurple)
+                examSubjectsMap.entries.forEachIndexed { index, (subjectName, testList) ->
+                    val accent = folderColors[index % folderColors.size]
+                    val completedInFolder = testList.count { completedResultsMap.containsKey(it.id) }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 5.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFF111C38))
+                            .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
+                            .clickable { onOpenSubjectFolder(subjectName) }
+                            .padding(15.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(accent.copy(alpha = 0.18f))
+                        ) {
+                            Text("📁", fontSize = 24.sp)
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(accent.copy(alpha = 0.2f))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(selectedExamFilter, color = accent, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                                }
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = subjectName,
+                                    color = Color.White,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Text(
+                                text = "${testList.size} मॉक टेस्ट उपलब्ध • $completedInFolder पूर्ण (Completed)",
+                                color = TextMuted,
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(accent)
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "खोलें ➔",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Text(
+                text = "📝 Custom Mock Test ($selectedExamFilter)",
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            PosterActionPill(
+                icon = "⚙️",
+                title = if (hasCustomSavedQuiz && customQuizCount > 0) "[$customQuizExam • $customQuizSubject] $customQuizTitle" else "Create New Custom Test",
+                subtitle = if (hasCustomSavedQuiz && customQuizCount > 0) "$customQuizCount प्रश्न तैयार — टैप करके शुरू करें" else "Exam और Subject चुनकर .TXT या Copy-Paste से टेस्ट बनाएं",
+                accentColor = SecondarySky,
+                actionText = if (hasCustomSavedQuiz && customQuizCount > 0) "▶ Start" else "Create",
+                onClick = {
+                    if (hasCustomSavedQuiz && customQuizCount > 0) onStartCustomQuiz()
+                    else onOpenCustomBuilder()
+                },
+                secondaryActionText = if (hasCustomSavedQuiz && customQuizCount > 0) "New" else null,
+                onSecondaryClick = { onOpenCustomBuilder() }
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color(0xFF081229))
+                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BottomNavTabItem(
+                icon = "🏠",
+                label = "Home",
+                isSelected = false,
+                onClick = onNavigateHome
+            )
+            BottomNavTabItem(
+                icon = "📊",
+                label = "My Tests",
+                isSelected = true,
+                onClick = {}
+            )
+            BottomNavTabItem(
+                icon = "⭐",
+                label = "Favourites",
+                isSelected = false,
+                onClick = onNavigateHome
+            )
+            BottomNavTabItem(
+                icon = "⚙️",
+                label = "Settings",
+                isSelected = false,
+                onClick = onNavigateSettings
+            )
+        }
+    }
+}
+
 // ==================== 12. SUBJECT FOLDER TESTS SCREEN (ORDERED + MULTI-ATTEMPT HISTORY + RESULT & RE-TEST BUTTONS) ====================
 @Composable
 fun SubjectTestsScreenUI(
+    examName: String,
     subjectName: String,
     tests: List<OnlineQuizMeta>,
     completedResultsMap: Map<String, List<CompletedTestResult>>,
@@ -3869,7 +4252,7 @@ fun SubjectTestsScreenUI(
             Spacer(modifier = Modifier.width(6.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "📁 $subjectName",
+                    text = "📁 [$examName] $subjectName",
                     color = Color.White,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
@@ -4542,6 +4925,9 @@ fun CustomQuizScreenUI(
 ) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
+    val examChoices = listOf("RPSC", "RSSB", "CTET", "UGC NET")
+    var examName by remember { mutableStateOf(prefs.getString("saved_exam", initialConfig.examName) ?: "RPSC") }
+    var subject by remember { mutableStateOf(prefs.getString("saved_subject", initialConfig.subject) ?: "Sociology") }
     var title by remember { mutableStateOf(prefs.getString("saved_title", initialConfig.title) ?: initialConfig.title) }
     var timeStr by remember { mutableStateOf(prefs.getInt("saved_time", initialConfig.timeMinutes).toString()) }
     var marksStr by remember { mutableStateOf(prefs.getFloat("saved_marks", initialConfig.marksPerCorrect.toFloat()).toString()) }
@@ -4590,6 +4976,39 @@ fun CustomQuizScreenUI(
             contentPadding = PaddingValues(top = 16.dp, bottom = 40.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item {
+                Text("Select Exam Category (परीक्षा चुनें):", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    examChoices.forEach { ex ->
+                        val isSel = examName.equals(ex, ignoreCase = true)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (isSel) PrimaryRose else HomeBox)
+                                .border(1.dp, if (isSel) Color.White else BorderColor, RoundedCornerShape(10.dp))
+                                .clickable { examName = ex }
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(ex, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+            item {
+                OutlinedTextField(
+                    value = subject,
+                    onValueChange = { subject = it },
+                    label = { Text("Subject / Folder Name (विषय)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             item {
                 OutlinedTextField(
                     value = title,
@@ -4683,6 +5102,8 @@ fun CustomQuizScreenUI(
                         val cfg = TestConfig(
                             id = ProfileAndHistoryStorage.customQuizIdForText(rawTextContent),
                             title = title.ifBlank { "Custom Mock Test" },
+                            examName = examName.trim().ifEmpty { "RPSC" },
+                            subject = subject.trim().ifEmpty { "General" },
                             timeMinutes = timeStr.toIntOrNull() ?: 60,
                             marksPerCorrect = marksStr.toDoubleOrNull() ?: 2.0,
                             negativeMark = negStr.toDoubleOrNull() ?: 0.0
@@ -4723,6 +5144,10 @@ fun AdminPortalScreenUI(
     val existingSubjects = groupedSubjects.keys.toList()
 
     // Default values loaded from the LAST created/published quiz (or latest online quiz if first time)
+    val examChoices = listOf("RPSC", "RSSB", "CTET", "UGC NET")
+    val defaultExam = prefs.getString("last_admin_exam", null)
+        ?: latestQuiz?.examName
+        ?: "RPSC"
     val defaultSubject = prefs.getString("last_admin_subject", null)
         ?: latestQuiz?.subject
         ?: existingSubjects.firstOrNull()
@@ -4743,6 +5168,7 @@ fun AdminPortalScreenUI(
         ?: latestQuiz?.negativeMark?.toString()
         ?: "0.0"
 
+    var examName by remember { mutableStateOf(defaultExam) }
     var subject by remember { mutableStateOf(defaultSubject) }
     var title by remember { mutableStateOf(defaultTitle) }
     var subtitle by remember { mutableStateOf(defaultSubtitle) }
@@ -4834,10 +5260,34 @@ fun AdminPortalScreenUI(
                         )
                     }
                     item {
+                        Text("Select Exam Name (परीक्षा चुनें):", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            examChoices.forEach { ex ->
+                                val isSel = examName.equals(ex, ignoreCase = true)
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(if (isSel) PrimaryRose else HomeBox)
+                                        .border(1.dp, if (isSel) Color.White else BorderColor, RoundedCornerShape(10.dp))
+                                        .clickable { examName = ex }
+                                        .padding(vertical = 8.dp)
+                                ) {
+                                    Text(ex, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                    item {
                         OutlinedTextField(
                             value = subject,
                             onValueChange = { subject = it },
-                            label = { Text("Subject / Folder Name") },
+                            label = { Text("Subject / Folder Name ($examName के अंदर)") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -4970,6 +5420,7 @@ fun AdminPortalScreenUI(
                                 }
                                 // Save these settings as the new default for next time!
                                 prefs.edit()
+                                    .putString("last_admin_exam", examName.trim().ifEmpty { "RPSC" })
                                     .putString("last_admin_subject", subject.trim().ifEmpty { "General Tests" })
                                     .putString("last_admin_title", title.trim())
                                     .putString("last_admin_subtitle", subtitle.trim())
@@ -4984,6 +5435,7 @@ fun AdminPortalScreenUI(
                                         token = token.trim(),
                                         title = title.trim(),
                                         subtitle = subtitle.trim(),
+                                        examName = examName.trim().ifEmpty { "RPSC" },
                                         subject = subject.trim().ifEmpty { "General Tests" },
                                         timeMinutes = timeStr.toIntOrNull() ?: 60,
                                         marks = marksStr.toDoubleOrNull() ?: 2.0,
@@ -5086,7 +5538,7 @@ fun AdminPortalScreenUI(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "• ${quiz.title}",
+                                            text = "• [${quiz.examName}] ${quiz.title}",
                                             color = TextMain,
                                             fontSize = 13.sp,
                                             maxLines = 1,
