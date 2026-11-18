@@ -414,6 +414,9 @@ object ResumeStorage {
     private const val KEY_RESUME_JSON = "active_resume_state_v2"
 
     fun save(context: Context, state: SavedResumeState) {
+        // Ensure question text is cached once in filesDir/quiz_cache/<id>.enc instead of writing rawTxt to SharedPreferences on every click
+        ProfileAndHistoryStorage.saveQuizTextToCache(context, state.config.id, state.rawTxt)
+
         val prefs = context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE)
         val ansArr = JSONArray()
         state.userAnswers.forEach { ans ->
@@ -431,7 +434,6 @@ object ResumeStorage {
             put("timeMinutes", state.config.timeMinutes)
             put("marksPerCorrect", state.config.marksPerCorrect)
             put("negativeMark", state.config.negativeMark)
-            put("rawTxt", state.rawTxt)
             put("currentQIndex", state.currentQIndex)
             put("remainingSeconds", state.remainingSeconds)
             put("userAnswers", ansArr)
@@ -445,6 +447,12 @@ object ResumeStorage {
         val str = prefs.getString(KEY_RESUME_JSON, null) ?: return null
         return try {
             val obj = JSONObject(str)
+            val quizId = obj.optString("id", "custom")
+            val resolvedRawTxt = obj.optString("rawTxt", "").ifBlank {
+                ProfileAndHistoryStorage.loadCachedQuizText(context, quizId) ?: ""
+            }
+            if (resolvedRawTxt.isBlank()) return null
+
             val ansArr = obj.getJSONArray("userAnswers")
             val ansList = mutableListOf<Int?>()
             for (i in 0 until ansArr.length()) {
@@ -459,7 +467,7 @@ object ResumeStorage {
             }
             SavedResumeState(
                 config = TestConfig(
-                    id = obj.optString("id", "custom"),
+                    id = quizId,
                     title = obj.optString("title", "Mock Test"),
                     subtitle = obj.optString("subtitle", ""),
                     examName = obj.optString("examName", "RPSC"),
@@ -468,7 +476,7 @@ object ResumeStorage {
                     marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
                     negativeMark = obj.optDouble("negativeMark", 0.0)
                 ),
-                rawTxt = obj.getString("rawTxt"),
+                rawTxt = resolvedRawTxt,
                 currentQIndex = obj.optInt("currentQIndex", 0),
                 remainingSeconds = obj.optInt("remainingSeconds", 60),
                 userAnswers = ansList,
@@ -536,7 +544,7 @@ object ProfileAndHistoryStorage {
         try {
             val cacheDir = File(context.filesDir, "quiz_cache").apply { mkdirs() }
             val cacheFile = File(cacheDir, "$quizId.enc")
-            if (!cacheFile.exists() || quizId.startsWith("custom")) {
+            if (!cacheFile.exists() || quizId == "custom") {
                 cacheFile.writeText(QuizCrypto.encrypt(plainTxt), Charsets.UTF_8)
             }
         } catch (_: Exception) {
@@ -667,6 +675,7 @@ object ProfileAndHistoryStorage {
                         id = obj.optString("id", key),
                         title = obj.optString("title", "Mock Test"),
                         subtitle = obj.optString("subtitle", ""),
+                        examName = obj.optString("examName", "RPSC"),
                         subject = obj.optString("subject", "General"),
                         timeMinutes = obj.optInt("timeMinutes", 60),
                         marksPerCorrect = obj.optDouble("marksPerCorrect", 2.0),
@@ -903,6 +912,11 @@ object GitHubCloudService {
 
     suspend fun deleteQuizFromGitHub(token: String, quiz: OnlineQuizMeta): Result<String> = withContext(Dispatchers.IO) {
         try {
+            // Delete encrypted quiz file first so no orphan file remains if index update succeeds
+            if (quiz.repoPath.isNotBlank()) {
+                deleteFileFromGitHub(token, quiz.repoPath, "Remove file for ${quiz.title}")
+            }
+
             val indexPath = "quizzes/index.json"
             val existingIndex = getFileFromGitHub(token, indexPath)
                 ?: return@withContext Result.failure(Exception("index.json नहीं मिला"))
@@ -924,10 +938,6 @@ object GitHubCloudService {
                 sha = existingIndex.second
             )
 
-            if (quiz.repoPath.isNotBlank()) {
-                deleteFileFromGitHub(token, quiz.repoPath, "Remove file for ${quiz.title}")
-            }
-
             Result.success("'${quiz.title}' डिलीट हो गया!")
         } catch (e: Exception) {
             Result.failure(e)
@@ -940,6 +950,16 @@ object GitHubCloudService {
         quizzesInFolder: List<OnlineQuizMeta>
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            // Delete individual quiz files first before removing entries from index.json
+            quizzesInFolder.forEach { q ->
+                if (q.repoPath.isNotBlank()) {
+                    try {
+                        deleteFileFromGitHub(token, q.repoPath, "Cleanup $subjectName")
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+
             val indexPath = "quizzes/index.json"
             val existingIndex = getFileFromGitHub(token, indexPath)
                 ?: return@withContext Result.failure(Exception("index.json नहीं मिला"))
@@ -962,15 +982,6 @@ object GitHubCloudService {
                 sha = existingIndex.second
             )
 
-            quizzesInFolder.forEach { q ->
-                if (q.repoPath.isNotBlank()) {
-                    try {
-                        deleteFileFromGitHub(token, q.repoPath, "Cleanup $subjectName")
-                    } catch (_: Exception) {
-                    }
-                }
-            }
-
             Result.success("फोल्डर '$subjectName' और इसके सभी टेस्ट डिलीट हो गए!")
         } catch (e: Exception) {
             Result.failure(e)
@@ -979,18 +990,24 @@ object GitHubCloudService {
 
     private fun getFileFromGitHub(token: String, path: String): Pair<String, String>? {
         val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/$path?ref=$GITHUB_BRANCH"
-        val conn = URL(apiUrl).openConnection() as HttpURLConnection
-        conn.requestMethod = "GET"
-        conn.setRequestProperty("Authorization", "Bearer $token")
-        conn.setRequestProperty("Accept", "application/vnd.github+json")
-        if (conn.responseCode != 200) return null
-
-        val response = conn.inputStream.bufferedReader().use { it.readText() }
-        val json = JSONObject(response)
-        val sha = json.getString("sha")
-        val encoded = json.getString("content").replace("\n", "")
-        val decoded = String(Base64.decode(encoded, Base64.DEFAULT), Charsets.UTF_8)
-        return Pair(decoded, sha)
+        val conn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 15000
+            readTimeout = 15000
+            setRequestProperty("Authorization", "Bearer $token")
+            setRequestProperty("Accept", "application/vnd.github+json")
+        }
+        return try {
+            if (conn.responseCode != 200) return null
+            val response = conn.inputStream.bufferedReader().use { it.readText() }
+            val json = JSONObject(response)
+            val sha = json.getString("sha")
+            val encoded = json.getString("content").replace("\n", "")
+            val decoded = String(Base64.decode(encoded, Base64.DEFAULT), Charsets.UTF_8)
+            Pair(decoded, sha)
+        } finally {
+            conn.disconnect()
+        }
     }
 
     private fun putFileToGitHub(
@@ -1001,46 +1018,62 @@ object GitHubCloudService {
         sha: String? = null
     ) {
         val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/$path"
-        val conn = URL(apiUrl).openConnection() as HttpURLConnection
-        conn.requestMethod = "PUT"
-        conn.doOutput = true
-        conn.setRequestProperty("Authorization", "Bearer $token")
-        conn.setRequestProperty("Accept", "application/vnd.github+json")
-        conn.setRequestProperty("Content-Type", "application/json")
-
-        val base64Content = Base64.encodeToString(content.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
-        val body = JSONObject().apply {
-            put("message", commitMsg)
-            put("content", base64Content)
-            put("branch", GITHUB_BRANCH)
-            if (sha != null) put("sha", sha)
+        val conn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
+            requestMethod = "PUT"
+            connectTimeout = 15000
+            readTimeout = 15000
+            doOutput = true
+            setRequestProperty("Authorization", "Bearer $token")
+            setRequestProperty("Accept", "application/vnd.github+json")
+            setRequestProperty("Content-Type", "application/json")
         }
+        try {
+            val base64Content = Base64.encodeToString(content.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
+            val body = JSONObject().apply {
+                put("message", commitMsg)
+                put("content", base64Content)
+                put("branch", GITHUB_BRANCH)
+                if (sha != null) put("sha", sha)
+            }
 
-        OutputStreamWriter(conn.outputStream).use { it.write(body.toString()) }
-        val code = conn.responseCode
-        if (code !in 200..201) {
-            val err = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $code"
-            throw Exception("GitHub API Error ($code): $err")
+            OutputStreamWriter(conn.outputStream).use { it.write(body.toString()) }
+            val code = conn.responseCode
+            if (code !in 200..201) {
+                val err = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $code"
+                throw Exception("GitHub API Error ($code): $err")
+            }
+        } finally {
+            conn.disconnect()
         }
     }
 
     private fun deleteFileFromGitHub(token: String, path: String, commitMsg: String) {
         val fileInfo = getFileFromGitHub(token, path) ?: return
         val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/$path"
-        val conn = URL(apiUrl).openConnection() as HttpURLConnection
-        conn.requestMethod = "DELETE"
-        conn.doOutput = true
-        conn.setRequestProperty("Authorization", "Bearer $token")
-        conn.setRequestProperty("Accept", "application/vnd.github+json")
-        conn.setRequestProperty("Content-Type", "application/json")
-
-        val body = JSONObject().apply {
-            put("message", commitMsg)
-            put("sha", fileInfo.second)
-            put("branch", GITHUB_BRANCH)
+        val conn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
+            requestMethod = "DELETE"
+            connectTimeout = 15000
+            readTimeout = 15000
+            doOutput = true
+            setRequestProperty("Authorization", "Bearer $token")
+            setRequestProperty("Accept", "application/vnd.github+json")
+            setRequestProperty("Content-Type", "application/json")
         }
-        OutputStreamWriter(conn.outputStream).use { it.write(body.toString()) }
-        conn.responseCode
+        try {
+            val body = JSONObject().apply {
+                put("message", commitMsg)
+                put("sha", fileInfo.second)
+                put("branch", GITHUB_BRANCH)
+            }
+            OutputStreamWriter(conn.outputStream).use { it.write(body.toString()) }
+            val code = conn.responseCode
+            if (code !in 200..204 && code != 404) {
+                val err = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $code"
+                throw Exception("GitHub Delete Error ($code): $err")
+            }
+        } finally {
+            conn.disconnect()
+        }
     }
 }
 
@@ -1317,8 +1350,10 @@ fun MockTestAppRoot() {
                     questions = parsed
                     activeRawTxt = savedTxt
                     testConfig = TestConfig(
-                        id = "custom",
+                        id = ProfileAndHistoryStorage.customQuizIdForText(savedTxt),
                         title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                        examName = prefs.getString("saved_exam", "RPSC") ?: "RPSC",
+                        subject = prefs.getString("saved_subject", "General") ?: "General",
                         timeMinutes = prefs.getInt("saved_time", 60),
                         marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
                         negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
@@ -1455,6 +1490,8 @@ fun MockTestAppRoot() {
                             testConfig = TestConfig(
                                 id = ProfileAndHistoryStorage.customQuizIdForText(savedTxt),
                                 title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                                examName = prefs.getString("saved_exam", "RPSC") ?: "RPSC",
+                                subject = prefs.getString("saved_subject", "General") ?: "General",
                                 timeMinutes = tMins,
                                 marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
                                 negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
@@ -2279,102 +2316,15 @@ fun HomeScreenUI(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 92.dp)
         ) {
-            // ==================== 1. TOP HEADER BAR (Menu + Grad Cap Logo + Bell + Profile) ====================
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Hamburger Menu Icon -> Opens Admin / Settings
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color.White.copy(alpha = 0.06f))
-                        .clickable { onOpenAdminModal() }
-                ) {
-                    Text("☰", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-
-                // Center Brand Logo (Graduation Cap + Online Mock Test)
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🎓", fontSize = 28.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Column {
-                            Text(
-                                text = "Online",
-                                color = Color.White,
-                                fontSize = 19.sp,
-                                fontWeight = FontWeight.Black,
-                                lineHeight = 19.sp
-                            )
-                            Text(
-                                text = "Mock Test",
-                                color = PrimaryRose,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Black,
-                                lineHeight = 20.sp
-                            )
-                        }
-                    }
-                    Text(
-                        text = "Target Preparation & Revision Test",
-                        color = Color(0xFFCBD5E1),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-
-                // Right Icons: Notification Bell with Live Tests Count Badge + User Profile Avatar
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.06f))
-                            .clickable { onRefreshOnline() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(if (isLoadingOnline) "⏳" else "🔔", fontSize = 17.sp)
-                        if (totalOnlineTests > 0) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = (-2).dp, y = 2.dp)
-                                    .size(16.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimaryRose)
-                            ) {
-                                Text(
-                                    text = "$totalOnlineTests",
-                                    color = Color.White,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF1E293B))
-                            .border(1.5.dp, SecondarySky.copy(alpha = 0.7f), CircleShape)
-                            .clickable { onEditProfile() }
-                    ) {
-                        Text(userProfile.avatarEmoji, fontSize = 18.sp)
-                    }
-                }
-            }
+            // ==================== 1. TOP HEADER BAR ====================
+            AppTopHeaderBar(
+                avatarEmoji = userProfile.avatarEmoji,
+                totalOnlineTests = totalOnlineTests,
+                isLoadingOnline = isLoadingOnline,
+                onMenuClick = onOpenAdminModal,
+                onBellClick = onRefreshOnline,
+                onProfileClick = onEditProfile
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -2973,50 +2923,14 @@ fun HomeScreenUI(
             }
         }
 
-        // ==================== 7. FIXED BOTTOM NAVIGATION BAR (Home | My Tests | Favourites/Results | Settings) ====================
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFF081229))
-                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BottomNavTabItem(
-                icon = "🏠",
-                label = "Home",
-                isSelected = selectedBottomNav == 0,
-                onClick = { selectedBottomNav = 0 }
-            )
-            BottomNavTabItem(
-                icon = "📊",
-                label = "My Tests",
-                isSelected = selectedBottomNav == 1,
-                onClick = {
-                    onOpenMyTestsScreen()
-                }
-            )
-            BottomNavTabItem(
-                icon = "📄",
-                label = "Solutions",
-                isSelected = selectedBottomNav == 2,
-                onClick = {
-                    onOpenSolutionsScreen()
-                }
-            )
-            BottomNavTabItem(
-                icon = "⚙️",
-                label = "Settings",
-                isSelected = selectedBottomNav == 3,
-                onClick = {
-                    onOpenSettingsScreen()
-                }
-            )
-        }
+        // ==================== 7. FIXED BOTTOM NAVIGATION BAR ====================
+        AppBottomNavigationBar(
+            selectedTab = selectedBottomNav,
+            onNavigateHome = { selectedBottomNav = 0 },
+            onNavigateMyTests = onOpenMyTestsScreen,
+            onNavigateSolutions = onOpenSolutionsScreen,
+            onNavigateSettings = onOpenSettingsScreen
+        )
 
         // Performance Overview Popup
         if (showPerformanceDialog) {
@@ -3202,6 +3116,158 @@ fun PopularExamWhiteCard(
 }
 
 @Composable
+fun AppTopHeaderBar(
+    avatarEmoji: String,
+    totalOnlineTests: Int,
+    isLoadingOnline: Boolean,
+    onMenuClick: () -> Unit,
+    onBellClick: () -> Unit,
+    onProfileClick: (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.White.copy(alpha = 0.06f))
+                .clickable { onMenuClick() }
+        ) {
+            Text("☰", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("🎓", fontSize = 28.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                Column {
+                    Text(
+                        text = "Online",
+                        color = Color.White,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Black,
+                        lineHeight = 19.sp
+                    )
+                    Text(
+                        text = "Mock Test",
+                        color = PrimaryRose,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Black,
+                        lineHeight = 20.sp
+                    )
+                }
+            }
+            Text(
+                text = "Target Preparation & Revision Test",
+                color = Color(0xFFCBD5E1),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .clickable { onBellClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(if (isLoadingOnline) "⏳" else "🔔", fontSize = 17.sp)
+                if (totalOnlineTests > 0) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = (-2).dp, y = 2.dp)
+                            .size(16.dp)
+                            .clip(CircleShape)
+                            .background(PrimaryRose)
+                    ) {
+                        Text(
+                            text = "$totalOnlineTests",
+                            color = Color.White,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            if (onProfileClick != null) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF1E293B))
+                        .border(1.5.dp, SecondarySky.copy(alpha = 0.7f), CircleShape)
+                        .clickable { onProfileClick() }
+                ) {
+                    Text(avatarEmoji, fontSize = 18.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BoxScope.AppBottomNavigationBar(
+    selectedTab: Int,
+    onNavigateHome: () -> Unit,
+    onNavigateMyTests: () -> Unit,
+    onNavigateSolutions: () -> Unit,
+    onNavigateSettings: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color(0xFF081229))
+            .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BottomNavTabItem(
+            icon = "🏠",
+            label = "Home",
+            isSelected = selectedTab == 0,
+            onClick = onNavigateHome
+        )
+        BottomNavTabItem(
+            icon = "📊",
+            label = "My Tests",
+            isSelected = selectedTab == 1,
+            onClick = onNavigateMyTests
+        )
+        BottomNavTabItem(
+            icon = "📄",
+            label = "Solutions",
+            isSelected = selectedTab == 2,
+            onClick = onNavigateSolutions
+        )
+        BottomNavTabItem(
+            icon = "⚙️",
+            label = "Settings",
+            isSelected = selectedTab == 3,
+            onClick = onNavigateSettings
+        )
+    }
+}
+
+@Composable
 fun BottomNavTabItem(
     icon: String,
     label: String,
@@ -3290,82 +3356,15 @@ fun SettingsScreenUI(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 92.dp)
         ) {
-            // 1. TOP HEADER BAR (Hamburger + Brand Logo + Notification Bell)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color.White.copy(alpha = 0.06f))
-                        .clickable { onOpenTeacherAdmin() }
-                ) {
-                    Text("☰", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🎓", fontSize = 28.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Column {
-                            Text(
-                                text = "Online",
-                                color = Color.White,
-                                fontSize = 19.sp,
-                                fontWeight = FontWeight.Black,
-                                lineHeight = 19.sp
-                            )
-                            Text(
-                                text = "Mock Test",
-                                color = PrimaryRose,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Black,
-                                lineHeight = 20.sp
-                            )
-                        }
-                    }
-                    Text(
-                        text = "Target Preparation & Revision Test",
-                        color = Color(0xFFCBD5E1),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.06f))
-                        .clickable { onRefreshOnline() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("🔔", fontSize = 17.sp)
-                    if (totalOnlineTests > 0) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = (-2).dp, y = 2.dp)
-                                .size(16.dp)
-                                .clip(CircleShape)
-                                .background(PrimaryRose)
-                        ) {
-                            Text(
-                                text = "$totalOnlineTests",
-                                color = Color.White,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
+            // 1. TOP HEADER BAR
+            AppTopHeaderBar(
+                avatarEmoji = userProfile.avatarEmoji,
+                totalOnlineTests = totalOnlineTests,
+                isLoadingOnline = false,
+                onMenuClick = onOpenTeacherAdmin,
+                onBellClick = onRefreshOnline,
+                onProfileClick = null
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -3783,43 +3782,13 @@ fun SettingsScreenUI(
         }
 
         // 7. FIXED BOTTOM NAVIGATION BAR (Settings Highlighted)
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFF081229))
-                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BottomNavTabItem(
-                icon = "🏠",
-                label = "Home",
-                isSelected = false,
-                onClick = onNavigateHome
-            )
-            BottomNavTabItem(
-                icon = "📊",
-                label = "My Tests",
-                isSelected = false,
-                onClick = onNavigateMyTests
-            )
-            BottomNavTabItem(
-                icon = "📄",
-                label = "Solutions",
-                isSelected = false,
-                onClick = onNavigateSolutions
-            )
-            BottomNavTabItem(
-                icon = "⚙️",
-                label = "Settings",
-                isSelected = true,
-                onClick = {}
-            )
-        }
+        AppBottomNavigationBar(
+            selectedTab = 3,
+            onNavigateHome = onNavigateHome,
+            onNavigateMyTests = onNavigateMyTests,
+            onNavigateSolutions = onNavigateSolutions,
+            onNavigateSettings = {}
+        )
 
         // Download Center / Analytics History Dialog
         if (showDownloadCenterDialog) {
@@ -4106,99 +4075,15 @@ fun MyTestsScreenUI(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 92.dp)
         ) {
-            // ==================== 1. TOP HEADER BAR (Menu + Online Mock Test Logo + Bell + Profile) ====================
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color.White.copy(alpha = 0.06f))
-                        .clickable { onOpenAdminModal() }
-                ) {
-                    Text("☰", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🎓", fontSize = 28.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Column {
-                            Text(
-                                text = "Online",
-                                color = Color.White,
-                                fontSize = 19.sp,
-                                fontWeight = FontWeight.Black,
-                                lineHeight = 19.sp
-                            )
-                            Text(
-                                text = "Mock Test",
-                                color = PrimaryRose,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Black,
-                                lineHeight = 20.sp
-                            )
-                        }
-                    }
-                    Text(
-                        text = "Target Preparation & Revision Test",
-                        color = Color(0xFFCBD5E1),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.06f))
-                            .clickable { onRefreshOnline() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(if (isLoadingOnline) "⏳" else "🔔", fontSize = 17.sp)
-                        if (allOnlineQuizzes.isNotEmpty()) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = (-2).dp, y = 2.dp)
-                                    .size(16.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimaryRose)
-                            ) {
-                                Text(
-                                    text = "${allOnlineQuizzes.size}",
-                                    color = Color.White,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF1E293B))
-                            .border(1.5.dp, SecondarySky.copy(alpha = 0.7f), CircleShape)
-                            .clickable { onChangeTargetExamProfile() }
-                    ) {
-                        Text(userProfile.avatarEmoji, fontSize = 18.sp)
-                    }
-                }
-            }
+            // ==================== 1. TOP HEADER BAR ====================
+            AppTopHeaderBar(
+                avatarEmoji = userProfile.avatarEmoji,
+                totalOnlineTests = allOnlineQuizzes.size,
+                isLoadingOnline = isLoadingOnline,
+                onMenuClick = onOpenAdminModal,
+                onBellClick = onRefreshOnline,
+                onProfileClick = onChangeTargetExamProfile
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -4817,43 +4702,13 @@ fun MyTestsScreenUI(
         }
 
         // ==================== 7. FIXED BOTTOM NAVIGATION BAR (My Tests Highlighted) ====================
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFF081229))
-                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BottomNavTabItem(
-                icon = "🏠",
-                label = "Home",
-                isSelected = false,
-                onClick = onNavigateHome
-            )
-            BottomNavTabItem(
-                icon = "📊",
-                label = "My Tests",
-                isSelected = true,
-                onClick = {}
-            )
-            BottomNavTabItem(
-                icon = "📄",
-                label = "Solutions",
-                isSelected = false,
-                onClick = onNavigateSolutions
-            )
-            BottomNavTabItem(
-                icon = "⚙️",
-                label = "Settings",
-                isSelected = false,
-                onClick = onNavigateSettings
-            )
-        }
+        AppBottomNavigationBar(
+            selectedTab = 1,
+            onNavigateHome = onNavigateHome,
+            onNavigateMyTests = {},
+            onNavigateSolutions = onNavigateSolutions,
+            onNavigateSettings = onNavigateSettings
+        )
     }
 }
 
@@ -4906,99 +4761,15 @@ fun SolutionsAndPdfScreenUI(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 92.dp)
         ) {
-            // ==================== 1. TOP HEADER BAR (Menu + Online Mock Test Logo + Bell + Profile) ====================
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color.White.copy(alpha = 0.06f))
-                        .clickable { onOpenAdminModal() }
-                ) {
-                    Text("☰", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🎓", fontSize = 28.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Column {
-                            Text(
-                                text = "Online",
-                                color = Color.White,
-                                fontSize = 19.sp,
-                                fontWeight = FontWeight.Black,
-                                lineHeight = 19.sp
-                            )
-                            Text(
-                                text = "Mock Test",
-                                color = PrimaryRose,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Black,
-                                lineHeight = 20.sp
-                            )
-                        }
-                    }
-                    Text(
-                        text = "Target Preparation & Revision Test",
-                        color = Color(0xFFCBD5E1),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.06f))
-                            .clickable { onRefreshOnline() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(if (isLoadingOnline) "⏳" else "🔔", fontSize = 17.sp)
-                        if (allOnlineQuizzes.isNotEmpty()) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = (-2).dp, y = 2.dp)
-                                    .size(16.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimaryRose)
-                            ) {
-                                Text(
-                                    text = "${allOnlineQuizzes.size}",
-                                    color = Color.White,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF1E293B))
-                            .border(1.5.dp, SecondarySky.copy(alpha = 0.7f), CircleShape)
-                            .clickable { onEditProfile() }
-                    ) {
-                        Text(userProfile.avatarEmoji, fontSize = 18.sp)
-                    }
-                }
-            }
+            // ==================== 1. TOP HEADER BAR ====================
+            AppTopHeaderBar(
+                avatarEmoji = userProfile.avatarEmoji,
+                totalOnlineTests = allOnlineQuizzes.size,
+                isLoadingOnline = isLoadingOnline,
+                onMenuClick = onOpenAdminModal,
+                onBellClick = onRefreshOnline,
+                onProfileClick = onEditProfile
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -5314,43 +5085,13 @@ fun SolutionsAndPdfScreenUI(
         }
 
         // ==================== 6. FIXED BOTTOM NAVIGATION BAR (Solutions Highlighted) ====================
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFF081229))
-                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BottomNavTabItem(
-                icon = "🏠",
-                label = "Home",
-                isSelected = false,
-                onClick = onNavigateHome
-            )
-            BottomNavTabItem(
-                icon = "📊",
-                label = "My Tests",
-                isSelected = false,
-                onClick = onNavigateMyTests
-            )
-            BottomNavTabItem(
-                icon = "📄",
-                label = "Solutions",
-                isSelected = true,
-                onClick = {}
-            )
-            BottomNavTabItem(
-                icon = "⚙️",
-                label = "Settings",
-                isSelected = false,
-                onClick = onNavigateSettings
-            )
-        }
+        AppBottomNavigationBar(
+            selectedTab = 2,
+            onNavigateHome = onNavigateHome,
+            onNavigateMyTests = onNavigateMyTests,
+            onNavigateSolutions = {},
+            onNavigateSettings = onNavigateSettings
+        )
     }
 }
 
@@ -6953,6 +6694,8 @@ fun AdminPortalScreenUI(
 }
 
 // ==================== 17. ESCAPED TWO-COLUMN A4 PDF PRINT HELPER (NO WATERMARK) ====================
+@Suppress("StaticFieldLeak")
+private var activePrintWebView: WebView? = null
 fun printTwoColumnA4ResultPdf(
     context: Context,
     config: TestConfig,
@@ -7070,6 +6813,7 @@ fun printTwoColumnA4ResultPdf(
     """.trimIndent()
 
     val webView = WebView(context)
+    activePrintWebView = webView
     webView.webViewClient = object : WebViewClient() {
         override fun onPageFinished(view: WebView, url: String) {
             val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
