@@ -168,5 +168,19 @@
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/rpsc\/sociology\/quiz_1794982069561.enc",
     "repoPath": "quizzes\/rpsc\/sociology\/quiz_1794982069561.enc",
     "publishedDate": "18 Nov 2026"
+  },
+  {
+    "id": "quiz_1794982312535",
+    "title": "इकाई 1: भारतीय राजनीति (Indian Politics)",
+    "subtitle": "Target Preparation & Revision Test",
+    "examName": "RPSC",
+    "subject": "Political Science",
+    "timeMinutes": 30,
+    "marksPerCorrect": 2,
+    "negativeMark": 0.66,
+    "questionCount": 30,
+    "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/rpsc\/political_science\/quiz_1794982312535.enc",
+    "repoPath": "quizzes\/rpsc\/political_science\/quiz_1794982312535.enc",
+    "publishedDate": "18 Nov 2026"
   }
 ]
