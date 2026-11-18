@@ -180,7 +180,7 @@ data class CompletedTestResult(
     val skippedCount: Int = 0
 )
 
-enum class AppScreen { PROFILE_SETUP, HOME, MY_TESTS, SETTINGS, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
+enum class AppScreen { PROFILE_SETUP, HOME, MY_TESTS, SOLUTIONS, SETTINGS, SUBJECT_TESTS, CUSTOM_BUILDER, ADMIN_PORTAL, TEST, RESULT }
 
 // ==================== 4. ANDROID KEYSTORE SECURE STORAGE FOR PAT & ADMIN PIN ====================
 object SecureAdminStore {
@@ -1197,6 +1197,7 @@ fun MockTestAppRoot() {
             AppScreen.RESULT -> currentScreen = previousScreenBeforeTest
             AppScreen.SUBJECT_TESTS -> currentScreen = previousScreenBeforeSubject
             AppScreen.MY_TESTS -> currentScreen = AppScreen.HOME
+            AppScreen.SOLUTIONS -> currentScreen = AppScreen.HOME
             AppScreen.SETTINGS -> currentScreen = AppScreen.HOME
             AppScreen.CUSTOM_BUILDER -> currentScreen = AppScreen.HOME
             AppScreen.ADMIN_PORTAL -> currentScreen = AppScreen.HOME
@@ -1280,6 +1281,23 @@ fun MockTestAppRoot() {
             currentScreen = AppScreen.RESULT
         } else {
             Toast.makeText(context, "रिजल्ट डेटा कैश में उपलब्ध नहीं है, कृपया एक बार Re-Test दें।", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun printSavedResultDirectly(saved: CompletedTestResult) {
+        val cachedTxt = ProfileAndHistoryStorage.loadCachedQuizText(context, saved.config.id)
+        val parsed = if (!cachedTxt.isNullOrBlank()) TxtQuestionParser.parse(cachedTxt) else emptyList()
+        if (parsed.isNotEmpty()) {
+            val answers = if (saved.userAnswers.size == parsed.size) saved.userAnswers else List(parsed.size) { null }
+            printTwoColumnA4ResultPdf(
+                context = context,
+                config = saved.config,
+                studentName = candidateName.ifBlank { "Student" },
+                questions = parsed,
+                userAnswers = answers
+            )
+        } else {
+            Toast.makeText(context, "PDF के लिए प्रश्न कैश में उपलब्ध नहीं हैं, कृपया एक बार टेस्ट खोलें।", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1451,7 +1469,65 @@ fun MockTestAppRoot() {
                         }
                     },
                     onOpenCustomModal = { currentScreen = AppScreen.CUSTOM_BUILDER },
+                    onOpenSolutionsScreen = { currentScreen = AppScreen.SOLUTIONS },
                     onOpenSettingsScreen = { currentScreen = AppScreen.SETTINGS },
+                    onOpenAdminModal = { showPinGateModal = true }
+                )
+            }
+
+            AppScreen.SOLUTIONS -> {
+                SolutionsAndPdfScreenUI(
+                    userProfile = userProfile ?: UserProfile(
+                        name = candidateName.ifBlank { "Student" },
+                        targetExam = "RPSC",
+                        districtOrCity = "Rajasthan",
+                        avatarEmoji = "🎓"
+                    ),
+                    allOnlineQuizzes = onlineQuizzes,
+                    completedResultsMap = completedResultsMap,
+                    savedResumeState = savedResumeState,
+                    isLoadingOnline = isLoadingOnline,
+                    onRefreshOnline = {
+                        scope.launch {
+                            isLoadingOnline = true
+                            try {
+                                onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
+                            } catch (_: Exception) {
+                            }
+                            isLoadingOnline = false
+                        }
+                    },
+                    onOpenSavedResult = { saved ->
+                        openSavedResult(saved, AppScreen.SOLUTIONS)
+                    },
+                    onPrintSavedResultPdf = { saved ->
+                        printSavedResultDirectly(saved)
+                    },
+                    onResumeInterruptedTest = { state ->
+                        val parsed = TxtQuestionParser.parse(state.rawTxt)
+                        if (parsed.isNotEmpty()) {
+                            testConfig = state.config
+                            activeRawTxt = state.rawTxt
+                            questions = parsed
+                            currentQIndex = state.currentQIndex.coerceIn(0, parsed.size - 1)
+                            remainingSeconds = state.remainingSeconds.coerceAtLeast(1)
+                            userAnswers = if (state.userAnswers.size == parsed.size) state.userAnswers else List(parsed.size) { null }
+                            markedForReview = if (state.markedForReview.size == parsed.size) state.markedForReview else List(parsed.size) { false }
+                            previousScreenBeforeTest = AppScreen.SOLUTIONS
+                            currentScreen = AppScreen.TEST
+                        }
+                    },
+                    onStartOnlineQuiz = { meta ->
+                        launchOnlineQuiz(meta)
+                    },
+                    onNavigateHome = { currentScreen = AppScreen.HOME },
+                    onNavigateMyTests = {
+                        selectedExamFilter = targetExamCode
+                        currentScreen = AppScreen.MY_TESTS
+                    },
+                    onNavigateSolutions = { currentScreen = AppScreen.SOLUTIONS },
+                    onNavigateSettings = { currentScreen = AppScreen.SETTINGS },
+                    onEditProfile = { currentScreen = AppScreen.PROFILE_SETUP },
                     onOpenAdminModal = { showPinGateModal = true }
                 )
             }
@@ -1566,6 +1642,7 @@ fun MockTestAppRoot() {
                     },
                     onOpenCustomBuilder = { currentScreen = AppScreen.CUSTOM_BUILDER },
                     onNavigateHome = { currentScreen = AppScreen.HOME },
+                    onNavigateSolutions = { currentScreen = AppScreen.SOLUTIONS },
                     onNavigateSettings = { currentScreen = AppScreen.SETTINGS },
                     onChangeTargetExamProfile = { currentScreen = AppScreen.PROFILE_SETUP }
                 )
@@ -2156,6 +2233,7 @@ fun HomeScreenUI(
     onOpenLatestResult: (CompletedTestResult) -> Unit,
     onStartCustomQuiz: () -> Unit,
     onOpenCustomModal: () -> Unit,
+    onOpenSolutionsScreen: () -> Unit,
     onOpenSettingsScreen: () -> Unit,
     onOpenAdminModal: () -> Unit
 ) {
@@ -2506,7 +2584,7 @@ fun HomeScreenUI(
                     icon = "🏆",
                     label = "Results",
                     glowColor = AmberGold,
-                    onClick = { showResultsHistorySheet = true }
+                    onClick = { onOpenSolutionsScreen() }
                 )
             }
 
@@ -2679,7 +2757,7 @@ fun HomeScreenUI(
                             )
                         )
                         .border(1.dp, SecondarySky.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
-                        .clickable { showResultsHistorySheet = true }
+                        .clickable { onOpenSolutionsScreen() }
                         .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -2923,12 +3001,11 @@ fun HomeScreenUI(
                 }
             )
             BottomNavTabItem(
-                icon = "⭐",
-                label = "Favourites",
+                icon = "📄",
+                label = "Solutions",
                 isSelected = selectedBottomNav == 2,
                 onClick = {
-                    selectedBottomNav = 2
-                    showResultsHistorySheet = true
+                    onOpenSolutionsScreen()
                 }
             )
             BottomNavTabItem(
@@ -3159,6 +3236,7 @@ fun SettingsScreenUI(
     completedResultsMap: Map<String, List<CompletedTestResult>>,
     onNavigateHome: () -> Unit,
     onNavigateMyTests: () -> Unit,
+    onNavigateSolutions: () -> Unit,
     onEditProfile: () -> Unit,
     onOpenLatestResult: (CompletedTestResult) -> Unit,
     onOpenTeacherAdmin: () -> Unit,
@@ -3465,7 +3543,7 @@ fun SettingsScreenUI(
                         color = Color(0xFF00F0FF),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { showDownloadCenterDialog = true }
+                        modifier = Modifier.clickable { onNavigateSolutions() }
                     )
                 }
 
@@ -3599,7 +3677,7 @@ fun SettingsScreenUI(
                     iconBg = Color(0xFF0284C7),
                     title = "Download Center",
                     subtitle = "Download PDFs & Study Material",
-                    onClick = { showDownloadCenterDialog = true }
+                    onClick = onNavigateSolutions
                 )
                 HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
 
@@ -3640,7 +3718,7 @@ fun SettingsScreenUI(
                 HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
 
                 SettingsMenuRowItem(
-                    icon = "⭐",
+                    icon = "📄",
                     iconBg = Color(0xFFD97706),
                     title = "Rate App",
                     subtitle = "Give us your valuable rating",
@@ -3730,10 +3808,10 @@ fun SettingsScreenUI(
                 onClick = onNavigateMyTests
             )
             BottomNavTabItem(
-                icon = "⭐",
-                label = "Favourites",
+                icon = "📄",
+                label = "Solutions",
                 isSelected = false,
-                onClick = { showDownloadCenterDialog = true }
+                onClick = onNavigateSolutions
             )
             BottomNavTabItem(
                 icon = "⚙️",
@@ -3964,6 +4042,7 @@ fun MyTestsScreenUI(
     onStartCustomQuiz: () -> Unit,
     onOpenCustomBuilder: () -> Unit,
     onNavigateHome: () -> Unit,
+    onNavigateSolutions: () -> Unit,
     onNavigateSettings: () -> Unit,
     onChangeTargetExamProfile: () -> Unit
 ) {
@@ -4763,10 +4842,10 @@ fun MyTestsScreenUI(
                 onClick = {}
             )
             BottomNavTabItem(
-                icon = "⭐",
-                label = "Favourites",
+                icon = "📄",
+                label = "Solutions",
                 isSelected = false,
-                onClick = onNavigateHome
+                onClick = onNavigateSolutions
             )
             BottomNavTabItem(
                 icon = "⚙️",
@@ -4774,6 +4853,741 @@ fun MyTestsScreenUI(
                 isSelected = false,
                 onClick = onNavigateSettings
             )
+        }
+    }
+}
+
+// ==================== 11D. EXACT MOCKUP SOLUTIONS & PDF SCREEN (REPLACING FAVOURITES TAB) ====================
+@Composable
+fun SolutionsAndPdfScreenUI(
+    userProfile: UserProfile,
+    allOnlineQuizzes: List<OnlineQuizMeta>,
+    completedResultsMap: Map<String, List<CompletedTestResult>>,
+    savedResumeState: SavedResumeState?,
+    isLoadingOnline: Boolean,
+    onRefreshOnline: () -> Unit,
+    onOpenSavedResult: (CompletedTestResult) -> Unit,
+    onPrintSavedResultPdf: (CompletedTestResult) -> Unit,
+    onResumeInterruptedTest: (SavedResumeState) -> Unit,
+    onStartOnlineQuiz: (OnlineQuizMeta) -> Unit,
+    onNavigateHome: () -> Unit,
+    onNavigateMyTests: () -> Unit,
+    onNavigateSettings: () -> Unit,
+    onEditProfile: () -> Unit,
+    onOpenAdminModal: () -> Unit
+) {
+    var selectedFilterTab by remember { mutableStateOf(0) } // 0 = My Submissions, 1 = All Tests, 2 = Stats
+
+    val allAttemptsSorted = remember(completedResultsMap) {
+        completedResultsMap.values.flatten().sortedByDescending { it.completedAtMillis }
+    }
+    val latestPerQuiz = remember(completedResultsMap) {
+        completedResultsMap.values.mapNotNull { it.lastOrNull() }
+    }
+    val overallAvgPct = remember(latestPerQuiz) {
+        if (latestPerQuiz.isNotEmpty()) latestPerQuiz.map { it.percentage }.average() else 0.0
+    }
+    val totalCorrect = remember(allAttemptsSorted) { allAttemptsSorted.sumOf { it.correctCount } }
+    val totalWrong = remember(allAttemptsSorted) { allAttemptsSorted.sumOf { it.wrongCount } }
+    val totalSkipped = remember(allAttemptsSorted) { allAttemptsSorted.sumOf { it.skippedCount } }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF050C24), Color(0xFF09153E), Color(0xFF04091A))
+                )
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 92.dp)
+        ) {
+            // ==================== 1. TOP HEADER BAR (Menu + Online Mock Test Logo + Bell + Profile) ====================
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.White.copy(alpha = 0.06f))
+                        .clickable { onOpenAdminModal() }
+                ) {
+                    Text("☰", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🎓", fontSize = 28.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Column {
+                            Text(
+                                text = "Online",
+                                color = Color.White,
+                                fontSize = 19.sp,
+                                fontWeight = FontWeight.Black,
+                                lineHeight = 19.sp
+                            )
+                            Text(
+                                text = "Mock Test",
+                                color = PrimaryRose,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Black,
+                                lineHeight = 20.sp
+                            )
+                        }
+                    }
+                    Text(
+                        text = "Target Preparation & Revision Test",
+                        color = Color(0xFFCBD5E1),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.06f))
+                            .clickable { onRefreshOnline() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(if (isLoadingOnline) "⏳" else "🔔", fontSize = 17.sp)
+                        if (allOnlineQuizzes.isNotEmpty()) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-2).dp, y = 2.dp)
+                                    .size(16.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimaryRose)
+                            ) {
+                                Text(
+                                    text = "${allOnlineQuizzes.size}",
+                                    color = Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF1E293B))
+                            .border(1.5.dp, SecondarySky.copy(alpha = 0.7f), CircleShape)
+                            .clickable { onEditProfile() }
+                    ) {
+                        Text(userProfile.avatarEmoji, fontSize = 18.sp)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // ==================== 2. HERO BANNER ("Solutions & PDF" + Green Ribbon Badge + PDF & Printer Graphic) ====================
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFF19103B), Color(0xFF0C1E4A), Color(0xFF0F2963))
+                        )
+                    )
+                    .border(
+                        width = 1.3.dp,
+                        brush = Brush.horizontalGradient(listOf(PrimaryRose, SecondarySky)),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .padding(horizontal = 14.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Left Green Check Ribbon Badge
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(62.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.radialGradient(
+                                listOf(CorrectGreen, Color(0xFF065F46))
+                            )
+                        )
+                        .border(2.5.dp, Color(0xFF00F0FF), CircleShape)
+                ) {
+                    Text("✔", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Black)
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Center Title & Subtitle
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Solutions & ",
+                            color = Color.White,
+                            fontSize = 21.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            text = "PDF",
+                            color = Color(0xFF00F0FF),
+                            fontSize = 21.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text(
+                        text = "Get Complete Solutions\nand Download / Print PDF",
+                        color = Color(0xFFE2E8F0),
+                        fontSize = 11.5.sp,
+                        lineHeight = 15.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Right PDF Document + Printer Graphic
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
+                            .border(1.dp, PrimaryRose, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 6.dp, vertical = 5.dp)
+                    ) {
+                        Text("📄", fontSize = 16.sp)
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(PrimaryRose)
+                                .padding(horizontal = 4.dp, vertical = 1.dp)
+                        ) {
+                            Text("PDF", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Black)
+                        }
+                    }
+                    Text("🖨️", fontSize = 26.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // ==================== 3. 3 FILTER TABS (✔ My Submissions | 🕒 All Tests | 📊 Stats) ====================
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SolutionsFilterPill(
+                    modifier = Modifier.weight(1.15f),
+                    icon = "✔",
+                    label = "My Submissions",
+                    isSelected = selectedFilterTab == 0,
+                    onClick = { selectedFilterTab = 0 }
+                )
+                SolutionsFilterPill(
+                    modifier = Modifier.weight(0.95f),
+                    icon = "🕒",
+                    label = "All Tests",
+                    isSelected = selectedFilterTab == 1,
+                    onClick = { selectedFilterTab = 1 }
+                )
+                SolutionsFilterPill(
+                    modifier = Modifier.weight(0.85f),
+                    icon = "📊",
+                    label = "Stats",
+                    isSelected = selectedFilterTab == 2,
+                    onClick = { selectedFilterTab = 2 }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // ==================== 4. TAB CONTENT ====================
+            if (selectedFilterTab == 0) {
+                // TAB 0: MY SUBMISSIONS (In-Progress Resume Card + All Completed Attempts Cards)
+                if (savedResumeState != null) {
+                    val answeredCount = savedResumeState.userAnswers.count { it != null }
+                    val totalQ = savedResumeState.userAnswers.size
+                    val progressPct = if (totalQ > 0) (answeredCount * 100.0 / totalQ) else 0.0
+                    val maxM = totalQ * savedResumeState.config.marksPerCorrect
+                    val estM = answeredCount * savedResumeState.config.marksPerCorrect
+
+                    SolutionSubmissionCard(
+                        examName = normalizeExamCode(savedResumeState.config.examName),
+                        title = savedResumeState.config.title,
+                        subtitle = "${savedResumeState.config.subject} • Attempt In Progress",
+                        dateText = "Paused",
+                        durationMin = savedResumeState.config.timeMinutes,
+                        scorePercentText = "%.1f%%".format(progressPct),
+                        marksText = "${estM.roundToInt()} / ${maxM.roundToInt()}",
+                        isCompleted = false,
+                        onOpenSolutions = { onResumeInterruptedTest(savedResumeState) },
+                        onPrintPdf = { onResumeInterruptedTest(savedResumeState) }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
+                if (allAttemptsSorted.isEmpty() && savedResumeState == null) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color(0xFF0B1636))
+                            .border(1.dp, SecondarySky.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+                            .padding(22.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("📄", fontSize = 38.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "अभी तक कोई सबमिट किया गया टेस्ट नहीं है",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "जब आप कोई टेस्ट सबमिट करेंगे, तो उसका पूरा Solution, Score % और 2-Column A4 PDF डाउनलोड/प्रिंट कार्ड यहाँ दिखेगा।",
+                            color = TextMuted,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                } else {
+                    allAttemptsSorted.forEach { att ->
+                        SolutionSubmissionCard(
+                            examName = normalizeExamCode(att.config.examName),
+                            title = att.config.title,
+                            subtitle = "${att.config.subject} - Attempt 0${att.attemptNumber}",
+                            dateText = att.completedDate.ifBlank { "Recent" },
+                            durationMin = att.config.timeMinutes,
+                            scorePercentText = "%.1f%%".format(att.percentage),
+                            marksText = "${att.obtainedMarks.roundToInt()} / ${att.maxMarks.roundToInt()}",
+                            isCompleted = true,
+                            onOpenSolutions = { onOpenSavedResult(att) },
+                            onPrintPdf = { onPrintSavedResultPdf(att) }
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+                }
+            } else if (selectedFilterTab == 1) {
+                // TAB 1: ALL TESTS (Shows every online test with Completed or Start/In-Progress status)
+                if (allOnlineQuizzes.isEmpty()) {
+                    Text("कोई ऑनलाइन टेस्ट उपलब्ध नहीं है।", color = TextMuted, fontSize = 13.sp)
+                } else {
+                    allOnlineQuizzes.forEach { meta ->
+                        val latestAtt = completedResultsMap[meta.id]?.lastOrNull()
+                        val maxM = (meta.questionCount * meta.marksPerCorrect).roundToInt()
+                        SolutionSubmissionCard(
+                            examName = normalizeExamCode(meta.examName),
+                            title = meta.title,
+                            subtitle = "${meta.subject} • ${meta.questionCount} Questions",
+                            dateText = latestAtt?.completedDate ?: meta.publishedDate.ifBlank { "Live" },
+                            durationMin = meta.timeMinutes,
+                            scorePercentText = if (latestAtt != null) "%.1f%%".format(latestAtt.percentage) else "0.0%",
+                            marksText = if (latestAtt != null) "${latestAtt.obtainedMarks.roundToInt()} / $maxM" else "0 / $maxM",
+                            isCompleted = latestAtt != null,
+                            onOpenSolutions = {
+                                if (latestAtt != null) onOpenSavedResult(latestAtt)
+                                else onStartOnlineQuiz(meta)
+                            },
+                            onPrintPdf = {
+                                if (latestAtt != null) onPrintSavedResultPdf(latestAtt)
+                                else onStartOnlineQuiz(meta)
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+                }
+            } else {
+                // TAB 2: STATS SUMMARY
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Color(0xFF0B1636))
+                        .border(1.dp, SecondarySky.copy(alpha = 0.45f), RoundedCornerShape(18.dp))
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text("📊 Overall Submissions & Accuracy Stats", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        StatInfoBox(Modifier.weight(1f), "${allAttemptsSorted.size}", "SUBMISSIONS", SecondarySky)
+                        StatInfoBox(Modifier.weight(1f), "${latestPerQuiz.size}", "UNIQUE TESTS", PrimaryRose)
+                        StatInfoBox(Modifier.weight(1f), "%.1f%%".format(overallAvgPct), "AVG SCORE", AmberGold)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        StatInfoBox(Modifier.weight(1f), "$totalCorrect", "CORRECT", CorrectGreen)
+                        StatInfoBox(Modifier.weight(1f), "$totalWrong", "WRONG", WrongRed)
+                        StatInfoBox(Modifier.weight(1f), "$totalSkipped", "SKIPPED", SkippedPurple)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // ==================== 5. BOTTOM MOTIVATIONAL BANNER ("Keep Practicing!" + "Take New Test ->") ====================
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFF241038), Color(0xFF0F1E46), Color(0xFF0A1636))
+                        )
+                    )
+                    .border(
+                        width = 1.2.dp,
+                        brush = Brush.horizontalGradient(listOf(PrimaryRose, SecondarySky)),
+                        shape = RoundedCornerShape(18.dp)
+                    )
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("🏆", fontSize = 30.sp)
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "Keep Practicing!",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            text = "You're One Step Closer to Your Dream!",
+                            color = Color(0xFFCBD5E1),
+                            fontSize = 10.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Brush.horizontalGradient(listOf(PrimaryRose, Color(0xFFBE123C))))
+                        .clickable { onNavigateMyTests() }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Take New Test ➔",
+                        color = Color.White,
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        // ==================== 6. FIXED BOTTOM NAVIGATION BAR (Solutions Highlighted) ====================
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color(0xFF081229))
+                .border(1.dp, SecondarySky.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BottomNavTabItem(
+                icon = "🏠",
+                label = "Home",
+                isSelected = false,
+                onClick = onNavigateHome
+            )
+            BottomNavTabItem(
+                icon = "📊",
+                label = "My Tests",
+                isSelected = false,
+                onClick = onNavigateMyTests
+            )
+            BottomNavTabItem(
+                icon = "📄",
+                label = "Solutions",
+                isSelected = true,
+                onClick = {}
+            )
+            BottomNavTabItem(
+                icon = "⚙️",
+                label = "Settings",
+                isSelected = false,
+                onClick = onNavigateSettings
+            )
+        }
+    }
+}
+
+@Composable
+fun SolutionsFilterPill(
+    modifier: Modifier,
+    icon: String,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = modifier
+            .height(40.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                if (isSelected) Brush.horizontalGradient(listOf(PrimaryRose, Color(0xFFBE123C)))
+                else Brush.horizontalGradient(listOf(Color(0xFF0D1838), Color(0xFF0A122C)))
+            )
+            .border(
+                width = 1.dp,
+                color = if (isSelected) Color.White.copy(alpha = 0.65f) else SecondarySky.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .clickable { onClick() }
+            .padding(horizontal = 10.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(icon, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = label,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+fun SolutionSubmissionCard(
+    examName: String,
+    title: String,
+    subtitle: String,
+    dateText: String,
+    durationMin: Int,
+    scorePercentText: String,
+    marksText: String,
+    isCompleted: Boolean,
+    onOpenSolutions: () -> Unit,
+    onPrintPdf: () -> Unit
+) {
+    val badgeColor = when (examName.uppercase(Locale.ENGLISH)) {
+        "RPSC" -> PrimaryRose
+        "RSSB" -> Color(0xFF1D4ED8)
+        "CTET" -> Color(0xFF0F766E)
+        "UGC NET" -> Color(0xFFB91C1C)
+        else -> PrimaryRose
+    }
+    val emblemIcon = when (examName.uppercase(Locale.ENGLISH)) {
+        "RPSC" -> "🏛️"
+        "RSSB" -> "🏢"
+        "CTET" -> "📘"
+        "UGC NET" -> "☸️"
+        else -> "🎓"
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(
+                Brush.horizontalGradient(
+                    listOf(Color(0xFF0B1636), Color(0xFF10204A), Color(0xFF09132E))
+                )
+            )
+            .border(
+                width = 1.2.dp,
+                brush = Brush.horizontalGradient(listOf(PrimaryRose.copy(alpha = 0.6f), SecondarySky.copy(alpha = 0.6f))),
+                shape = RoundedCornerShape(18.dp)
+            )
+            .clickable { onOpenSolutions() }
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Left White Rounded Emblem Box with Exam Pill inside
+        Column(
+            modifier = Modifier
+                .width(74.dp)
+                .height(92.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color.White)
+                .border(1.5.dp, badgeColor.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+                .padding(6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(emblemIcon, fontSize = 30.sp)
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(badgeColor)
+                    .padding(vertical = 3.dp)
+            ) {
+                Text(
+                    text = examName,
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Middle Column: Title, Subtitle, Date/Time, Score % | Marks
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = subtitle,
+                color = Color(0xFFE2E8F0),
+                fontSize = 11.5.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("📅 $dateText", color = Color(0xFFCBD5E1), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("|", color = BorderColor, fontSize = 10.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("🕒 $durationMin Min", color = Color(0xFFCBD5E1), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Score", color = Color(0xFFCBD5E1), fontSize = 9.5.sp)
+                    Text(
+                        text = scorePercentText,
+                        color = Color(0xFF00F0FF),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(26.dp)
+                        .background(Color.White.copy(alpha = 0.15f))
+                )
+                Column(
+                    modifier = Modifier.weight(1f).padding(start = 8.dp)
+                ) {
+                    Text("Marks", color = Color(0xFFCBD5E1), fontSize = 9.5.sp)
+                    Text(
+                        text = marksText,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Right Column: Completed/In-Progress Badge + Blue "Download PDF" + Pink "Print PDF"
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (isCompleted) CorrectGreen else AmberGold)
+                    .padding(horizontal = 8.dp, vertical = 3.dp)
+            ) {
+                Text(
+                    text = if (isCompleted) "✔ Completed" else "🕒 In Progress",
+                    color = if (isCompleted) Color.White else Color.Black,
+                    fontSize = 9.5.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFF0284C7), SecondarySky)))
+                    .clickable { onPrintPdf() }
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Text("⬇️ Download PDF", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        if (isCompleted) Brush.horizontalGradient(listOf(PrimaryRose, Color(0xFFBE123C)))
+                        else Brush.horizontalGradient(listOf(Color(0xFF1E293B), Color(0xFF334155)))
+                    )
+                    .border(1.dp, if (isCompleted) PrimaryRose else SecondarySky.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                    .clickable {
+                        if (isCompleted) onPrintPdf() else onOpenSolutions()
+                    }
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = if (isCompleted) "🖨️ Print PDF" else "▶ Resume",
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
