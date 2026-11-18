@@ -1525,7 +1525,6 @@ fun MockTestAppRoot() {
                         selectedExamFilter = targetExamCode
                         currentScreen = AppScreen.MY_TESTS
                     },
-                    onNavigateSolutions = { currentScreen = AppScreen.SOLUTIONS },
                     onNavigateSettings = { currentScreen = AppScreen.SETTINGS },
                     onEditProfile = { currentScreen = AppScreen.PROFILE_SETUP },
                     onOpenAdminModal = { showPinGateModal = true }
@@ -1547,6 +1546,7 @@ fun MockTestAppRoot() {
                         selectedExamFilter = targetExamCode
                         currentScreen = AppScreen.MY_TESTS
                     },
+                    onNavigateSolutions = { currentScreen = AppScreen.SOLUTIONS },
                     onEditProfile = { currentScreen = AppScreen.PROFILE_SETUP },
                     onOpenLatestResult = { saved ->
                         openSavedResult(saved, AppScreen.SETTINGS)
