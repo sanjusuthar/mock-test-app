@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Online Mock Test — RPSC | RSSB | CTET | UGC NET</title>
+  <style>
+    :root {
+      --bg-top: #050C24;
+      --bg-mid: #09153E;
+      --bg-bot: #04091A;
+      --card: #0E1B3D;
+      --card-dark: #18181B;
+      --rose: #E11D48;
+      --sky: #0EA5E9;
+      --cyan: #00F0FF;
+      --gold: #F59E0B;
+      --green: #10B981;
+      --red: #EF4444;
+      --purple: #8B5CF6;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --border: rgba(14, 165, 233, 0.28);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif;
+      background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 50%, var(--bg-bot) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .app-shell {
+      max-width: 540px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 12px 14px 96px 14px;
+      position: relative;
+    }
+
+    /* Header */
+    .top-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+    }
+    .circle-btn { border-radius: 50%; }
+    .bell-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      background: var(--rose);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      min-width: 17px;
+      height: 17px;
+      border-radius: 99px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+    .brand-center { text-align: center; }
+    .brand-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .brand-title { font-size: 18px; font-weight: 900; line-height: 1.05; text-align: left; }
+    .brand-title span { display: block; color: var(--rose); font-size: 19px; }
+    .brand-sub { font-size: 10px; color: #CBD5E1; font-weight: 600; margin-top: 2px; }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(120deg, #07163B 0%, #0D235A 55%, #1E3A8A 100%);
+      border: 1.5px solid rgba(14, 165, 233, 0.55);
+      border-radius: 20px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+    }
+    .hero-banner::after {
+      content: "🏰";
+      position: absolute;
+      right: 14px;
+      bottom: 8px;
+      font-size: 74px;
+      opacity: 0.22;
+      pointer-events: none;
+    }
+    .hero-h1 { font-size: 19px; font-weight: 800; }
+    .hero-h2 { font-size: 21px; font-weight: 900; color: var(--gold); margin-bottom: 8px; }
+    .pill-rose {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--rose), #BE123C);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 6px;
+    }
+    .hero-exams { font-size: 10.5px; font-weight: 800; color: #E2E8F0; margin-bottom: 12px; }
+    .btn-gold {
+      background: linear-gradient(90deg, #FACC15, #F59E0B);
+      color: #09090B;
+      border: none;
+      border-radius: 99px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Quick 4 Tiles */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .quick-tile {
+      background: linear-gradient(180deg, #132046, #0B132B);
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      border-radius: 16px;
+      padding: 12px 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .quick-icon {
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 6px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      border: 1.5px solid rgba(255,255,255,0.55);
+    }
+    .quick-label { font-size: 11px; font-weight: 700; color: #fff; }
+
+    /* Section Title */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .sec-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .sec-bar { width: 4px; height: 18px; border-radius: 3px; background: var(--rose); }
+    .sec-link { font-size: 12.5px; font-weight: 700; color: var(--sky); cursor: pointer; }
+
+    /* Popular Exam White Cards */
+    .exam-card {
+      background: #fff;
+      color: #0F172A;
+      border-radius: 14px;
+      padding: 10px 5px;
+      text-align: center;
+      cursor: pointer;
+      border-bottom: 3px solid var(--rose);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 102px;
+    }
+    .exam-emblem { font-size: 22px; }
+    .exam-code { font-size: 12.5px; font-weight: 900; margin: 3px 0; }
+    .exam-sub { font-size: 8.5px; color: #334155; line-height: 1.2; font-weight: 600; }
+
+    /* Split 2 Cards */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .split-card {
+      background: linear-gradient(135deg, #0F1E46, #1E1B4B);
+      border: 1px solid rgba(225, 29, 72, 0.45);
+      border-radius: 16px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      min-height: 110px;
+    }
+    .split-card.sky { border-color: rgba(14, 165, 233, 0.5); background: linear-gradient(135deg, #0F1E46, #091534); }
+    .ring-wrap {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+    .btn-mini {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #fff;
+      background: var(--rose);
+      border: none;
+      cursor: pointer;
+    }
+    .btn-mini.sky { background: var(--sky); }
+
+    /* Subject Folders & Test Cards */
+    .card-box {
+      background: #0B1636;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px;
+      margin-bottom: 10px;
+    }
+    .folder-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .folder-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(14, 165, 233, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+      flex-shrink: 0;
+    }
+
+    /* Filter Chips */
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .chip-row::-webkit-scrollbar { display: none; }
+    .chip {
+      white-space: nowrap;
+      padding: 7px 14px;
+      border-radius: 99px;
+      background: #0E1B3D;
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      color: #E2E8F0;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: linear-gradient(90deg, var(--rose), #BE123C);
+      border-color: rgba(255,255,255,0.65);
+      color: #fff;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(90deg, var(--rose), #BE123C);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 12px;
+      padding: 9px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-sky {
+      background: linear-gradient(90deg, #0284C7, var(--sky));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 9px 14px;
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 24px);
+      max-width: 516px;
+      background: #081229;
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      border-radius: 22px;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 6px;
+      z-index: 40;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .nav-item {
+      text-align: center;
+      cursor: pointer;
+      padding: 2px 10px;
+      color: #CBD5E1;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .nav-item.active { color: var(--rose); font-weight: 800; }
+    .nav-item .nav-ic { font-size: 18px; display: block; margin-bottom: 1px; }
+
+    /* Forms & Inputs */
+    .field-label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 5px; margin-top: 10px; }
+    .input {
+      width: 100%;
+      background: #08112B;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 10px;
+      color: #fff;
+      padding: 10px 12px;
+      font-size: 13.5px;
+      outline: none;
+    }
+    .input:focus { border-color: var(--sky); }
+    textarea.input { min-height: 150px; resize: vertical; font-family: inherit; }
+
+    /* Exam Test Runner */
+    .test-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0B1636;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .timer-pill {
+      background: rgba(225, 29, 72, 0.16);
+      border: 1px solid var(--rose);
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .opt-card {
+      background: #132046;
+      border: 1.5px solid rgba(148, 163, 184, 0.25);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 9px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .opt-card.selected {
+      background: rgba(14, 165, 233, 0.18);
+      border-color: var(--sky);
+    }
+    .opt-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #1E293B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .opt-card.selected .opt-badge { background: var(--sky); color: #fff; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 60;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 440px;
+      max-height: 85vh;
+      overflow-y: auto;
+      background: #0F172A;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .pal-btn {
+      aspect-ratio: 1 / 1;
+      border-radius: 8px;
+      border: none;
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      background: #1E293B;
+    }
+    .pal-btn.cur { background: var(--rose); }
+    .pal-btn.rev { background: var(--gold); color: #000; }
+    .pal-btn.ans { background: var(--green); }
+
+    /* Printable 2-Column A4 Sheet (Hidden on screen, visible only on Print/PDF) */
+    #print-sheet { display: none; }
+
+    @media print {
+      @page { size: A4 portrait; margin: 8mm; }
+      body { background: #fff !important; color: #000 !important; }
+      .app-shell, .bottom-nav, .modal-backdrop { display: none !important; }
+      #print-sheet {
+        display: block !important;
+        background: #fff;
+        color: #000;
+        font-family: sans-serif;
+      }
+      .print-header-box {
+        border: 1.5px solid #000;
+        padding: 10px 14px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        text-align: center;
+        background: #f8fafc;
+      }
+      .print-header-box h2 { font-size: 16px; margin-bottom: 4px; }
+      .print-header-box h3 { font-size: 12px; margin-bottom: 4px; color: #333; }
+      .print-header-box p { font-size: 11px; margin-bottom: 8px; color: #555; }
+      .print-score-row {
+        display: flex;
+        justify-content: space-around;
+        border-top: 1px dashed #000;
+        padding-top: 6px;
+        font-size: 11px;
+        font-weight: bold;
+      }
+      .two-col-container {
+        column-count: 2;
+        column-gap: 14px;
+        column-rule: 1px solid #cbd5e1;
+      }
+      .print-q-box {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .print-q-head { display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; margin-bottom: 3px; }
+      .print-q-topic { background: #e11d48; color: #fff; padding: 1px 6px; font-size: 9px; border-radius: 10px; }
+      .print-q-text { font-size: 11px; font-weight: 600; margin-bottom: 4px; line-height: 1.35; }
+      .print-options-grid { margin-bottom: 4px; font-size: 10.5px; padding-left: 6px; line-height: 1.3; }
+      .print-ans-row { font-size: 10px; margin-bottom: 2px; }
+      .print-sol-box { background: #f8fafc; border-left: 3px solid #e11d48; padding: 4px 6px; margin-top: 4px; font-size: 10px; line-height: 1.3; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app-shell"></div>
+  <div id="print-sheet"></div>
+
+  <script>
+    // ==================== 1. GITHUB & ENCRYPTION CONFIG ====================
+    const GITHUB_OWNER = "sanjusuthar";
+    const GITHUB_REPO = "mock-test-app";
+    const GITHUB_BRANCH = "main";
+    const QUIZ_SECRET_PASSPHRASE = "SanjayMockTest#2026!SecureKey";
+
+    const LS_PROFILE = "web_mock_profile_v1";
+    const LS_ATTEMPTS = "web_mock_attempts_v2";
+    const LS_RESUME = "web_mock_resume_v2";
+    const LS_INDEX_CACHE = "web_mock_index_cache_v1";
+    const LS_QUIZ_CACHE_PREFIX = "web_mock_quiz_txt_";
+    const LS_CUSTOM_CFG = "web_mock_custom_cfg_v1";
+
+    // ==================== 2. APP STATE ====================
+    const state = {
+      screen: "HOME", // PROFILE_SETUP | HOME | MY_TESTS | SUBJECT_TESTS | SOLUTIONS | SETTINGS | CUSTOM_BUILDER | TEST | RESULT
+      prevScreen: "HOME",
+      profile: loadJson(LS_PROFILE, null),
+      onlineQuizzes: [],
+      isLoadingOnline: false,
+      selectedExam: "RPSC",
+      selectedSubject: "",
+      attemptsMap: loadJson(LS_ATTEMPTS, {}),
+      resumeState: loadJson(LS_RESUME, null),
+      solutionsTab: "SUBMISSIONS",
+      subjectFilterChip: "ALL",
+      activeTest: null, // { config, questions, rawTxt, currentQ, answers, review, remainingSec, spentSec }
+      resultData: null, // { config, questions, answers, spentSec }
+      modal: null, // null | "PALETTE" | "PERFORMANCE" | "RESULTS_LIST" | "INFO"
+      infoModal: { title: "", body: "" },
+      timerInterval: null
+    };
+
+    if (!state.profile) {
+      state.screen = "PROFILE_SETUP";
+    } else {
+      state.selectedExam = normalizeExamCode(state.profile.targetExam || "RPSC");
+    }
+
+    function loadJson(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+    function saveJson(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+    }
+
+    function normalizeExamCode(raw) {
+      const up = String(raw || "").toUpperCase();
+      if (up.includes("RPSC")) return "RPSC";
+      if (up.includes("RSSB")) return "RSSB";
+      if (up.includes("CTET")) return "CTET";
+      if (up.includes("NET")) return "UGC NET";
+      return String(raw || "RPSC").split(" (")[0].trim() || "RPSC";
+    }
+
+    function escHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/\n/g, "<br>");
+    }
+
+    // ==================== 3. BROWSER AES-256-CBC DECRYPTION (ENCv1:) ====================
+    async function decryptQuizContent(content) {
+      const trimmed = String(content || "").trim();
+      if (!trimmed.startsWith("ENCv1:")) return content;
+
+      const b64 = trimmed.slice(6).replace(/\s+/g, "");
+      const binStr = atob(b64);
+      const bytes = new Uint8Array(binStr.length);
+      for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+
+      const iv = bytes.slice(0, 16);
+      const ciphertext = bytes.slice(16);
+
+      const passBytes = new TextEncoder().encode(QUIZ_SECRET_PASSPHRASE);
+      const keyHash = await crypto.subtle.digest("SHA-256", passBytes);
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        keyHash,
+        { name: "AES-CBC" },
+        false,
+        ["decrypt"]
+      );
+      const decryptedBuf = await crypto.subtle.decrypt(
+        { name: "AES-CBC", iv },
+        cryptoKey,
+        ciphertext
+      );
+      return new TextDecoder("utf-8").decode(decryptedBuf);
+    }
+
+    // ==================== 4. STRICT MULTI-LINE TXT QUESTION PARSER ====================
+    function parseQuizTxt(rawText) {
+      if (!rawText || !rawText.trim()) return { questions: [], warnings: [] };
+      const parsed = [];
+      const warnings = [];
+      const normalized = rawText
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .replace(/([^\n])(\s*TOPIC\s*:)/gi, "$1\n$2");
+
+      let pendingTopic = "General";
+      let qTopic = "General";
+      let qText = "";
+      let options = [];
+      let answerIndex = null;
+      let solution = "व्याख्या उपलब्ध नहीं है।";
+      let currentField = "NONE";
+
+      function flush() {
+        if (qText.trim() && options.length >= 2) {
+          const cleanSol = solution.replace(/\n?TOPIC\s*:.*$/i, "").replace(/<br>/g, "\n").trim();
+          if (answerIndex === null || answerIndex < 0 || answerIndex >= options.length) {
+            warnings.push(`Q${parsed.length + 1}: ANS: गलत या गायब है`);
+          } else {
+            parsed.push({
+              topic: qTopic.trim() || "General",
+              text: qText.replace(/<br>/g, "\n").trim(),
+              options: options.map(o => o.trim()),
+              correctAnswer: answerIndex,
+              solution: cleanSol || "व्याख्या उपलब्ध नहीं है।"
+            });
+          }
+        }
+        qText = "";
+        options = [];
+        answerIndex = null;
+        solution = "व्याख्या उपलब्ध नहीं है।";
+        currentField = "NONE";
+      }
+
+      const topicRx = /^TOPIC\s*:\s*(.*)/i;
+      const qRx = /^(?:Q|Question|प्र|प्रश्न)\s*[:.]\s*(.*)/i;
+      const optRx = /^([A-E])[).:-]\s*(.*)/i;
+      const ansRx = /^(?:ANS|Answer|उत्तर)\s*[:.-]\s*(.*)/i;
+      const solRx = /^(?:SOL|SOLUTION|व्याख्या)\s*[:.-]\s*(.*)/i;
+      const ansMap = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+
+      for (const rawLine of normalized.split("\n")) {
+        const line = rawLine.trim();
+        if (!line) continue;
+
+        const mTopic = line.match(topicRx);
+        const mQ = line.match(qRx);
+        const mOpt = line.match(optRx);
+        const mAns = line.match(ansRx);
+        const mSol = line.match(solRx);
+
+        if (mTopic) {
+          if (qText.trim()) flush();
+          pendingTopic = mTopic[1].trim() || "General";
+          currentField = "TOPIC";
+        } else if (mQ) {
+          if (qText.trim()) flush();
+          qTopic = pendingTopic;
+          qText = mQ[1].trim();
+          currentField = "Q";
+        } else if (mOpt && (currentField === "Q" || currentField === "OPT")) {
+          options.push(mOpt[2].trim());
+          currentField = "OPT";
+        } else if (mAns && options.length > 0) {
+          const tok = mAns[1].trim().toUpperCase();
+          const ch = tok[0] || "";
+          if (ch in ansMap) answerIndex = ansMap[ch];
+          else if (!isNaN(parseInt(tok, 10))) answerIndex = parseInt(tok, 10) - 1;
+          currentField = "ANS";
+        } else if (mSol && options.length > 0) {
+          solution = mSol[1].trim();
+          currentField = "SOL";
+        } else {
+          if (currentField === "TOPIC") pendingTopic = `${pendingTopic} ${line}`.trim();
+          else if (currentField === "Q") qText = qText ? `${qText}\n${line}` : line;
+          else if (currentField === "OPT" && options.length > 0) options[options.length - 1] += " " + line;
+          else if (currentField === "SOL") {
+            solution = (solution === "व्याख्या उपलब्ध नहीं है।" || !solution) ? line : `${solution}\n${line}`;
+          }
+        }
+      }
+      if (qText.trim()) flush();
+      return { questions: parsed, warnings };
+    }
+
+    // ==================== 5. GITHUB CLOUD SYNC ====================
+    async function fetchOnlineQuizzes() {
+      state.isLoadingOnline = true;
+      render();
+      let rawJson = null;
+      try {
+        const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/quizzes/index.json?ref=${GITHUB_BRANCH}&t=${Date.now()}`;
+        let res = await fetch(apiUrl, { headers: { Accept: "application/vnd.github.raw+json" }, cache: "no-store" });
+        if (!res.ok) {
+          const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/quizzes/index.json?t=${Date.now()}`;
+          res = await fetch(rawUrl, { cache: "no-store" });
+        }
+        if (res.ok) {
+          rawJson = await res.text();
+          localStorage.setItem(LS_INDEX_CACHE, rawJson);
+        }
+      } catch {}
+
+      if (!rawJson) {
+        rawJson = localStorage.getItem(LS_INDEX_CACHE);
+      }
+
+      if (rawJson) {
+        try {
+          const arr = JSON.parse(rawJson);
+          state.onlineQuizzes = arr.map((obj, idx) => {
+            const rawSubject = String(obj.subject || "").trim();
+            const rawTitle = String(obj.title || "Mock Test");
+            const rawExam = String(obj.examName || "").trim();
+            const resolvedExam = rawExam
+              ? normalizeExamCode(rawExam)
+              : (rawSubject.toUpperCase().includes("CTET") || rawTitle.toUpperCase().includes("CTET") ? "CTET" : "RPSC");
+            return {
+              id: obj.id || `quiz_${idx}`,
+              title: rawTitle,
+              subtitle: obj.subtitle || "Online Practice Test",
+              examName: resolvedExam,
+              subject: rawSubject || "General Tests",
+              timeMinutes: Number(obj.timeMinutes || 60),
+              marksPerCorrect: Number(obj.marksPerCorrect || 2.0),
+              negativeMark: Number(obj.negativeMark || 0.0),
+              questionCount: Number(obj.questionCount || 0),
+              fileUrl: obj.fileUrl || "",
+              publishedDate: obj.publishedDate || ""
+            };
+          }).sort((a, b) => {
+            const ta = Number(String(a.id).split("quiz_")[1]) || 0;
+            const tb = Number(String(b.id).split("quiz_")[1]) || 0;
+            return ta - tb;
+          });
+        } catch {}
+      }
+
+      state.isLoadingOnline = false;
+      render();
+    }
+
+    async function launchOnlineQuiz(meta) {
+      try {
+        const sep = meta.fileUrl.includes("?") ? "&" : "?";
+        let rawDownloaded = "";
+        try {
+          const res = await fetch(`${meta.fileUrl}${sep}t=${Date.now()}`, { cache: "no-store" });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          rawDownloaded = await res.text();
+          localStorage.setItem(LS_QUIZ_CACHE_PREFIX + meta.id, rawDownloaded);
+        } catch (err) {
+          rawDownloaded = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + meta.id) || "";
+          if (!rawDownloaded) throw err;
+        }
+        const plainTxt = await decryptQuizContent(rawDownloaded);
+        localStorage.setItem(LS_QUIZ_CACHE_PREFIX + meta.id + "_plain", plainTxt);
+        const parsed = parseQuizTxt(plainTxt).questions;
+        if (!parsed.length) {
+          alert("टेस्ट फाइल में कोई मान्य प्रश्न नहीं मिला।");
+          return;
+        }
+        startExamSession(meta, parsed, plainTxt);
+      } catch (e) {
+        alert("टेस्ट लोड नहीं हो सका: " + e.message);
+      }
+    }
+
+    function startExamSession(config, questions, plainTxt) {
+      stopTimer();
+      state.prevScreen = state.screen;
+      state.activeTest = {
+        config,
+        questions,
+        rawTxt: plainTxt,
+        currentQ: 0,
+        answers: new Array(questions.length).fill(null),
+        review: new Array(questions.length).fill(false),
+        remainingSec: config.timeMinutes * 60
+      };
+      persistResume();
+      state.screen = "TEST";
+      startTimer();
+      render();
+    }
+
+    function startTimer() {
+      stopTimer();
+      state.timerInterval = setInterval(() => {
+        if (state.screen !== "TEST" || !state.activeTest) return;
+        if (state.activeTest.remainingSec > 0) {
+          state.activeTest.remainingSec--;
+          if (state.activeTest.remainingSec % 5 === 0) persistResume();
+          const el = document.getElementById("live-timer-text");
+          if (el) el.textContent = formatMMSS(state.activeTest.remainingSec);
+          if (state.activeTest.remainingSec <= 0) {
+            finishExam();
+          }
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+    }
+
+    function persistResume() {
+      if (!state.activeTest) return;
+      const t = state.activeTest;
+      saveJson(LS_RESUME, {
+        config: t.config,
+        currentQ: t.currentQ,
+        remainingSec: t.remainingSec,
+        answers: t.answers,
+        review: t.review
+      });
+      state.resumeState = loadJson(LS_RESUME, null);
+    }
+
+    function finishExam() {
+      if (state.screen === "RESULT" || !state.activeTest) return;
+      stopTimer();
+      const t = state.activeTest;
+      const spent = Math.max(0, t.config.timeMinutes * 60 - t.remainingSec);
+      let correct = 0, wrong = 0, skipped = 0;
+      t.questions.forEach((q, i) => {
+        const a = t.answers[i];
+        if (a === null) skipped++;
+        else if (a === q.correctAnswer) correct++;
+        else wrong++;
+      });
+      const obtained = correct * t.config.marksPerCorrect - wrong * t.config.negativeMark;
+      const maxM = t.questions.length * t.config.marksPerCorrect;
+      const pct = maxM > 0 ? Math.max(0, Math.min(100, (obtained / maxM) * 100)) : 0;
+      const dateStr = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
+      try {
+        localStorage.setItem(LS_QUIZ_CACHE_PREFIX + t.config.id + "_plain", t.rawTxt);
+      } catch {}
+
+      const list = state.attemptsMap[t.config.id] || [];
+      list.push({
+        attemptNumber: list.length + 1,
+        config: t.config,
+        answers: t.answers,
+        spentSec: spent,
+        obtainedMarks: obtained,
+        maxMarks: maxM,
+        percentage: pct,
+        completedDate: dateStr,
+        completedAtMillis: Date.now(),
+        correctCount: correct,
+        wrongCount: wrong,
+        skippedCount: skipped
+      });
+      state.attemptsMap[t.config.id] = list;
+      saveJson(LS_ATTEMPTS, state.attemptsMap);
+
+      localStorage.removeItem(LS_RESUME);
+      state.resumeState = null;
+      state.resultData = {
+        config: t.config,
+        questions: t.questions,
+        answers: t.answers,
+        spentSec: spent
+      };
+      state.screen = "RESULT";
+      render();
+    }
+
+    function openSavedAttempt(att) {
+      const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + att.config.id + "_plain");
+      if (!plain) {
+        alert("इस टेस्ट के प्रश्न ब्राउज़र कैश में नहीं हैं, कृपया एक बार Re-Test खोलें।");
+        return;
+      }
+      const parsed = parseQuizTxt(plain).questions;
+      if (!parsed.length) return;
+      state.prevScreen = state.screen;
+      state.resultData = {
+        config: att.config,
+        questions: parsed,
+        answers: att.answers,
+        spentSec: att.spentSec || 0
+      };
+      state.screen = "RESULT";
+      render();
+    }
+
+    function printTwoColumnPdf(config, questions, answers) {
+      let correct = 0, wrong = 0, skipped = 0;
+      const letters = ["A", "B", "C", "D", "E"];
+      let qHtml = "";
+      questions.forEach((q, idx) => {
+        const uAns = answers[idx];
+        const color = uAns === q.correctAnswer ? "#10b981" : "#ef4444";
+        if (uAns === null || uAns === undefined) skipped++;
+        else if (uAns === q.correctAnswer) correct++;
+        else wrong++;
+
+        const uText = (uAns !== null && uAns !== undefined) ? `(${letters[uAns]}) ${escHtml(q.options[uAns])}` : "कोई नहीं";
+        const cText = `(${letters[q.correctAnswer]}) ${escHtml(q.options[q.correctAnswer])}`;
+        const opts = q.options.map((o, i) => `<div>(${letters[i]}) ${escHtml(o)}</div>`).join("");
+        qHtml += `
+          <div class="print-q-box">
+            <div class="print-q-head"><span>Q${idx + 1}.</span><span class="print-q-topic">${escHtml(q.topic)}</span></div>
+            <div class="print-q-text">${escHtml(q.text)}</div>
+            <div class="print-options-grid">${opts}</div>
+            <div class="print-ans-row"><strong>आपका उत्तर:</strong> <span style="color:${color}">${uText}</span></div>
+            <div class="print-ans-row"><strong>सही उत्तर:</strong> <span style="color:#10b981">${cText}</span></div>
+            <div class="print-sol-box"><strong>व्याख्या:</strong> ${escHtml(q.solution)}</div>
+          </div>`;
+      });
+
+      const totalMarks = correct * config.marksPerCorrect - wrong * config.negativeMark;
+      const maxMarks = questions.length * config.marksPerCorrect;
+      const pct = maxMarks > 0 ? Math.max(0, Math.min(100, (totalMarks / maxMarks) * 100)) : 0;
+      const attempted = correct + wrong;
+      const acc = attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
+      const negInfo = config.negativeMark > 0 ? `-${config.negativeMark.toFixed(2)} Negative` : "No Negative";
+      const studentName = state.profile?.name || "Student";
+
+      document.getElementById("print-sheet").innerHTML = `
+        <div class="print-header-box">
+          <h2>${escHtml(config.title)}</h2>
+          <h3>Candidate: ${escHtml(studentName)} | Total Questions: ${questions.length}</h3>
+          <p>Marking: +${config.marksPerCorrect.toFixed(2)} / Correct | ${negInfo}</p>
+          <div class="print-score-row">
+            <span>Score: ${totalMarks.toFixed(2)} / ${maxMarks.toFixed(2)} (${pct.toFixed(1)}%)</span>
+            <span>Correct: ${correct}</span>
+            <span>Wrong: ${wrong}</span>
+            <span>Skipped: ${skipped}</span>
+            <span>Accuracy: ${acc}%</span>
+          </div>
+        </div>
+        <div class="two-col-container">${qHtml}</div>`;
+      window.print();
+    }
+
+    function formatMMSS(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function getAllAttemptsSorted() {
+      return Object.values(state.attemptsMap).flat().sort((a, b) => (b.completedAtMillis || 0) - (a.completedAtMillis || 0));
+    }
+
+    function getExamSubjectsMap(examCode) {
+      const map = {};
+      state.onlineQuizzes
+        .filter(q => normalizeExamCode(q.examName) === normalizeExamCode(examCode))
+        .forEach(q => {
+          if (!map[q.subject]) map[q.subject] = [];
+          map[q.subject].push(q);
+        });
+      return map;
+    }
+
+    // ==================== 6. RENDER HELPERS ====================
+    function headerHtml() {
+      const avatar = state.profile?.avatarEmoji || "🎓";
+      const count = state.onlineQuizzes.length;
+      return `
+        <div class="top-header">
+          <div class="icon-btn" onclick="goScreen('SETTINGS')">☰</div>
+          <div class="brand-center">
+            <div class="brand-row">
+              <span style="font-size:26px">🎓</span>
+              <div class="brand-title">Online<span>Mock Test</span></div>
+            </div>
+            <div class="brand-sub">Target Preparation & Revision Test</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="icon-btn circle-btn" onclick="fetchOnlineQuizzes()">
+              ${state.isLoadingOnline ? "⏳" : "🔔"}
+              ${count > 0 ? `<span class="bell-badge">${count}</span>` : ""}
+            </div>
+            <div class="icon-btn circle-btn" style="border-color:var(--sky)" onclick="goScreen('PROFILE_SETUP')">${avatar}</div>
+          </div>
+        </div>`;
+    }
+
+    function bottomNavHtml(activeIdx) {
+      return `
+        <div class="bottom-nav">
+          <div class="nav-item ${activeIdx === 0 ? "active" : ""}" onclick="goScreen('HOME')"><span class="nav-ic">🏠</span>Home</div>
+          <div class="nav-item ${activeIdx === 1 ? "active" : ""}" onclick="goScreen('MY_TESTS')"><span class="nav-ic">📊</span>My Tests</div>
+          <div class="nav-item ${activeIdx === 2 ? "active" : ""}" onclick="goScreen('SOLUTIONS')"><span class="nav-ic">📄</span>Solutions</div>
+          <div class="nav-item ${activeIdx === 3 ? "active" : ""}" onclick="goScreen('SETTINGS')"><span class="nav-ic">⚙️</span>Settings</div>
+        </div>`;
+    }
+
+    function goScreen(scr) {
+      state.screen = scr;
+      state.modal = null;
+      render();
+      window.scrollTo(0, 0);
+    }
+
+    // ==================== 7. SCREEN RENDERERS ====================
+    function renderProfileSetup() {
+      const p = state.profile || { name: "", districtOrCity: "Rajasthan", targetExam: "RPSC (Rajasthan Public Service Commission)", avatarEmoji: "🎓" };
+      const avatars = ["🎓", "👨‍🎓", "👩‍🎓", "📚", "🏆", "🎯"];
+      const exams = [
+        "RPSC (Rajasthan Public Service Commission)",
+        "RSSB (Rajasthan Staff Selection Board)",
+        "CTET (Central Teacher Eligibility Test)",
+        "UGC NET (National Eligibility Test)"
+      ];
+      return `
+        <div style="text-align:center;margin:10px 0 18px;">
+          <div style="color:var(--gold);font-size:13px;font-weight:800;">Study Smart... Score High...</div>
+          <div style="font-size:24px;font-weight:900;margin-top:4px;">ONLINE MOCK TEST</div>
+          <div style="color:var(--sky);font-size:12.5px;font-weight:700;">Create Your Student Profile</div>
+        </div>
+        <div class="card-box" style="padding:18px;">
+          <div class="field-label" style="text-align:center;">अपना प्रोफाइल आइकन चुनें</div>
+          <div style="display:flex;justify-content:center;gap:10px;margin:10px 0 14px;flex-wrap:wrap;">
+            ${avatars.map(a => `<div onclick="selectAvatar('${a}')" class="icon-btn circle-btn" style="width:46px;height:46px;font-size:22px;background:${p.avatarEmoji === a ? "var(--rose)" : "#1E293B"};border:2px solid ${p.avatarEmoji === a ? "var(--gold)" : "transparent"}">${a}</div>`).join("")}
+          </div>
+          <label class="field-label">आपका पूरा नाम (Student Name)</label>
+          <input id="prof-name" class="input" value="${escHtml(p.name).replace(/<br>/g, "")}" placeholder="उदा. संजय सुथार" />
+          <label class="field-label">शहर / जिला (City / District)</label>
+          <input id="prof-city" class="input" value="${escHtml(p.districtOrCity).replace(/<br>/g, "")}" placeholder="उदा. हनुमानगढ़, राजस्थान" />
+          <label class="field-label">अपनी मुख्य परीक्षा चुनें (Target Exam)</label>
+          <select id="prof-exam" class="input">
+            ${exams.map(e => `<option value="${e}" ${p.targetExam === e ? "selected" : ""}>${e}</option>`).join("")}
+          </select>
+          <button class="btn-primary" style="width:100%;margin-top:18px;padding:13px;font-size:15px;" onclick="saveProfileForm()">🚀 प्रोफाइल सेव करें व वेबसाइट खोलें</button>
+        </div>`;
+    }
+
+    function renderHome() {
+      const latestPerQuiz = Object.values(state.attemptsMap).map(arr => arr[arr.length - 1]).filter(Boolean);
+      const completedCount = latestPerQuiz.length;
+      const totalTests = state.onlineQuizzes.length;
+      const avgPct = completedCount ? Math.round(latestPerQuiz.reduce((s, a) => s + a.percentage, 0) / completedCount) : 0;
+      const subjectsMap = getExamSubjectsMap(state.selectedExam);
+      const subEntries = Object.entries(subjectsMap);
+
+      return `
+        ${headerHtml()}
+        <div class="hero-banner">
+          <div class="hero-h1">Prepare Smart...</div>
+          <div class="hero-h2">Score High...</div>
+          <div class="pill-rose">Rajasthan Exams</div>
+          <div class="hero-exams">RPSC &nbsp;|&nbsp; RSSB &nbsp;|&nbsp; CTET &nbsp;|&nbsp; UGC NET</div>
+          <button class="btn-gold" onclick="goScreen('MY_TESTS')">Start Mock Test ➔</button>
+        </div>
+
+        <div class="grid-4">
+          <div class="quick-tile" onclick="goScreen('MY_TESTS')"><div class="quick-icon" style="background:rgba(225,29,72,0.35)">📋</div><div class="quick-label">Mock Tests</div></div>
+          <div class="quick-tile" onclick="goScreen('CUSTOM_BUILDER')"><div class="quick-icon" style="background:rgba(14,165,233,0.35)">📝</div><div class="quick-label">Custom Test</div></div>
+          <div class="quick-tile" onclick="openModal('PERFORMANCE')"><div class="quick-icon" style="background:rgba(139,92,246,0.35)">📈</div><div class="quick-label">Performance</div></div>
+          <div class="quick-tile" onclick="goScreen('SOLUTIONS')"><div class="quick-icon" style="background:rgba(245,158,11,0.35)">🏆</div><div class="quick-label">Results</div></div>
+        </div>
+
+        <div class="sec-head">
+          <div class="sec-title"><span class="sec-bar"></span>Popular Exams</div>
+          <div class="sec-link" onclick="fetchOnlineQuizzes()">${state.isLoadingOnline ? "Syncing..." : "Refresh ➔"}</div>
+        </div>
+        <div class="grid-4" style="margin-bottom:16px;">
+          <div class="exam-card" style="border-color:var(--rose)" onclick="pickExam('RPSC')"><div class="exam-emblem">🏛️</div><div class="exam-code">RPSC</div><div class="exam-sub">Rajasthan Public Service Commission</div></div>
+          <div class="exam-card" style="border-color:var(--sky)" onclick="pickExam('RSSB')"><div class="exam-emblem">🏢</div><div class="exam-code">RSSB</div><div class="exam-sub">Rajasthan Staff Selection Board</div></div>
+          <div class="exam-card" style="border-color:var(--purple)" onclick="pickExam('CTET')"><div class="exam-emblem">📘</div><div class="exam-code">CTET</div><div class="exam-sub">Central Teacher Eligibility Test</div></div>
+          <div class="exam-card" style="border-color:var(--green)" onclick="pickExam('UGC NET')"><div class="exam-emblem">☸️</div><div class="exam-code">UGC NET</div><div class="exam-sub">National Eligibility Test</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="split-card" onclick="resumeOrStart()">
+            <div class="ring-wrap" style="background:rgba(14,165,233,0.2);border:2px solid var(--sky);font-size:24px;">⏱️</div>
+            <div>
+              <div style="font-size:13px;font-weight:800;">${state.resumeState ? "Resume Test!" : "Time Matters!"}</div>
+              <div style="font-size:10px;color:#CBD5E1;margin-top:2px;">${state.resumeState ? `बचा समय: ${formatMMSS(state.resumeState.remainingSec)}` : "Practice Regularly & Boost Score"}</div>
+              <span class="btn-mini">${state.resumeState ? "Resume ➔" : "Start Now ➔"}</span>
+            </div>
+          </div>
+          <div class="split-card sky" onclick="goScreen('SOLUTIONS')">
+            <div class="ring-wrap" style="background:conic-gradient(var(--cyan) ${avgPct * 3.6}deg, #1E293B 0deg);"><div style="width:42px;height:42px;border-radius:50%;background:#091534;display:flex;align-items:center;justify-content:center;">${avgPct}%</div></div>
+            <div>
+              <div style="font-size:13px;font-weight:800;">Your Progress</div>
+              <div style="font-size:11px;color:#CBD5E1;margin-top:2px;">${completedCount} / ${totalTests} Tests</div>
+              <span class="btn-mini sky">View Details ➔</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-head">
+          <div class="sec-title"><span class="sec-bar" style="background:var(--sky)"></span>${state.selectedExam} Subject Folders</div>
+          <div style="font-size:12px;color:var(--muted)">${subEntries.length} Folders</div>
+        </div>
+        ${subEntries.length === 0 ? `<div class="card-box" style="text-align:center;color:var(--muted);font-size:12.5px;">इस परीक्षा के लिए कोई फोल्डर नहीं मिला। ऊपर 🔔 पर टैप करें।</div>` :
+          subEntries.map(([subName, list]) => {
+            const done = list.filter(q => state.attemptsMap[q.id]).length;
+            return `
+              <div class="card-box folder-row" onclick="openSubject('${subName.replace(/'/g, "\\'")}')">
+                <div class="folder-icon">📁</div>
+                <div style="flex:1;">
+                  <div style="font-size:15px;font-weight:800;">${escHtml(subName)}</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px;">${list.length} मॉक टेस्ट • ${done} पूर्ण (Completed)</div>
+                </div>
+                <span class="btn-primary" style="padding:6px 12px;font-size:11px;">खोलें ➔</span>
+              </div>`;
+          }).join("")}
+        ${bottomNavHtml(0)}`;
+    }
+
+    function renderMyTests() {
+      const exams = ["RPSC", "RSSB", "CTET", "UGC NET"];
+      const subMap = getExamSubjectsMap(state.selectedExam);
+      const subNames = Object.keys(subMap);
+      const shownSubs = (state.subjectFilterChip === "ALL" || !subMap[state.subjectFilterChip])
+        ? Object.entries(subMap)
+        : [[state.subjectFilterChip, subMap[state.subjectFilterChip]]];
+      const totalExamTests = Object.values(subMap).reduce((s, arr) => s + arr.length, 0);
+
+      return `
+        ${headerHtml()}
+        <div class="card-box" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div>
+            <div style="font-size:10.5px;color:var(--muted);font-weight:700;">Selected Exam</div>
+            <div style="font-size:18px;font-weight:900;">${state.selectedExam}</div>
+          </div>
+          <select class="input" style="width:auto;padding:7px 12px;font-weight:800;border-color:var(--cyan);" onchange="pickExam(this.value)">
+            ${exams.map(e => `<option value="${e}" ${state.selectedExam === e ? "selected" : ""}>⇄ ${e}</option>`).join("")}
+          </select>
+        </div>
+
+        <div class="hero-banner" style="padding:14px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:20px;font-weight:900;">My Tests</div>
+            <div style="font-size:11.5px;color:#E2E8F0;">Subject-wise Test Series for ${state.selectedExam}</div>
+          </div>
+          <div style="background:rgba(8,20,44,0.92);border:1px solid var(--sky);border-radius:12px;padding:7px 12px;text-align:center;">
+            <div style="font-size:9.5px;color:#CBD5E1;">Total Tests</div>
+            <div style="font-size:17px;font-weight:900;color:var(--cyan);">${totalExamTests}</div>
+          </div>
+        </div>
+
+        <div class="chip-row">
+          <div class="chip ${state.subjectFilterChip === "ALL" ? "active" : ""}" onclick="setSubjectChip('ALL')">📖 All Subjects</div>
+          ${subNames.map(s => `<div class="chip ${state.subjectFilterChip === s ? "active" : ""}" onclick="setSubjectChip('${s.replace(/'/g, "\\'")}')">🌐 ${escHtml(s)}</div>`).join("")}
+          <div class="chip" onclick="goScreen('CUSTOM_BUILDER')">➕ Custom Test</div>
+        </div>
+
+        ${shownSubs.length === 0 ? `<div class="card-box" style="text-align:center;color:var(--muted);">इस परीक्षा के कोई टेस्ट उपलब्ध नहीं हैं।</div>` :
+          shownSubs.map(([subName, list]) => {
+            const done = list.filter(q => state.attemptsMap[q.id]).length;
+            const pct = list.length ? Math.round((done / list.length) * 100) : 0;
+            const totalQs = list.reduce((s, q) => s + q.questionCount, 0);
+            const firstPending = list.find(q => !state.attemptsMap[q.id]) || list[0];
+            return `
+              <div class="card-box" style="display:flex;align-items:center;gap:10px;">
+                <div class="ring-wrap" style="background:conic-gradient(var(--cyan) ${Math.max(pct, 5) * 3.6}deg, #1E293B 0deg);"><div style="width:42px;height:42px;border-radius:50%;background:#0B1636;display:flex;align-items:center;justify-content:center;">${pct}%</div></div>
+                <div style="flex:1;min-width:0;" onclick="openSubject('${subName.replace(/'/g, "\\'")}')">
+                  <div style="font-size:15px;font-weight:800;">${escHtml(subName)}</div>
+                  <div style="font-size:11px;color:var(--muted);">${list.length} Tests | ${totalQs} Questions</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                  <button class="btn-primary" style="padding:6px 10px;font-size:11px;" onclick="launchById('${firstPending.id}')">▶ Start Test</button>
+                  <button class="btn-outline" style="padding:5px 10px;font-size:11px;" onclick="openSubject('${subName.replace(/'/g, "\\'")}')">View Details</button>
+                </div>
+              </div>`;
+          }).join("")}
+        ${bottomNavHtml(1)}`;
+    }
+
+    function renderSubjectTests() {
+      const list = getExamSubjectsMap(state.selectedExam)[state.selectedSubject] || [];
+      return `
+        <div class="test-topbar">
+          <button class="btn-outline" style="padding:6px 10px;" onclick="goScreen('MY_TESTS')">← Back</button>
+          <div style="flex:1;margin-left:10px;">
+            <div style="font-size:15px;font-weight:900;">${escHtml(state.selectedSubject)}</div>
+            <div style="font-size:11px;color:var(--muted);">${state.selectedExam} • ${list.length} Tests (Unit 1 से आगे)</div>
+          </div>
+        </div>
+        ${list.map((q, idx) => {
+          const atts = state.attemptsMap[q.id] || [];
+          const latest = atts[atts.length - 1];
+          return `
+            <div class="card-box">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div>
+                  <div style="font-size:14.5px;font-weight:800;">${idx + 1}. ${escHtml(q.title)}</div>
+                  <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${q.questionCount} Questions • ${q.timeMinutes} Min • +${q.marksPerCorrect}/-${q.negativeMark}</div>
+                </div>
+                ${atts.length ? `<span class="pill-rose" style="background:var(--green);margin:0;">${atts.length}x Done</span>` : ""}
+              </div>
+              ${latest ? `
+                <div style="margin-top:8px;padding:8px;border-radius:10px;background:#08112B;font-size:12px;">
+                  <strong style="color:var(--gold);">नवीनतम (Attempt ${latest.attemptNumber}):</strong> ${latest.obtainedMarks.toFixed(2)} / ${latest.maxMarks.toFixed(2)} (${latest.percentage.toFixed(1)}%)
+                </div>` : ""}
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                ${latest ? `<button class="btn-sky" style="flex:1;" onclick="openSavedByQuizId('${q.id}', ${atts.length - 1})">📊 Result</button>` : ""}
+                <button class="btn-primary" style="flex:1;" onclick="launchById('${q.id}')">${latest ? "🔄 Re-Test" : "▶ Start Test"}</button>
+              </div>
+            </div>`;
+        }).join("")}`;
+    }
+
+    function renderSolutions() {
+      const allAtts = getAllAttemptsSorted();
+      return `
+        ${headerHtml()}
+        <div class="hero-banner" style="padding:14px;">
+          <div style="font-size:20px;font-weight:900;">Solutions & <span style="color:var(--cyan);">PDF</span></div>
+          <div style="font-size:11.5px;color:#E2E8F0;">Get Complete Solutions and Download / Print 2-Column A4 PDF</div>
+        </div>
+        <div class="chip-row">
+          <div class="chip ${state.solutionsTab === "SUBMISSIONS" ? "active" : ""}" onclick="setSolutionsTab('SUBMISSIONS')">✔ My Submissions (${allAtts.length})</div>
+          <div class="chip ${state.solutionsTab === "ALL" ? "active" : ""}" onclick="setSolutionsTab('ALL')">🕒 All Tests (${state.onlineQuizzes.length})</div>
+        </div>
+        ${state.solutionsTab === "SUBMISSIONS" ? (
+          allAtts.length === 0
+            ? `<div class="card-box" style="text-align:center;color:var(--muted);padding:24px;">अभी तक कोई सबमिट किया गया टेस्ट नहीं है।</div>`
+            : allAtts.map((att, idx) => `
+              <div class="card-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span class="pill-rose" style="margin:0;">${normalizeExamCode(att.config.examName)}</span>
+                  <span style="font-size:11px;color:var(--green);font-weight:800;">✔ Attempt ${att.attemptNumber} • ${att.completedDate}</span>
+                </div>
+                <div style="font-size:14.5px;font-weight:800;">${escHtml(att.config.title)}</div>
+                <div style="font-size:12px;color:var(--cyan);font-weight:800;margin:4px 0 8px;">Score: ${att.percentage.toFixed(1)}% &nbsp;|&nbsp; Marks: ${att.obtainedMarks.toFixed(2)} / ${att.maxMarks.toFixed(2)}</div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn-sky" style="flex:1;" onclick="openSavedFromAll(${idx})">📊 View Solutions</button>
+                  <button class="btn-primary" style="flex:1;" onclick="printSavedFromAll(${idx})">🖨️ Print / Save PDF</button>
+                </div>
+              </div>`).join("")
+        ) : state.onlineQuizzes.map(q => `
+          <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div>
+              <div style="font-size:13.5px;font-weight:800;">[${q.examName}] ${escHtml(q.title)}</div>
+              <div style="font-size:11px;color:var(--muted);">${escHtml(q.subject)} • ${q.questionCount} Qs • ${q.timeMinutes} Min</div>
+            </div>
+            <button class="btn-primary" style="padding:7px 12px;font-size:11.5px;" onclick="launchById('${q.id}')">▶ Start</button>
+          </div>`).join("")}
+        ${bottomNavHtml(2)}`;
+    }
+
+    function renderSettings() {
+      const p = state.profile || { name: "Student", targetExam: "RPSC", districtOrCity: "Rajasthan", avatarEmoji: "🎓" };
+      const allAtts = getAllAttemptsSorted();
+      const totalC = allAtts.reduce((s, a) => s + (a.correctCount || 0), 0);
+      const totalW = allAtts.reduce((s, a) => s + (a.wrongCount || 0), 0);
+      const totalS = allAtts.reduce((s, a) => s + (a.skippedCount || 0), 0);
+      const avg = allAtts.length ? (allAtts.reduce((s, a) => s + a.percentage, 0) / allAtts.length).toFixed(1) : "0.0";
+      return `
+        ${headerHtml()}
+        <div class="card-box" style="display:flex;align-items:center;gap:12px;">
+          <div class="icon-btn circle-btn" style="width:58px;height:58px;font-size:28px;border:2px solid var(--rose);">${p.avatarEmoji}</div>
+          <div style="flex:1;">
+            <div style="font-size:16px;font-weight:900;">${escHtml(p.name)}</div>
+            <div style="font-size:11.5px;color:var(--muted);">${escHtml(p.districtOrCity)} • ${normalizeExamCode(p.targetExam)}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:10px;color:var(--muted);">Overall</div>
+            <div style="font-size:17px;font-weight:900;color:var(--cyan);">${avg}%</div>
+          </div>
+        </div>
+        <div class="card-box">
+          <div style="font-size:14px;font-weight:800;margin-bottom:8px;">📊 Your Progress (${allAtts.length} Attempts)</div>
+          <div style="display:flex;justify-content:space-around;text-align:center;">
+            <div><div style="font-size:16px;font-weight:900;color:var(--green);">${totalC}</div><div style="font-size:11px;color:var(--muted);">Correct</div></div>
+            <div><div style="font-size:16px;font-weight:900;color:var(--red);">${totalW}</div><div style="font-size:11px;color:var(--muted);">Wrong</div></div>
+            <div><div style="font-size:16px;font-weight:900;color:var(--purple);">${totalS}</div><div style="font-size:11px;color:var(--muted);">Skipped</div></div>
+          </div>
+        </div>
+        <div class="card-box" style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn-outline" style="text-align:left;" onclick="goScreen('PROFILE_SETUP')">👤 Edit Profile (नाम व Exam बदलें)</button>
+          <button class="btn-outline" style="text-align:left;" onclick="goScreen('CUSTOM_BUILDER')">📝 Custom Quiz Builder (.txt अपलोड)</button>
+          <button class="btn-outline" style="text-align:left;border-color:var(--red);color:var(--red);" onclick="clearAllData()">🗑️ Clear All Saved Scores & Cache</button>
+        </div>
+        ${bottomNavHtml(3)}`;
+    }
+
+    function renderCustomBuilder() {
+      const cfg = loadJson(LS_CUSTOM_CFG, { examName: state.selectedExam, subject: "General", title: "Custom Mock Test", timeMinutes: 60, marksPerCorrect: 2.0, negativeMark: 0.0 });
+      return `
+        <div class="test-topbar">
+          <button class="btn-outline" style="padding:6px 10px;" onclick="goScreen('HOME')">← Back</button>
+          <div style="font-size:15px;font-weight:900;">⚙️ Custom Quiz Builder</div>
+          <div></div>
+        </div>
+        <div class="card-box">
+          <label class="field-label">Exam Name</label>
+          <select id="cust-exam" class="input">
+            ${["RPSC", "RSSB", "CTET", "UGC NET"].map(e => `<option value="${e}" ${cfg.examName === e ? "selected" : ""}>${e}</option>`).join("")}
+          </select>
+          <label class="field-label">Subject</label>
+          <input id="cust-sub" class="input" value="${escHtml(cfg.subject).replace(/<br>/g, "")}" />
+          <label class="field-label">Test Title</label>
+          <input id="cust-title" class="input" value="${escHtml(cfg.title).replace(/<br>/g, "")}" />
+          <div class="grid-4" style="grid-template-columns:1fr 1fr 1fr;margin-top:6px;">
+            <div><label class="field-label">Time (Min)</label><input id="cust-time" type="number" class="input" value="${cfg.timeMinutes}" /></div>
+            <div><label class="field-label">Marks</label><input id="cust-marks" type="number" step="0.1" class="input" value="${cfg.marksPerCorrect}" /></div>
+            <div><label class="field-label">Negative</label><input id="cust-neg" type="number" step="0.01" class="input" value="${cfg.negativeMark}" /></div>
+          </div>
+          <label class="field-label">.TXT फाइल चुनें या नीचे प्रश्न पेस्ट करें:</label>
+          <input type="file" accept=".txt,text/plain" class="input" style="margin-bottom:8px;" onchange="handleCustomTxtFile(event)" />
+          <textarea id="cust-raw" class="input" placeholder="TOPIC: विषय...\nQ: 1. प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या..."></textarea>
+          <button class="btn-primary" style="width:100%;margin-top:14px;padding:12px;" onclick="startCustomQuizFromForm()">▶ Save & Start Custom Test</button>
+        </div>`;
+    }
+
+    function renderTestScreen() {
+      const t = state.activeTest;
+      const q = t.questions[t.currentQ];
+      const letters = ["A", "B", "C", "D", "E"];
+      const ansCount = t.answers.filter(a => a !== null).length;
+      const isRev = t.review[t.currentQ];
+      return `
+        <div class="test-topbar">
+          <button class="btn-outline" style="padding:5px 10px;" onclick="pauseAndExitTest()">← Pause</button>
+          <div style="text-align:center;flex:1;padding:0 6px;overflow:hidden;">
+            <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(t.config.title)}</div>
+            <div style="font-size:10.5px;color:var(--muted);">Q ${t.currentQ + 1}/${t.questions.length} • Solved: ${ansCount}</div>
+          </div>
+          <div id="live-timer-text" class="timer-pill">${formatMMSS(t.remainingSec)}</div>
+        </div>
+
+        <div class="card-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span class="pill-rose" style="margin:0;">${escHtml(q.topic)}</span>
+            <span style="font-size:12px;font-weight:800;cursor:pointer;color:${isRev ? "var(--gold)" : "var(--muted)"}" onclick="toggleReview()">${isRev ? "🔖 Marked Review" : "🔖 Mark Review"}</span>
+          </div>
+          <div style="font-size:15.5px;font-weight:700;line-height:1.5;margin-bottom:14px;">Q${t.currentQ + 1}. ${escHtml(q.text)}</div>
+          ${q.options.map((opt, idx) => `
+            <div class="opt-card ${t.answers[t.currentQ] === idx ? "selected" : ""}" onclick="selectOption(${idx})">
+              <div class="opt-badge">${letters[idx] || idx + 1}</div>
+              <div style="font-size:14px;line-height:1.4;">${escHtml(opt)}</div>
+            </div>`).join("")}
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn-outline" style="flex:1;" onclick="prevQ()" ${t.currentQ === 0 ? "disabled" : ""}>← Prev</button>
+          <button class="btn-sky" style="flex:1;" onclick="openModal('PALETTE')">☷ Grid</button>
+          <button class="btn-primary" style="flex:1;" onclick="${t.currentQ < t.questions.length - 1 ? "nextQ()" : "confirmSubmit()"}">${t.currentQ < t.questions.length - 1 ? "Next →" : "✅ Submit"}</button>
+        </div>`;
+    }
+
+    function renderResultScreen() {
+      const r = state.resultData;
+      const letters = ["A", "B", "C", "D", "E"];
+      let correct = 0, wrong = 0, skipped = 0;
+      r.questions.forEach((q, i) => {
+        const a = r.answers[i];
+        if (a === null || a === undefined) skipped++;
+        else if (a === q.correctAnswer) correct++;
+        else wrong++;
+      });
+      const obtained = correct * r.config.marksPerCorrect - wrong * r.config.negativeMark;
+      const maxM = r.questions.length * r.config.marksPerCorrect;
+      const pct = maxM > 0 ? Math.max(0, Math.min(100, (obtained / maxM) * 100)) : 0;
+      return `
+        <div class="test-topbar">
+          <button class="btn-outline" style="padding:5px 10px;" onclick="goScreen(state.prevScreen || 'HOME')">← Back</button>
+          <div style="font-size:15px;font-weight:900;">EXAM RESULT</div>
+          <button class="btn-sky" style="padding:6px 10px;font-size:11.5px;" onclick="printActiveResult()">🖨️ PDF</button>
+        </div>
+
+        <div class="card-box" style="text-align:center;">
+          <div style="font-size:13px;color:var(--muted);">${escHtml(state.profile?.name || "Student")} | ${escHtml(r.config.title)}</div>
+          <div style="font-size:28px;font-weight:900;color:var(--gold);margin:6px 0;">${obtained.toFixed(2)} / ${maxM.toFixed(2)}</div>
+          <div style="font-size:14px;font-weight:800;color:var(--cyan);">Percentage: ${pct.toFixed(2)}%</div>
+          <div style="display:flex;justify-content:space-around;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+            <div><strong style="color:var(--green);">${correct}</strong><div style="font-size:11px;color:var(--muted);">Correct</div></div>
+            <div><strong style="color:var(--red);">${wrong}</strong><div style="font-size:11px;color:var(--muted);">Wrong</div></div>
+            <div><strong style="color:var(--purple);">${skipped}</strong><div style="font-size:11px;color:var(--muted);">Skipped</div></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button class="btn-sky" style="flex:1;" onclick="printActiveResult()">🖨️ Save / Print 2-Col PDF</button>
+            <button class="btn-primary" style="flex:1;" onclick="retakeActiveResult()">🔄 Re-Test</button>
+          </div>
+        </div>
+
+        ${r.questions.map((q, idx) => {
+          const uAns = r.answers[idx];
+          const isRight = uAns === q.correctAnswer;
+          return `
+            <div class="card-box">
+              <div style="font-size:11px;color:var(--rose);font-weight:800;margin-bottom:4px;">Q${idx + 1} • ${escHtml(q.topic)}</div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:8px;">${escHtml(q.text)}</div>
+              <div style="font-size:12px;margin-bottom:3px;"><strong>आपका उत्तर:</strong> <span style="color:${isRight ? "var(--green)" : "var(--red)"}">${(uAns !== null && uAns !== undefined) ? `(${letters[uAns]}) ${escHtml(q.options[uAns])}` : "छोड़ा गया (Skipped)"}</span></div>
+              <div style="font-size:12px;margin-bottom:6px;"><strong>सही उत्तर:</strong> <span style="color:var(--green)">(${letters[q.correctAnswer]}) ${escHtml(q.options[q.correctAnswer])}</span></div>
+              <div style="font-size:12px;background:#08112B;border-left:3px solid var(--rose);padding:8px;border-radius:6px;color:#E2E8F0;"><strong>व्याख्या:</strong> ${escHtml(q.solution)}</div>
+            </div>`;
+        }).join("")}`;
+    }
+
+    function renderModal() {
+      if (!state.modal) return "";
+      if (state.modal === "PALETTE" && state.activeTest) {
+        const t = state.activeTest;
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:16px;font-weight:800;">Question Palette</div>
+              <div style="font-size:11px;color:var(--muted);">हरा: उत्तर | पीला: Review | लाल: वर्तमान</div>
+              <div class="palette-grid">
+                ${t.questions.map((_, i) => {
+                  const cls = i === t.currentQ ? "cur" : t.review[i] ? "rev" : (t.answers[i] !== null ? "ans" : "");
+                  return `<button class="pal-btn ${cls}" onclick="jumpToQ(${i})">${i + 1}</button>`;
+                }).join("")}
+              </div>
+              <button class="btn-primary" style="width:100%;background:var(--green);" onclick="confirmSubmit()">✅ Submit Exam</button>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "PERFORMANCE") {
+        const all = getAllAttemptsSorted();
+        const avg = all.length ? (all.reduce((s, a) => s + a.percentage, 0) / all.length).toFixed(2) : "0.00";
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:10px;">📈 Performance Summary</div>
+              <div style="font-size:13px;line-height:1.8;">
+                <div>👤 <strong>छात्र:</strong> ${escHtml(state.profile?.name || "Student")}</div>
+                <div>🎯 <strong>लक्ष्य:</strong> ${state.selectedExam}</div>
+                <div>🔄 <strong>कुल Attempts:</strong> ${all.length}</div>
+                <div style="color:var(--gold);font-weight:800;">📊 औसत स्कोर: ${avg}%</div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:14px;">
+                <button class="btn-primary" style="flex:1;" onclick="goScreen('SOLUTIONS')">सभी रिजल्ट देखें</button>
+                <button class="btn-outline" onclick="closeModal()">बंद करें</button>
+              </div>
+            </div>
+          </div>`;
+      }
+      return "";
+    }
+
+    function render() {
+      const root = document.getElementById("app");
+      let html = "";
+      switch (state.screen) {
+        case "PROFILE_SETUP": html = renderProfileSetup(); break;
+        case "HOME": html = renderHome(); break;
+        case "MY_TESTS": html = renderMyTests(); break;
+        case "SUBJECT_TESTS": html = renderSubjectTests(); break;
+        case "SOLUTIONS": html = renderSolutions(); break;
+        case "SETTINGS": html = renderSettings(); break;
+        case "CUSTOM_BUILDER": html = renderCustomBuilder(); break;
+        case "TEST": html = renderTestScreen(); break;
+        case "RESULT": html = renderResultScreen(); break;
+      }
+      root.innerHTML = html + renderModal();
+    }
+
+    // ==================== 8. ACTION HANDLERS ====================
+    window.selectAvatar = (emoji) => {
+      if (!state.profile) state.profile = { name: "", districtOrCity: "Rajasthan", targetExam: "RPSC (Rajasthan Public Service Commission)", avatarEmoji: emoji };
+      else state.profile.avatarEmoji = emoji;
+      render();
+    };
+    window.saveProfileForm = () => {
+      const name = document.getElementById("prof-name").value.trim();
+      const city = document.getElementById("prof-city").value.trim() || "Rajasthan";
+      const exam = document.getElementById("prof-exam").value;
+      if (!name) { alert("कृपया अपना नाम लिखें!"); return; }
+      const avatar = state.profile?.avatarEmoji || "🎓";
+      state.profile = { name, districtOrCity: city, targetExam: exam, avatarEmoji: avatar };
+      saveJson(LS_PROFILE, state.profile);
+      state.selectedExam = normalizeExamCode(exam);
+      goScreen("HOME");
+    };
+    window.pickExam = (code) => {
+      state.selectedExam = normalizeExamCode(code);
+      state.subjectFilterChip = "ALL";
+      goScreen("MY_TESTS");
+    };
+    window.openSubject = (subName) => {
+      state.selectedSubject = subName;
+      goScreen("SUBJECT_TESTS");
+    };
+    window.setSubjectChip = (chip) => {
+      state.subjectFilterChip = chip;
+      render();
+    };
+    window.setSolutionsTab = (tab) => {
+      state.solutionsTab = tab;
+      render();
+    };
+    window.launchById = (id) => {
+      const meta = state.onlineQuizzes.find(q => q.id === id);
+      if (meta) launchOnlineQuiz(meta);
+    };
+    window.resumeOrStart = () => {
+      if (state.resumeState) {
+        const r = state.resumeState;
+        const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + r.config.id + "_plain");
+        if (plain) {
+          const qs = parseQuizTxt(plain).questions;
+          if (qs.length) {
+            state.prevScreen = "HOME";
+            state.activeTest = { config: r.config, questions: qs, rawTxt: plain, currentQ: r.currentQ || 0, answers: r.answers, review: r.review, remainingSec: Math.max(1, r.remainingSec) };
+            state.screen = "TEST";
+            startTimer();
+            render();
+            return;
+          }
+        }
+      }
+      goScreen("MY_TESTS");
+    };
+    window.selectOption = (idx) => { state.activeTest.answers[state.activeTest.currentQ] = idx; persistResume(); render(); };
+    window.toggleReview = () => { state.activeTest.review[state.activeTest.currentQ] = !state.activeTest.review[state.activeTest.currentQ]; persistResume(); render(); };
+    window.prevQ = () => { if (state.activeTest.currentQ > 0) { state.activeTest.currentQ--; persistResume(); render(); } };
+    window.nextQ = () => { if (state.activeTest.currentQ < state.activeTest.questions.length - 1) { state.activeTest.currentQ++; persistResume(); render(); } };
+    window.jumpToQ = (i) => { state.activeTest.currentQ = i; state.modal = null; persistResume(); render(); };
+    window.pauseAndExitTest = () => { persistResume(); stopTimer(); goScreen(state.prevScreen || "HOME"); };
+    window.confirmSubmit = () => { if (confirm("क्या आप वाकई परीक्षा सबमिट करना चाहते हैं?")) finishExam(); };
+    window.openModal = (m) => { state.modal = m; render(); };
+    window.closeModal = () => { state.modal = null; render(); };
+    window.openSavedByQuizId = (quizId, idx) => { const att = (state.attemptsMap[quizId] || [])[idx]; if (att) openSavedAttempt(att); };
+    window.openSavedFromAll = (idx) => { const att = getAllAttemptsSorted()[idx]; if (att) openSavedAttempt(att); };
+    window.printSavedFromAll = (idx) => {
+      const att = getAllAttemptsSorted()[idx];
+      if (!att) return;
+      const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + att.config.id + "_plain");
+      if (!plain) { alert("PDF के लिए प्रश्न कैश में उपलब्ध नहीं हैं, कृपया एक बार टेस्ट खोलें।"); return; }
+      const qs = parseQuizTxt(plain).questions;
+      if (qs.length) printTwoColumnPdf(att.config, qs, att.answers);
+    };
+    window.printActiveResult = () => {
+      if (state.resultData) printTwoColumnPdf(state.resultData.config, state.resultData.questions, state.resultData.answers);
+    };
+    window.retakeActiveResult = () => {
+      const r = state.resultData;
+      if (!r) return;
+      const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + r.config.id + "_plain") || "";
+      startExamSession(r.config, r.questions, plain);
+    };
+    window.handleCustomTxtFile = (ev) => {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { document.getElementById("cust-raw").value = reader.result || ""; };
+      reader.readAsText(file, "UTF-8");
+    };
+    window.startCustomQuizFromForm = () => {
+      const examName = document.getElementById("cust-exam").value;
+      const subject = document.getElementById("cust-sub").value.trim() || "General";
+      const title = document.getElementById("cust-title").value.trim() || "Custom Mock Test";
+      const timeMinutes = parseInt(document.getElementById("cust-time").value, 10) || 60;
+      const marksPerCorrect = parseFloat(document.getElementById("cust-marks").value) || 2.0;
+      const negativeMark = parseFloat(document.getElementById("cust-neg").value) || 0.0;
+      const rawTxt = document.getElementById("cust-raw").value;
+      const res = parseQuizTxt(rawTxt);
+      if (!res.questions.length) { alert("कृपया सही प्रश्नों और ANS: वाला टेक्स्ट या .txt फाइल डालें!"); return; }
+      const cfg = { id: "custom_" + Math.abs(rawTxt.split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0)), title, examName, subject, timeMinutes, marksPerCorrect, negativeMark };
+      saveJson(LS_CUSTOM_CFG, cfg);
+      startExamSession(cfg, res.questions, rawTxt);
+    };
+    window.clearAllData = () => {
+      if (confirm("क्या आप वाकई ब्राउज़र से सभी स्कोर और कैश हटाना चाहते हैं?")) {
+        localStorage.clear();
+        state.attemptsMap = {};
+        state.resumeState = null;
+        state.profile = null;
+        goScreen("PROFILE_SETUP");
+      }
+    };
+
+    // Init
+    render();
+    fetchOnlineQuizzes();
+  </script>
+</body>
+</html>
