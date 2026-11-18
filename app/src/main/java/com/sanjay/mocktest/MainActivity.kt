@@ -572,12 +572,12 @@ object ProfileAndHistoryStorage {
     }
 
     // Cache question text in filesDir/quiz_cache/<id>.enc so SharedPreferences stays tiny and fast!
-    fun saveQuizTextToCache(context: Context, quizId: String, plainTxt: String) {
+    fun saveQuizTextToCache(context: Context, quizId: String, plainTxt: String, forceOverwrite: Boolean = false) {
         if (plainTxt.isBlank()) return
         try {
             val cacheDir = File(context.filesDir, "quiz_cache").apply { mkdirs() }
             val cacheFile = File(cacheDir, "$quizId.enc")
-            if (!cacheFile.exists() || quizId == "custom") {
+            if (forceOverwrite || !cacheFile.exists() || quizId == "custom") {
                 cacheFile.writeText(QuizCrypto.encrypt(plainTxt), Charsets.UTF_8)
             }
         } catch (_: Throwable) {
@@ -865,6 +865,54 @@ object GitHubCloudService {
         }
     }
 
+    // Ensure every legacy entry in index.json explicitly has "examName" and "repoPath" populated
+    private fun normalizeIndexEntryJson(obj: JSONObject): JSONObject {
+        val rawSubject = obj.optString("subject", "").trim()
+        val rawTitle = obj.optString("title", "Mock Test").trim()
+        val rawExam = obj.optString("examName", "").trim()
+        val resolvedExam = when {
+            rawExam.isNotEmpty() -> normalizeExamCode(rawExam)
+            rawSubject.contains("CTET", ignoreCase = true) || rawTitle.contains("CTET", ignoreCase = true) -> "CTET"
+            else -> "RPSC"
+        }
+        obj.put("examName", resolvedExam)
+        if (rawSubject.isNotEmpty()) {
+            obj.put("subject", rawSubject)
+        }
+        val fileUrl = obj.optString("fileUrl", "")
+        val repoPath = obj.optString("repoPath", "")
+        if (repoPath.isBlank() && fileUrl.contains("/$GITHUB_BRANCH/")) {
+            obj.put("repoPath", fileUrl.substringAfter("/$GITHUB_BRANCH/"))
+        }
+        return obj
+    }
+
+    suspend fun normalizeAllIndexEntriesOnGitHub(token: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val indexPath = "quizzes/index.json"
+            val existingIndex = getFileFromGitHub(token, indexPath)
+                ?: return@withContext Result.failure(Exception("index.json नहीं मिला"))
+
+            val currentArray = JSONArray(existingIndex.first)
+            val updatedArray = JSONArray()
+            for (i in 0 until currentArray.length()) {
+                val obj = normalizeIndexEntryJson(currentArray.getJSONObject(i))
+                updatedArray.put(obj)
+            }
+
+            putFileToGitHub(
+                token = token,
+                path = indexPath,
+                content = updatedArray.toString(2),
+                commitMsg = "Normalize examName and repoPath across all index.json entries",
+                sha = existingIndex.second
+            )
+            Result.success("index.json के सभी ${updatedArray.length()} टेस्टों में examName और फोल्डर डेटा अपडेट हो गया!")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun publishEncryptedQuizToGitHub(
         token: String,
         title: String,
@@ -878,7 +926,8 @@ object GitHubCloudService {
         questionCount: Int
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val safeExam = examName.trim()
+            val cleanExam = normalizeExamCode(examName.trim().ifEmpty { "RPSC" })
+            val safeExam = cleanExam
                 .lowercase(Locale.ENGLISH)
                 .replace(Regex("[^a-z0-9]+"), "_")
                 .trim('_')
@@ -897,7 +946,7 @@ object GitHubCloudService {
                 token = token,
                 path = encPath,
                 content = encryptedPayload,
-                commitMsg = "Publish encrypted [$subject] quiz: $title"
+                commitMsg = "Publish encrypted [$cleanExam - $subject] quiz: $title"
             )
 
             val indexPath = "quizzes/index.json"
@@ -911,7 +960,7 @@ object GitHubCloudService {
                 put("id", fileId)
                 put("title", title)
                 put("subtitle", subtitle)
-                put("examName", examName.trim().ifEmpty { "RPSC" })
+                put("examName", cleanExam)
                 put("subject", subject.trim().ifEmpty { "General Tests" })
                 put("timeMinutes", timeMinutes)
                 put("marksPerCorrect", marks)
@@ -922,10 +971,10 @@ object GitHubCloudService {
                 put("publishedDate", today)
             }
 
-            // Append new test after existing tests so Unit 1 remains at the top and new units follow in order
+            // Append new test after existing tests (and normalize legacy entries automatically)
             val updatedArray = JSONArray()
             for (i in 0 until currentArray.length()) {
-                updatedArray.put(currentArray.getJSONObject(i))
+                updatedArray.put(normalizeIndexEntryJson(currentArray.getJSONObject(i)))
             }
             updatedArray.put(newEntry)
 
@@ -933,11 +982,123 @@ object GitHubCloudService {
                 token = token,
                 path = indexPath,
                 content = updatedArray.toString(2),
-                commitMsg = "Update index.json: $subject - $title",
+                commitMsg = "Update index.json: $cleanExam - $subject - $title",
                 sha = existingFile?.second
             )
 
-            Result.success("टेस्ट [$examName ➔ $subject] फोल्डर में पब्लिश हो गया!")
+            Result.success("टेस्ट [$cleanExam ➔ $subject] फोल्डर में पब्लिश हो गया!")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateExistingQuizOnGitHub(
+        context: Context,
+        token: String,
+        existingQuiz: OnlineQuizMeta,
+        title: String,
+        subtitle: String,
+        examName: String,
+        subject: String,
+        timeMinutes: Int,
+        marks: Double,
+        neg: Double,
+        rawTxtContent: String,
+        questionCount: Int
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val cleanExam = normalizeExamCode(examName.trim().ifEmpty { "RPSC" })
+            val cleanSubject = subject.trim().ifEmpty { "General Tests" }
+            val safeExam = cleanExam
+                .lowercase(Locale.ENGLISH)
+                .replace(Regex("[^a-z0-9]+"), "_")
+                .trim('_')
+                .ifEmpty { "rpsc" }
+            val safeFolder = cleanSubject
+                .lowercase(Locale.ENGLISH)
+                .replace(Regex("[^a-z0-9]+"), "_")
+                .trim('_')
+                .ifEmpty { "general" }
+
+            val sameFolder = normalizeExamCode(existingQuiz.examName).equals(cleanExam, ignoreCase = true) &&
+                existingQuiz.subject.trim().equals(cleanSubject, ignoreCase = true)
+
+            val targetEncPath = if (sameFolder && existingQuiz.repoPath.isNotBlank()) {
+                existingQuiz.repoPath
+            } else {
+                "quizzes/$safeExam/$safeFolder/${existingQuiz.id}.enc"
+            }
+
+            val existingQuizFile = getFileFromGitHub(token, targetEncPath)
+            val encryptedPayload = QuizCrypto.encrypt(rawTxtContent)
+
+            putFileToGitHub(
+                token = token,
+                path = targetEncPath,
+                content = encryptedPayload,
+                commitMsg = "Update quiz [${existingQuiz.id}]: $title",
+                sha = existingQuizFile?.second
+            )
+
+            // If folder changed, remove old encrypted file path so no duplicate orphan file stays behind
+            if (existingQuiz.repoPath.isNotBlank() && existingQuiz.repoPath != targetEncPath) {
+                try {
+                    deleteFileFromGitHub(token, existingQuiz.repoPath, "Move quiz ${existingQuiz.id} to $targetEncPath")
+                } catch (_: Throwable) {
+                }
+            }
+
+            // Update local cache immediately so student/teacher device sees the edited questions right away
+            ProfileAndHistoryStorage.saveQuizTextToCache(context, existingQuiz.id, rawTxtContent, forceOverwrite = true)
+
+            val indexPath = "quizzes/index.json"
+            val existingIndex = getFileFromGitHub(token, indexPath)
+                ?: return@withContext Result.failure(Exception("index.json नहीं मिला"))
+
+            val rawFileUrl = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/$targetEncPath"
+            val currentArray = JSONArray(existingIndex.first)
+            val updatedArray = JSONArray()
+            var foundInIndex = false
+
+            val updatedEntry = JSONObject().apply {
+                put("id", existingQuiz.id)
+                put("title", title)
+                put("subtitle", subtitle)
+                put("examName", cleanExam)
+                put("subject", cleanSubject)
+                put("timeMinutes", timeMinutes)
+                put("marksPerCorrect", marks)
+                put("negativeMark", neg)
+                put("questionCount", questionCount)
+                put("fileUrl", rawFileUrl)
+                put("repoPath", targetEncPath)
+                put("publishedDate", existingQuiz.publishedDate.ifBlank {
+                    SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).format(Date())
+                })
+            }
+
+            for (i in 0 until currentArray.length()) {
+                val obj = normalizeIndexEntryJson(currentArray.getJSONObject(i))
+                if (obj.optString("id") == existingQuiz.id) {
+                    updatedArray.put(updatedEntry)
+                    foundInIndex = true
+                } else {
+                    updatedArray.put(obj)
+                }
+            }
+            if (!foundInIndex) {
+                updatedArray.put(updatedEntry)
+            }
+
+            putFileToGitHub(
+                token = token,
+                path = indexPath,
+                content = updatedArray.toString(2),
+                commitMsg = "Update index.json metadata for ${existingQuiz.id}: $title",
+                sha = existingIndex.second
+            )
+
+            Result.success("टेस्ट '$title' सफलतापूर्वक अपडेट हो गया (ID व पुराने स्कोर सुरक्षित हैं)!")
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -957,7 +1118,7 @@ object GitHubCloudService {
             val currentArray = JSONArray(existingIndex.first)
             val updatedArray = JSONArray()
             for (i in 0 until currentArray.length()) {
-                val obj = currentArray.getJSONObject(i)
+                val obj = normalizeIndexEntryJson(currentArray.getJSONObject(i))
                 if (obj.optString("id") != quiz.id) {
                     updatedArray.put(obj)
                 }
@@ -1001,7 +1162,7 @@ object GitHubCloudService {
             val currentArray = JSONArray(existingIndex.first)
             val updatedArray = JSONArray()
             for (i in 0 until currentArray.length()) {
-                val obj = currentArray.getJSONObject(i)
+                val obj = normalizeIndexEntryJson(currentArray.getJSONObject(i))
                 if (obj.optString("id") !in idsToRemove) {
                     updatedArray.put(obj)
                 }
@@ -1420,11 +1581,9 @@ fun MockTestAppRoot() {
         }
     }
 
-    val groupedBySubject = remember(onlineQuizzes) {
-        onlineQuizzes.groupBy { it.subject }
-    }
-    val targetExamCode = remember(userProfile) {
-        normalizeExamCode(userProfile?.targetExam ?: "RPSC")
+    // Group by Exam + Subject for Admin Delete/Manage so RPSC ➔ Sociology and UGC NET ➔ Sociology never collide!
+    val groupedByExamAndSubject = remember(onlineQuizzes) {
+        onlineQuizzes.groupBy { "${normalizeExamCode(it.examName)} ➔ ${it.subject}" }
     }
     val activeExamSubjectsMap = remember(onlineQuizzes, selectedExamFilter) {
         onlineQuizzes
@@ -1509,7 +1668,6 @@ fun MockTestAppRoot() {
                         currentScreen = AppScreen.SUBJECT_TESTS
                     },
                     onOpenMyTestsScreen = {
-                        selectedExamFilter = targetExamCode
                         currentScreen = AppScreen.MY_TESTS
                     },
                     onOpenLatestResult = { saved ->
@@ -1594,7 +1752,6 @@ fun MockTestAppRoot() {
                     },
                     onNavigateHome = { currentScreen = AppScreen.HOME },
                     onNavigateMyTests = {
-                        selectedExamFilter = targetExamCode
                         currentScreen = AppScreen.MY_TESTS
                     },
                     onNavigateSettings = { currentScreen = AppScreen.SETTINGS },
@@ -1615,7 +1772,6 @@ fun MockTestAppRoot() {
                     completedResultsMap = completedResultsMap,
                     onNavigateHome = { currentScreen = AppScreen.HOME },
                     onNavigateMyTests = {
-                        selectedExamFilter = targetExamCode
                         currentScreen = AppScreen.MY_TESTS
                     },
                     onNavigateSolutions = { currentScreen = AppScreen.SOLUTIONS },
@@ -1721,7 +1877,7 @@ fun MockTestAppRoot() {
             }
 
             AppScreen.SUBJECT_TESTS -> {
-                val folderTests = (activeExamSubjectsMap[selectedSubjectFolder] ?: groupedBySubject[selectedSubjectFolder]) ?: emptyList()
+                val folderTests = activeExamSubjectsMap[selectedSubjectFolder] ?: emptyList()
                 SubjectTestsScreenUI(
                     examName = selectedExamFilter,
                     subjectName = selectedSubjectFolder,
@@ -1764,7 +1920,7 @@ fun MockTestAppRoot() {
             AppScreen.ADMIN_PORTAL -> {
                 AdminPortalScreenUI(
                     savedToken = SecureAdminStore.loadPat(context),
-                    groupedSubjects = groupedBySubject,
+                    groupedSubjects = groupedByExamAndSubject,
                     latestQuiz = onlineQuizzes.lastOrNull(),
                     onBack = { currentScreen = AppScreen.HOME },
                     onActionSuccess = { tokenUsed ->
@@ -6285,8 +6441,11 @@ fun AdminPortalScreenUI(
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
     var token by remember { mutableStateOf(savedToken) }
     var isBusy by remember { mutableStateOf(false) }
+    var editingQuiz by remember { mutableStateOf<OnlineQuizMeta?>(null) }
 
-    val existingSubjects = groupedSubjects.keys.toList()
+    val existingSubjects = remember(groupedSubjects) {
+        groupedSubjects.values.flatten().map { it.subject }.distinct()
+    }
 
     // Default values loaded from the LAST created/published quiz (or latest online quiz if first time)
     val examChoices = listOf("RPSC", "RSSB", "CTET", "UGC NET")
@@ -6368,7 +6527,7 @@ fun AdminPortalScreenUI(
                 onClick = {
                     if (!isBusy) scope.launch { pagerState.animateScrollToPage(0) }
                 },
-                text = { Text("Publish New", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
+                text = { Text(if (editingQuiz != null) "✏️ Edit Quiz" else "Publish New", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
             )
             Tab(
                 selected = pagerState.currentPage == 1,
@@ -6394,6 +6553,43 @@ fun AdminPortalScreenUI(
                     contentPadding = PaddingValues(top = 14.dp, bottom = 40.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    if (editingQuiz != null) {
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(AmberGold.copy(alpha = 0.16f))
+                                    .border(1.dp, AmberGold, RoundedCornerShape(12.dp))
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "✏️ Editing: ${editingQuiz!!.title}",
+                                        color = AmberGold,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                    Text(
+                                        text = "ID (${editingQuiz!!.id}) व छात्रों के पुराने स्कोर सुरक्षित रहेंगे",
+                                        color = TextMain,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                                TextButton(
+                                    onClick = {
+                                        editingQuiz = null
+                                        rawTextContent = ""
+                                        selectedFileName = "📂 .TXT फाइल चुनें"
+                                    }
+                                ) {
+                                    Text("✕ Cancel", color = WrongRed, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
                     item {
                         OutlinedTextField(
                             value = token,
@@ -6575,37 +6771,63 @@ fun AdminPortalScreenUI(
                                     .apply()
 
                                 isBusy = true
+                                val currentEditing = editingQuiz
                                 scope.launch {
-                                    val res = GitHubCloudService.publishEncryptedQuizToGitHub(
-                                        token = token.trim(),
-                                        title = title.trim(),
-                                        subtitle = subtitle.trim(),
-                                        examName = examName.trim().ifEmpty { "RPSC" },
-                                        subject = subject.trim().ifEmpty { "General Tests" },
-                                        timeMinutes = timeStr.toIntOrNull() ?: 60,
-                                        marks = marksStr.toDoubleOrNull() ?: 2.0,
-                                        neg = negStr.toDoubleOrNull() ?: 0.0,
-                                        rawTxtContent = rawTextContent,
-                                        questionCount = result.questions.size
-                                    )
+                                    val res = if (currentEditing != null) {
+                                        GitHubCloudService.updateExistingQuizOnGitHub(
+                                            context = context,
+                                            token = token.trim(),
+                                            existingQuiz = currentEditing,
+                                            title = title.trim(),
+                                            subtitle = subtitle.trim(),
+                                            examName = examName.trim().ifEmpty { "RPSC" },
+                                            subject = subject.trim().ifEmpty { "General Tests" },
+                                            timeMinutes = timeStr.toIntOrNull() ?: 60,
+                                            marks = marksStr.toDoubleOrNull() ?: 2.0,
+                                            neg = negStr.toDoubleOrNull() ?: 0.0,
+                                            rawTxtContent = rawTextContent,
+                                            questionCount = result.questions.size
+                                        )
+                                    } else {
+                                        GitHubCloudService.publishEncryptedQuizToGitHub(
+                                            token = token.trim(),
+                                            title = title.trim(),
+                                            subtitle = subtitle.trim(),
+                                            examName = examName.trim().ifEmpty { "RPSC" },
+                                            subject = subject.trim().ifEmpty { "General Tests" },
+                                            timeMinutes = timeStr.toIntOrNull() ?: 60,
+                                            marks = marksStr.toDoubleOrNull() ?: 2.0,
+                                            neg = negStr.toDoubleOrNull() ?: 0.0,
+                                            rawTxtContent = rawTextContent,
+                                            questionCount = result.questions.size
+                                        )
+                                    }
                                     isBusy = false
                                     res.onSuccess { msg ->
+                                        editingQuiz = null
                                         Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                                         onActionSuccess(token.trim())
                                         onBack()
                                     }.onFailure { err ->
-                                        Toast.makeText(context, "Publish Failed: ${err.message}", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, "Action Failed: ${err.message}", Toast.LENGTH_LONG).show()
                                     }
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = CorrectGreen),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (editingQuiz != null) SecondarySky else CorrectGreen
+                            ),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
                         ) {
                             Text(
-                                text = if (isBusy) "⏳ Publishing Encrypted Quiz..." else "🚀 Publish Encrypted Quiz",
+                                text = when {
+                                    isBusy && editingQuiz != null -> "⏳ Updating Quiz on GitHub..."
+                                    isBusy -> "⏳ Publishing Encrypted Quiz..."
+                                    editingQuiz != null -> "💾 Update Existing Quiz (Keep ID & Scores)"
+                                    else -> "🚀 Publish Encrypted Quiz"
+                                },
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
@@ -6622,12 +6844,37 @@ fun AdminPortalScreenUI(
                     contentPadding = PaddingValues(top = 14.dp, bottom = 40.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    item {
+                        OutlinedButton(
+                            enabled = !isBusy,
+                            onClick = {
+                                if (token.isBlank()) {
+                                    Toast.makeText(context, "पहले Publish टैब में GitHub Token डालें!", Toast.LENGTH_SHORT).show()
+                                    return@OutlinedButton
+                                }
+                                isBusy = true
+                                scope.launch {
+                                    val res = GitHubCloudService.normalizeAllIndexEntriesOnGitHub(token.trim())
+                                    isBusy = false
+                                    res.onSuccess { msg ->
+                                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                        onActionSuccess(token.trim())
+                                    }.onFailure { err ->
+                                        Toast.makeText(context, "Sync Error: ${err.message}", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("🛠️ index.json के सभी पुराने टेस्टों में examName अपडेट करें", color = AmberGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                     if (groupedSubjects.isEmpty()) {
                         item {
                             Text("अभी कोई ऑनलाइन टेस्ट मौजूद नहीं है।", color = TextMuted, fontSize = 13.sp)
                         }
                     } else {
-                        items(groupedSubjects.entries.toList()) { (subName, testList) ->
+                        items(groupedSubjects.entries.toList()) { (folderKey, testList) ->
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -6642,10 +6889,10 @@ fun AdminPortalScreenUI(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "📁 $subName (${testList.size})",
+                                        text = "📁 $folderKey (${testList.size})",
                                         color = SecondarySky,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp,
+                                        fontSize = 14.sp,
                                         modifier = Modifier.weight(1f)
                                     )
                                     TextButton(
@@ -6659,7 +6906,7 @@ fun AdminPortalScreenUI(
                                             scope.launch {
                                                 val res = GitHubCloudService.deleteSubjectFolderFromGitHub(
                                                     token = token.trim(),
-                                                    subjectName = subName,
+                                                    subjectName = folderKey,
                                                     quizzesInFolder = testList
                                                 )
                                                 isBusy = false
@@ -6682,36 +6929,76 @@ fun AdminPortalScreenUI(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = "• [${quiz.examName}] ${quiz.title}",
-                                            color = TextMain,
-                                            fontSize = 13.sp,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        TextButton(
-                                            enabled = !isBusy,
-                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                            onClick = {
-                                                if (token.isBlank()) {
-                                                    Toast.makeText(context, "पहले Publish टैब में GitHub Token डालें!", Toast.LENGTH_SHORT).show()
-                                                    return@TextButton
-                                                }
-                                                isBusy = true
-                                                scope.launch {
-                                                    val res = GitHubCloudService.deleteQuizFromGitHub(token.trim(), quiz)
-                                                    isBusy = false
-                                                    res.onSuccess { msg ->
-                                                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                                        onActionSuccess(token.trim())
-                                                    }.onFailure { err ->
-                                                        Toast.makeText(context, "Error: ${err.message}", Toast.LENGTH_LONG).show()
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = "• ${quiz.title}",
+                                                color = TextMain,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            Text(
+                                                text = "${quiz.questionCount} Qs • ${quiz.timeMinutes} Min • ${quiz.publishedDate}",
+                                                color = TextMuted,
+                                                fontSize = 10.5.sp
+                                            )
+                                        }
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            TextButton(
+                                                enabled = !isBusy,
+                                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                                onClick = {
+                                                    isBusy = true
+                                                    scope.launch {
+                                                        try {
+                                                            val loadedTxt = GitHubCloudService.downloadAndDecryptQuizText(context, quiz)
+                                                            editingQuiz = quiz
+                                                            examName = normalizeExamCode(quiz.examName)
+                                                            subject = quiz.subject
+                                                            title = quiz.title
+                                                            subtitle = quiz.subtitle
+                                                            timeStr = quiz.timeMinutes.toString()
+                                                            marksStr = quiz.marksPerCorrect.toString()
+                                                            negStr = quiz.negativeMark.toString()
+                                                            rawTextContent = loadedTxt
+                                                            selectedFileName = "✏️ Editing: ${quiz.id}"
+                                                            pagerState.animateScrollToPage(0)
+                                                            Toast.makeText(context, "टेस्ट एडिट मोड में लोड हो गया!", Toast.LENGTH_SHORT).show()
+                                                        } catch (e: Throwable) {
+                                                            Toast.makeText(context, "टेस्ट लोड नहीं हो सका: ${e.message}", Toast.LENGTH_LONG).show()
+                                                        } finally {
+                                                            isBusy = false
+                                                        }
                                                     }
                                                 }
+                                            ) {
+                                                Text("✏️ Edit", color = AmberGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                             }
-                                        ) {
-                                            Text("🗑️", fontSize = 14.sp)
+                                            TextButton(
+                                                enabled = !isBusy,
+                                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                                onClick = {
+                                                    if (token.isBlank()) {
+                                                        Toast.makeText(context, "पहले Publish टैब में GitHub Token डालें!", Toast.LENGTH_SHORT).show()
+                                                        return@TextButton
+                                                    }
+                                                    isBusy = true
+                                                    scope.launch {
+                                                        val res = GitHubCloudService.deleteQuizFromGitHub(token.trim(), quiz)
+                                                        isBusy = false
+                                                        res.onSuccess { msg ->
+                                                            if (editingQuiz?.id == quiz.id) editingQuiz = null
+                                                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                                            onActionSuccess(token.trim())
+                                                        }.onFailure { err ->
+                                                            Toast.makeText(context, "Error: ${err.message}", Toast.LENGTH_LONG).show()
+                                                        }
+                                                    }
+                                                }
+                                            ) {
+                                                Text("🗑️", fontSize = 14.sp)
+                                            }
                                         }
                                     }
                                 }
