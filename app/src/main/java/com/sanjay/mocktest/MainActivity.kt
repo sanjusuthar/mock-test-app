@@ -1,6 +1,7 @@
 package com.sanjay.mocktest
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
@@ -109,6 +110,25 @@ val WrongRed = Color(0xFFEF4444)
 val SkippedPurple = Color(0xFF8B5CF6)
 val AmberGold = Color(0xFFF59E0B)
 
+// ==================== 2B. CRASH-SAFE MATH & SHAREDPREFERENCES HELPERS ====================
+fun Double.safeRoundToInt(fallback: Int = 0): Int =
+    if (this.isNaN() || this.isInfinite()) fallback else this.roundToInt()
+
+fun Float.safeRoundToInt(fallback: Int = 0): Int =
+    if (this.isNaN() || this.isInfinite()) fallback else this.roundToInt()
+
+fun SharedPreferences.safeString(key: String, def: String? = null): String? =
+    try { getString(key, def) ?: def } catch (_: Throwable) { all[key]?.toString() ?: def }
+
+fun SharedPreferences.safeInt(key: String, def: Int = 0): Int =
+    try { getInt(key, def) } catch (_: Throwable) { all[key]?.toString()?.toDoubleOrNull()?.safeRoundToInt(def) ?: def }
+
+fun SharedPreferences.safeFloat(key: String, def: Float = 0f): Float =
+    try { getFloat(key, def) } catch (_: Throwable) { all[key]?.toString()?.toFloatOrNull() ?: def }
+
+fun SharedPreferences.safeBoolean(key: String, def: Boolean = false): Boolean =
+    try { getBoolean(key, def) } catch (_: Throwable) { all[key]?.toString()?.toBooleanStrictOrNull() ?: def }
+
 // ==================== 3. DATA MODELS ====================
 data class Question(
     val topic: String,
@@ -210,7 +230,7 @@ object SecureAdminStore {
 
     fun hasPin(context: Context): Boolean {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        return !prefs.getString(KEY_PIN_HASH, null).isNullOrBlank()
+        return !prefs.safeString(KEY_PIN_HASH, null).isNullOrBlank()
     }
 
     fun setPin(context: Context, pin: String) {
@@ -246,7 +266,7 @@ object SecureAdminStore {
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
             cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(128, iv))
             String(cipher.doFinal(ciphertext), Charsets.UTF_8)
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             ""
         }
     }
@@ -289,61 +309,71 @@ object QuizCrypto {
 
 // ==================== 6. STRICT MULTI-LINE TXT QUESTION PARSER ====================
 object TxtQuestionParser {
+    private val INLINE_TOPIC_REGEX = Regex("([^\\n])(\\s*TOPIC\\s*:)", RegexOption.IGNORE_CASE)
+    private val TRAILING_TOPIC_REGEX = Regex("\\n?TOPIC\\s*:.*$", RegexOption.IGNORE_CASE)
+    private val TOPIC_LINE_REGEX = Regex("^TOPIC\\s*:\\s*(.*)", RegexOption.IGNORE_CASE)
+    private val Q_LINE_REGEX = Regex("^(?:Q|Question|प्र|प्रश्न)\\s*[:.]\\s*(.*)", RegexOption.IGNORE_CASE)
+    private val OPT_LINE_REGEX = Regex("^([A-E])[).:-]\\s*(.*)", RegexOption.IGNORE_CASE)
+    private val ANS_LINE_REGEX = Regex("^(?:ANS|Answer|उत्तर)\\s*[:.-]\\s*(.*)", RegexOption.IGNORE_CASE)
+    private val SOL_LINE_REGEX = Regex("^(?:SOL|SOLUTION|व्याख्या)\\s*[:.-]\\s*(.*)", RegexOption.IGNORE_CASE)
+
     fun parseWithValidation(rawText: String): ParseResult {
-        val parsed = mutableListOf<Question>()
-        val warnings = mutableListOf<String>()
+        if (rawText.isBlank()) return ParseResult(emptyList(), emptyList())
+        return try {
+            val parsed = mutableListOf<Question>()
+            val warnings = mutableListOf<String>()
 
-        // Normalize all line breaks and split any inline TOPIC: glued onto the end of a SOL: line
-        val normalized = rawText
-            .replace("\r\n", "\n")
-            .replace("\r", "\n")
-            .replace(Regex("(?i)(?<!^)(?<!\\n)(?=TOPIC\\s*:)"), "\n")
+            // Normalize all line breaks and split any inline TOPIC: glued onto the end of a SOL: line (no lookbehind needed)
+            val normalized = rawText
+                .replace("\r\n", "\n")
+                .replace("\r", "\n")
+                .replace(INLINE_TOPIC_REGEX, "$1\n$2")
 
-        var pendingTopic = "General"
-        var qTopic = "General"
-        var qText = ""
-        val options = mutableListOf<String>()
-        var answerIndex: Int? = null
-        var solution = "व्याख्या उपलब्ध नहीं है।"
-        var currentField = "NONE" // TOPIC, Q, OPT, ANS, SOL
+            var pendingTopic = "General"
+            var qTopic = "General"
+            var qText = ""
+            val options = mutableListOf<String>()
+            var answerIndex: Int? = null
+            var solution = "व्याख्या उपलब्ध नहीं है।"
+            var currentField = "NONE" // TOPIC, Q, OPT, ANS, SOL
 
-        fun flushCurrentQuestion() {
-            if (qText.isNotBlank() && options.size >= 2) {
-                val cleanSol = solution
-                    .replace(Regex("(?i)\\n?TOPIC\\s*:.*$"), "")
-                    .replace("<br>", "\n")
-                    .trim()
-                val idx = answerIndex
-                if (idx == null || idx !in options.indices) {
-                    warnings.add("Q${parsed.size + 1}: ANS: गलत या गायब है")
-                } else {
-                    parsed.add(
-                        Question(
-                            topic = qTopic.trim().ifEmpty { "General" },
-                            text = qText.replace("<br>", "\n").trim(),
-                            options = options.map { it.trim() },
-                            correctAnswer = idx,
-                            solution = cleanSol.ifEmpty { "व्याख्या उपलब्ध नहीं है।" }
+            fun flushCurrentQuestion() {
+                if (qText.isNotBlank() && options.size >= 2) {
+                    val cleanSol = solution
+                        .replace(TRAILING_TOPIC_REGEX, "")
+                        .replace("<br>", "\n")
+                        .trim()
+                    val idx = answerIndex
+                    if (idx == null || idx !in options.indices) {
+                        warnings.add("Q${parsed.size + 1}: ANS: गलत या गायब है")
+                    } else {
+                        parsed.add(
+                            Question(
+                                topic = qTopic.trim().ifEmpty { "General" },
+                                text = qText.replace("<br>", "\n").trim(),
+                                options = options.map { it.trim() },
+                                correctAnswer = idx,
+                                solution = cleanSol.ifEmpty { "व्याख्या उपलब्ध नहीं है।" }
+                            )
                         )
-                    )
+                    }
                 }
+                qText = ""
+                options.clear()
+                answerIndex = null
+                solution = "व्याख्या उपलब्ध नहीं है।"
+                currentField = "NONE"
             }
-            qText = ""
-            options.clear()
-            answerIndex = null
-            solution = "व्याख्या उपलब्ध नहीं है।"
-            currentField = "NONE"
-        }
 
-        for (rawLine in normalized.lines()) {
-            val line = rawLine.trim()
-            if (line.isEmpty()) continue
+            for (rawLine in normalized.lines()) {
+                val line = rawLine.trim()
+                if (line.isEmpty()) continue
 
-            val topicMatch = Regex("^(?i)TOPIC\\s*:\\s*(.*)").find(line)
-            val qMatch = Regex("^(?i)(?:Q|Question|प्र|प्रश्न)\\s*[:.]\\s*(.*)").find(line)
-            val optMatch = Regex("^(?i)([A-E])[).:-]\\s*(.*)").find(line)
-            val ansMatch = Regex("^(?i)(?:ANS|Answer|उत्तर)\\s*[:.-]\\s*(.*)").find(line)
-            val solMatch = Regex("^(?i)(?:SOL|SOLUTION|व्याख्या)\\s*[:.-]\\s*(.*)").find(line)
+                val topicMatch = TOPIC_LINE_REGEX.find(line)
+                val qMatch = Q_LINE_REGEX.find(line)
+                val optMatch = OPT_LINE_REGEX.find(line)
+                val ansMatch = ANS_LINE_REGEX.find(line)
+                val solMatch = SOL_LINE_REGEX.find(line)
 
             when {
                 topicMatch != null -> {
@@ -399,11 +429,14 @@ object TxtQuestionParser {
                 }
             }
         }
-        if (qText.isNotBlank()) {
-            flushCurrentQuestion()
-        }
+            if (qText.isNotBlank()) {
+                flushCurrentQuestion()
+            }
 
-        return ParseResult(parsed, warnings)
+            ParseResult(parsed, warnings)
+        } catch (_: Throwable) {
+            ParseResult(emptyList(), emptyList())
+        }
     }
 
     fun parse(rawText: String): List<Question> = parseWithValidation(rawText).questions
@@ -444,7 +477,7 @@ object ResumeStorage {
 
     fun load(context: Context): SavedResumeState? {
         val prefs = context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE)
-        val str = prefs.getString(KEY_RESUME_JSON, null) ?: return null
+        val str = prefs.safeString(KEY_RESUME_JSON, null) ?: return null
         return try {
             val obj = JSONObject(str)
             val quizId = obj.optString("id", "custom")
@@ -482,7 +515,7 @@ object ResumeStorage {
                 userAnswers = ansList,
                 markedForReview = revList
             )
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             null
         }
     }
@@ -502,7 +535,7 @@ object ProfileAndHistoryStorage {
 
     fun loadProfile(context: Context): UserProfile? {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val raw = prefs.getString(KEY_PROFILE, null) ?: return null
+        val raw = prefs.safeString(KEY_PROFILE, null) ?: return null
         return try {
             val obj = JSONObject(raw)
             val name = obj.optString("name", "").trim()
@@ -513,7 +546,7 @@ object ProfileAndHistoryStorage {
                 districtOrCity = obj.optString("districtOrCity", "Rajasthan"),
                 avatarEmoji = obj.optString("avatarEmoji", "🎓")
             )
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             null
         }
     }
@@ -547,7 +580,7 @@ object ProfileAndHistoryStorage {
             if (!cacheFile.exists() || quizId == "custom") {
                 cacheFile.writeText(QuizCrypto.encrypt(plainTxt), Charsets.UTF_8)
             }
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
         }
     }
 
@@ -558,11 +591,11 @@ object ProfileAndHistoryStorage {
                 QuizCrypto.decryptIfNeeded(cacheFile.readText(Charsets.UTF_8))
             } else if (quizId.startsWith("custom")) {
                 val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-                prefs.getString("saved_custom_txt", null)
+                prefs.safeString("saved_custom_txt", null)
             } else {
                 null
             }
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             null
         }
     }
@@ -584,8 +617,8 @@ object ProfileAndHistoryStorage {
         saveQuizTextToCache(context, config.id, rawTxt)
 
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val existingRaw = prefs.getString(KEY_ATTEMPTS_MAP, "{}") ?: "{}"
-        val rootObj = try { JSONObject(existingRaw) } catch (_: Exception) { JSONObject() }
+        val existingRaw = prefs.safeString(KEY_ATTEMPTS_MAP, "{}") ?: "{}"
+        val rootObj = try { JSONObject(existingRaw) } catch (_: Throwable) { JSONObject() }
 
         val historyArr = rootObj.optJSONArray(config.id) ?: JSONArray()
         val nextAttemptNumber = historyArr.length() + 1
@@ -631,11 +664,11 @@ object ProfileAndHistoryStorage {
         val map = mutableMapOf<String, List<CompletedTestResult>>()
 
         // Migrate any v1 single-result entries seamlessly if present
-        val legacyRaw = prefs.getString(LEGACY_KEY_RESULTS_MAP, null)
+        val legacyRaw = prefs.safeString(LEGACY_KEY_RESULTS_MAP, null)
         if (!legacyRaw.isNullOrBlank()) {
             try {
                 val legacyRoot = JSONObject(legacyRaw)
-                val v2Root = JSONObject(prefs.getString(KEY_ATTEMPTS_MAP, "{}") ?: "{}")
+                val v2Root = JSONObject(prefs.safeString(KEY_ATTEMPTS_MAP, "{}") ?: "{}")
                 val keys = legacyRoot.keys()
                 while (keys.hasNext()) {
                     val k = keys.next()
@@ -652,11 +685,11 @@ object ProfileAndHistoryStorage {
                     .putString(KEY_ATTEMPTS_MAP, v2Root.toString())
                     .remove(LEGACY_KEY_RESULTS_MAP)
                     .apply()
-            } catch (_: Exception) {
+            } catch (_: Throwable) {
             }
         }
 
-        val existingRaw = prefs.getString(KEY_ATTEMPTS_MAP, "{}") ?: "{}"
+        val existingRaw = prefs.safeString(KEY_ATTEMPTS_MAP, "{}") ?: "{}"
         try {
             val rootObj = JSONObject(existingRaw)
             val keys = rootObj.keys()
@@ -702,7 +735,7 @@ object ProfileAndHistoryStorage {
                     map[key] = attemptList
                 }
             }
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
         }
         return map
     }
@@ -757,7 +790,7 @@ object GitHubCloudService {
             }
             indexCacheFile.writeText(fetched, Charsets.UTF_8)
             fetched
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             if (indexCacheFile.exists()) {
                 indexCacheFile.readText(Charsets.UTF_8)
             } else {
@@ -955,7 +988,7 @@ object GitHubCloudService {
                 if (q.repoPath.isNotBlank()) {
                     try {
                         deleteFileFromGitHub(token, q.repoPath, "Cleanup $subjectName")
-                    } catch (_: Exception) {
+                    } catch (_: Throwable) {
                     }
                 }
             }
@@ -1132,9 +1165,10 @@ fun MockTestAppRoot() {
     var activeRawTxt by remember { mutableStateOf("") }
     var questions by remember { mutableStateOf<List<Question>>(emptyList()) }
     var candidateName by remember {
-        mutableStateOf(initialProfile?.name ?: prefs.getString("student_name", "") ?: "")
+        mutableStateOf(initialProfile?.name ?: prefs.safeString("student_name", "") ?: "")
     }
     var hasCustomSavedQuiz by remember { mutableStateOf(false) }
+    var customQuizQuestionCount by remember { mutableStateOf(0) }
 
     var savedResumeState by remember { mutableStateOf<SavedResumeState?>(null) }
     var completedResultsMap by remember {
@@ -1341,22 +1375,23 @@ fun MockTestAppRoot() {
         savedResumeState = ResumeStorage.load(context)
         completedResultsMap = ProfileAndHistoryStorage.loadAllAttemptsHistory(context)
 
-        val savedTxt = prefs.getString("saved_custom_txt", null)
+        val savedTxt = prefs.safeString("saved_custom_txt", null)
         if (!savedTxt.isNullOrBlank()) {
             val parsed = TxtQuestionParser.parse(savedTxt)
             if (parsed.isNotEmpty()) {
                 hasCustomSavedQuiz = true
+                customQuizQuestionCount = parsed.size
                 if (savedResumeState == null) {
                     questions = parsed
                     activeRawTxt = savedTxt
                     testConfig = TestConfig(
                         id = ProfileAndHistoryStorage.customQuizIdForText(savedTxt),
-                        title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
-                        examName = prefs.getString("saved_exam", "RPSC") ?: "RPSC",
-                        subject = prefs.getString("saved_subject", "General") ?: "General",
-                        timeMinutes = prefs.getInt("saved_time", 60),
-                        marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
-                        negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
+                        title = prefs.safeString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                        examName = prefs.safeString("saved_exam", "RPSC") ?: "RPSC",
+                        subject = prefs.safeString("saved_subject", "General") ?: "General",
+                        timeMinutes = prefs.safeInt("saved_time", 60),
+                        marksPerCorrect = prefs.safeFloat("saved_marks", 2.0f).toDouble(),
+                        negativeMark = prefs.safeFloat("saved_neg", 0.0f).toDouble()
                     )
                 }
             }
@@ -1365,7 +1400,7 @@ fun MockTestAppRoot() {
         isLoadingOnline = true
         try {
             onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
         } finally {
             isLoadingOnline = false
         }
@@ -1456,14 +1491,14 @@ fun MockTestAppRoot() {
                     totalOnlineTests = onlineQuizzes.size,
                     isLoadingOnline = isLoadingOnline,
                     hasCustomSavedQuiz = hasCustomSavedQuiz,
-                    customQuizTitle = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
-                    customQuizCount = TxtQuestionParser.parse(prefs.getString("saved_custom_txt", "") ?: "").size,
+                    customQuizTitle = prefs.safeString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                    customQuizCount = customQuizQuestionCount,
                     onRefreshOnline = {
                         scope.launch {
                             isLoadingOnline = true
                             try {
                                 onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
-                            } catch (_: Exception) {
+                            } catch (_: Throwable) {
                             }
                             isLoadingOnline = false
                         }
@@ -1481,20 +1516,20 @@ fun MockTestAppRoot() {
                         openSavedResult(saved, AppScreen.HOME)
                     },
                     onStartCustomQuiz = {
-                        val savedTxt = prefs.getString("saved_custom_txt", "") ?: ""
+                        val savedTxt = prefs.safeString("saved_custom_txt", "") ?: ""
                         val parsed = TxtQuestionParser.parse(savedTxt)
                         if (parsed.isNotEmpty()) {
                             activeRawTxt = savedTxt
                             questions = parsed
-                            val tMins = prefs.getInt("saved_time", 60)
+                            val tMins = prefs.safeInt("saved_time", 60)
                             testConfig = TestConfig(
                                 id = ProfileAndHistoryStorage.customQuizIdForText(savedTxt),
-                                title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
-                                examName = prefs.getString("saved_exam", "RPSC") ?: "RPSC",
-                                subject = prefs.getString("saved_subject", "General") ?: "General",
+                                title = prefs.safeString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                                examName = prefs.safeString("saved_exam", "RPSC") ?: "RPSC",
+                                subject = prefs.safeString("saved_subject", "General") ?: "General",
                                 timeMinutes = tMins,
-                                marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
-                                negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
+                                marksPerCorrect = prefs.safeFloat("saved_marks", 2.0f).toDouble(),
+                                negativeMark = prefs.safeFloat("saved_neg", 0.0f).toDouble()
                             )
                             userAnswers = List(parsed.size) { null }
                             markedForReview = List(parsed.size) { false }
@@ -1529,7 +1564,7 @@ fun MockTestAppRoot() {
                             isLoadingOnline = true
                             try {
                                 onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
-                            } catch (_: Exception) {
+                            } catch (_: Throwable) {
                             }
                             isLoadingOnline = false
                         }
@@ -1594,7 +1629,7 @@ fun MockTestAppRoot() {
                             isLoadingOnline = true
                             try {
                                 onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
-                            } catch (_: Exception) {
+                            } catch (_: Throwable) {
                             }
                             isLoadingOnline = false
                         }
@@ -1629,10 +1664,10 @@ fun MockTestAppRoot() {
                     completedResultsMap = completedResultsMap,
                     isLoadingOnline = isLoadingOnline,
                     hasCustomSavedQuiz = hasCustomSavedQuiz,
-                    customQuizExam = prefs.getString("saved_exam", "RPSC") ?: "RPSC",
-                    customQuizSubject = prefs.getString("saved_subject", "General") ?: "General",
-                    customQuizTitle = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
-                    customQuizCount = TxtQuestionParser.parse(prefs.getString("saved_custom_txt", "") ?: "").size,
+                    customQuizExam = prefs.safeString("saved_exam", "RPSC") ?: "RPSC",
+                    customQuizSubject = prefs.safeString("saved_subject", "General") ?: "General",
+                    customQuizTitle = prefs.safeString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                    customQuizCount = customQuizQuestionCount,
                     onOpenSubjectFolder = { subjectName ->
                         selectedSubjectFolder = subjectName
                         previousScreenBeforeSubject = AppScreen.MY_TESTS
@@ -1646,27 +1681,27 @@ fun MockTestAppRoot() {
                             isLoadingOnline = true
                             try {
                                 onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
-                            } catch (_: Exception) {
+                            } catch (_: Throwable) {
                             }
                             isLoadingOnline = false
                         }
                     },
                     onOpenAdminModal = { showPinGateModal = true },
                     onStartCustomQuiz = {
-                        val savedTxt = prefs.getString("saved_custom_txt", "") ?: ""
+                        val savedTxt = prefs.safeString("saved_custom_txt", "") ?: ""
                         val parsed = TxtQuestionParser.parse(savedTxt)
                         if (parsed.isNotEmpty()) {
                             activeRawTxt = savedTxt
                             questions = parsed
-                            val tMins = prefs.getInt("saved_time", 60)
+                            val tMins = prefs.safeInt("saved_time", 60)
                             testConfig = TestConfig(
                                 id = ProfileAndHistoryStorage.customQuizIdForText(savedTxt),
-                                title = prefs.getString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
-                                examName = prefs.getString("saved_exam", "RPSC") ?: "RPSC",
-                                subject = prefs.getString("saved_subject", "General") ?: "General",
+                                title = prefs.safeString("saved_title", "Custom Mock Test") ?: "Custom Mock Test",
+                                examName = prefs.safeString("saved_exam", "RPSC") ?: "RPSC",
+                                subject = prefs.safeString("saved_subject", "General") ?: "General",
                                 timeMinutes = tMins,
-                                marksPerCorrect = prefs.getFloat("saved_marks", 2.0f).toDouble(),
-                                negativeMark = prefs.getFloat("saved_neg", 0.0f).toDouble()
+                                marksPerCorrect = prefs.safeFloat("saved_marks", 2.0f).toDouble(),
+                                negativeMark = prefs.safeFloat("saved_neg", 0.0f).toDouble()
                             )
                             userAnswers = List(parsed.size) { null }
                             markedForReview = List(parsed.size) { false }
@@ -1710,6 +1745,7 @@ fun MockTestAppRoot() {
                         activeRawTxt = rawTxt
                         questions = parsedList
                         hasCustomSavedQuiz = true
+                        customQuizQuestionCount = parsedList.size
                         prefs.edit()
                             .putString("saved_custom_txt", rawTxt)
                             .putString("saved_exam", newCfg.examName)
@@ -1737,7 +1773,7 @@ fun MockTestAppRoot() {
                             isLoadingOnline = true
                             try {
                                 onlineQuizzes = GitHubCloudService.fetchOnlineQuizzes(context)
-                            } catch (_: Exception) {
+                            } catch (_: Throwable) {
                             }
                             isLoadingOnline = false
                         }
@@ -2294,8 +2330,8 @@ fun HomeScreenUI(
         else if (completedCount > 0) 1f else 0f
     }
     val displayPercentInt = remember(avgPercentage, completedCount, completionRatio) {
-        if (completedCount > 0) avgPercentage.roundToInt().coerceIn(0, 100)
-        else (completionRatio * 100).roundToInt()
+        if (completedCount > 0) avgPercentage.safeRoundToInt().coerceIn(0, 100)
+        else (completionRatio * 100).safeRoundToInt()
     }
 
     val firstSubjectName = groupedSubjects.keys.firstOrNull()
@@ -2349,16 +2385,14 @@ fun HomeScreenUI(
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val w = size.width
                     val h = size.height
+                    if (w <= 1f || h <= 1f) return@Canvas
+                    if (w <= 1f || h <= 1f) return@Canvas
 
                     // Warm Golden-Sky Glow on Right Side
                     drawCircle(
-                        brush = Brush.radialGradient(
-                            colors = listOf(Color(0xFF38BDF8).copy(alpha = 0.45f), Color.Transparent),
-                            center = Offset(w * 0.80f, h * 0.35f),
-                            radius = w * 0.45f
-                        ),
+                        color = Color(0xFF38BDF8).copy(alpha = 0.22f),
                         center = Offset(w * 0.80f, h * 0.35f),
-                        radius = w * 0.45f
+                        radius = (w * 0.42f).coerceAtLeast(10f)
                     )
 
                     // Neon Pink Sweeping Arc Divider (like mockup banner)
@@ -2648,7 +2682,7 @@ fun HomeScreenUI(
                             .size(54.dp)
                             .clip(CircleShape)
                             .background(
-                                Brush.radialGradient(
+                                Brush.verticalGradient(
                                     listOf( Color(0xFF38BDF8).copy(alpha = 0.35f), Color(0xFF1E3A8A))
                                 )
                             )
@@ -2711,29 +2745,14 @@ fun HomeScreenUI(
                         .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(60.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            progress = { 1f },
-                            color = Color(0xFF1E293B),
-                            strokeWidth = 6.dp,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        CircularProgressIndicator(
-                            progress = { (displayPercentInt / 100f).coerceIn(0.05f, 1f) },
-                            color = Color(0xFF00F0FF),
-                            strokeWidth = 6.dp,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        Text(
-                            text = "$displayPercentInt%",
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-                    }
+                    NeonCircularProgressRing(
+                        percentage = displayPercentInt,
+                        ringColor = Color(0xFF00F0FF),
+                        trackColor = Color(0xFF1E293B),
+                        sizeDp = 60,
+                        strokeWidthDp = 6f,
+                        fontSizeSp = 13
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column(
                         modifier = Modifier.weight(1f),
@@ -3029,6 +3048,48 @@ fun HomeScreenUI(
 }
 
 @Composable
+fun NeonCircularProgressRing(
+    percentage: Int,
+    ringColor: Color,
+    trackColor: Color = Color(0xFF1E293B),
+    sizeDp: Int = 60,
+    strokeWidthDp: Float = 6f,
+    fontSizeSp: Int = 13
+) {
+    val safePct = percentage.coerceIn(0, 100)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(sizeDp.dp)
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize().padding((strokeWidthDp / 2f).dp)) {
+            if (size.width <= 1f || size.height <= 1f) return@Canvas
+            val strokePx = strokeWidthDp.dp.toPx()
+            drawArc(
+                color = trackColor,
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(width = strokePx, cap = StrokeCap.Round)
+            )
+            val sweep = (safePct / 100f).coerceIn(0.05f, 1f) * 360f
+            drawArc(
+                color = ringColor,
+                startAngle = -90f,
+                sweepAngle = sweep,
+                useCenter = false,
+                style = Stroke(width = strokePx, cap = StrokeCap.Round)
+            )
+        }
+        Text(
+            text = "$safePct%",
+            color = Color.White,
+            fontSize = fontSizeSp.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
+    }
+}
+
+@Composable
 fun QuickFeatureSquareCard(
     modifier: Modifier,
     icon: String,
@@ -3055,7 +3116,7 @@ fun QuickFeatureSquareCard(
                 .size(44.dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.radialGradient(
+                    Brush.verticalGradient(
                         listOf(glowColor, glowColor.copy(alpha = 0.25f))
                     )
                 )
@@ -3313,8 +3374,8 @@ fun SettingsScreenUI(
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
 
-    var isDarkThemeEnabled by remember { mutableStateOf(prefs.getBoolean("pref_dark_theme", true)) }
-    var isNotificationsEnabled by remember { mutableStateOf(prefs.getBoolean("pref_notifications", true)) }
+    var isDarkThemeEnabled by remember { mutableStateOf(prefs.safeBoolean("pref_dark_theme", true)) }
+    var isNotificationsEnabled by remember { mutableStateOf(prefs.safeBoolean("pref_notifications", true)) }
     var showDownloadCenterDialog by remember { mutableStateOf(false) }
     var infoDialogTitle by remember { mutableStateOf<String?>(null) }
     var infoDialogBody by remember { mutableStateOf("") }
@@ -3334,7 +3395,7 @@ fun SettingsScreenUI(
     val totalWrong = remember(allAttempts) { allAttempts.sumOf { it.wrongCount } }
     val totalSkipped = remember(allAttempts) { allAttempts.sumOf { it.skippedCount } }
     val progressRingPct = remember(overallScorePct, totalTestsAttempted) {
-        if (totalTestsAttempted > 0) overallScorePct.roundToInt().coerceIn(0, 100) else 0
+        if (totalTestsAttempted > 0) overallScorePct.safeRoundToInt().coerceIn(0, 100) else 0
     }
 
     val emailSlug = remember(userProfile.name) {
@@ -3401,7 +3462,7 @@ fun SettingsScreenUI(
                             .background(Color(0xFF09132C))
                             .border(
                                 width = 3.dp,
-                                brush = Brush.sweepGradient(listOf(PrimaryRose, SecondarySky, PrimaryRose)),
+                                brush = Brush.linearGradient(listOf(PrimaryRose, SecondarySky, PrimaryRose)),
                                 shape = CircleShape
                             )
                     ) {
@@ -3553,29 +3614,14 @@ fun SettingsScreenUI(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Dual-Color Circular Progress Ring
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(72.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            progress = { 1f },
-                            color = PrimaryRose.copy(alpha = 0.45f),
-                            strokeWidth = 7.dp,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        CircularProgressIndicator(
-                            progress = { (progressRingPct / 100f).coerceIn(0.05f, 1f) },
-                            color = Color(0xFF00F0FF),
-                            strokeWidth = 7.dp,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        Text(
-                            text = "$progressRingPct%",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Black
-                        )
-                    }
+                    NeonCircularProgressRing(
+                        percentage = progressRingPct,
+                        ringColor = Color(0xFF00F0FF),
+                        trackColor = PrimaryRose.copy(alpha = 0.45f),
+                        sizeDp = 72,
+                        strokeWidthDp = 7f,
+                        fontSizeSp = 16
+                    )
 
                     Spacer(modifier = Modifier.width(12.dp))
 
@@ -4422,10 +4468,10 @@ fun MyTestsScreenUI(
 
                 displayedSubjectsMap.entries.forEachIndexed { idx, (subjectName, testList) ->
                     val totalQsInSubject = testList.sumOf { it.questionCount }
-                    val avgTimeMin = if (testList.isNotEmpty()) testList.map { it.timeMinutes }.average().roundToInt() else 60
+                    val avgTimeMin = if (testList.isNotEmpty()) testList.map { it.timeMinutes }.average().safeRoundToInt() else 60
                     val completedInSub = testList.count { completedResultsMap.containsKey(it.id) }
                     val progressPct = if (testList.isNotEmpty()) {
-                        ((completedInSub.toFloat() / testList.size.toFloat()) * 100f).roundToInt().coerceIn(0, 100)
+                        ((completedInSub.toFloat() / testList.size.toFloat()) * 100f).safeRoundToInt().coerceIn(0, 100)
                     } else 0
                     val nextQuizToStart = testList.firstOrNull { !completedResultsMap.containsKey(it.id) } ?: testList.firstOrNull()
                     val ringColor = ringColors[idx % ringColors.size]
@@ -4464,7 +4510,7 @@ fun MyTestsScreenUI(
                                 .size(62.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    Brush.radialGradient(
+                                    Brush.verticalGradient(
                                         listOf(ringColor.copy(alpha = 0.35f), Color(0xFF09132C))
                                     )
                                 )
@@ -4510,29 +4556,14 @@ fun MyTestsScreenUI(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.padding(end = 10.dp)
                         ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.size(52.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    progress = { 1f },
-                                    color = Color(0xFF1E293B),
-                                    strokeWidth = 5.dp,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                                CircularProgressIndicator(
-                                    progress = { (progressPct / 100f).coerceIn(0.05f, 1f) },
-                                    color = ringColor,
-                                    strokeWidth = 5.dp,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                                Text(
-                                    text = "$progressPct%",
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.ExtraBold
-                                )
-                            }
+                            NeonCircularProgressRing(
+                                percentage = progressPct,
+                                ringColor = ringColor,
+                                trackColor = Color(0xFF1E293B),
+                                sizeDp = 52,
+                                strokeWidthDp = 5f,
+                                fontSizeSp = 11
+                            )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text("Progress", color = ringColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
@@ -4799,7 +4830,7 @@ fun SolutionsAndPdfScreenUI(
                         .size(62.dp)
                         .clip(CircleShape)
                         .background(
-                            Brush.radialGradient(
+                            Brush.verticalGradient(
                                 listOf(CorrectGreen, Color(0xFF065F46))
                             )
                         )
@@ -4914,7 +4945,7 @@ fun SolutionsAndPdfScreenUI(
                         dateText = "Paused",
                         durationMin = savedResumeState.config.timeMinutes,
                         scorePercentText = "%.1f%%".format(progressPct),
-                        marksText = "${estM.roundToInt()} / ${maxM.roundToInt()}",
+                        marksText = "${estM.safeRoundToInt()} / ${maxM.safeRoundToInt()}",
                         isCompleted = false,
                         onOpenSolutions = { onResumeInterruptedTest(savedResumeState) },
                         onPrintPdf = { onResumeInterruptedTest(savedResumeState) }
@@ -4958,7 +4989,7 @@ fun SolutionsAndPdfScreenUI(
                             dateText = att.completedDate.ifBlank { "Recent" },
                             durationMin = att.config.timeMinutes,
                             scorePercentText = "%.1f%%".format(att.percentage),
-                            marksText = "${att.obtainedMarks.roundToInt()} / ${att.maxMarks.roundToInt()}",
+                            marksText = "${att.obtainedMarks.safeRoundToInt()} / ${att.maxMarks.safeRoundToInt()}",
                             isCompleted = true,
                             onOpenSolutions = { onOpenSavedResult(att) },
                             onPrintPdf = { onPrintSavedResultPdf(att) }
@@ -4973,7 +5004,7 @@ fun SolutionsAndPdfScreenUI(
                 } else {
                     allOnlineQuizzes.forEach { meta ->
                         val latestAtt = completedResultsMap[meta.id]?.lastOrNull()
-                        val maxM = (meta.questionCount * meta.marksPerCorrect).roundToInt()
+                        val maxM = (meta.questionCount * meta.marksPerCorrect).safeRoundToInt()
                         SolutionSubmissionCard(
                             examName = normalizeExamCode(meta.examName),
                             title = meta.title,
@@ -4981,7 +5012,7 @@ fun SolutionsAndPdfScreenUI(
                             dateText = latestAtt?.completedDate ?: meta.publishedDate.ifBlank { "Live" },
                             durationMin = meta.timeMinutes,
                             scorePercentText = if (latestAtt != null) "%.1f%%".format(latestAtt.percentage) else "0.0%",
-                            marksText = if (latestAtt != null) "${latestAtt.obtainedMarks.roundToInt()} / $maxM" else "0 / $maxM",
+                            marksText = if (latestAtt != null) "${latestAtt.obtainedMarks.safeRoundToInt()} / $maxM" else "0 / $maxM",
                             isCompleted = latestAtt != null,
                             onOpenSolutions = {
                                 if (latestAtt != null) onOpenSavedResult(latestAtt)
@@ -5855,7 +5886,7 @@ fun ResultScreenUI(
     val maxMarks = questions.size * testConfig.marksPerCorrect
     val percentage = if (maxMarks > 0) ((totalMarks / maxMarks) * 100.0).coerceIn(0.0, 100.0) else 0.0
     val attempted = correct + wrong
-    val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).roundToInt() else 0
+    val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).safeRoundToInt() else 0
     val letters = listOf("A", "B", "C", "D", "E")
 
     Column(modifier = Modifier.fillMaxSize().background(BgDark)) {
@@ -6040,12 +6071,12 @@ fun CustomQuizScreenUI(
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("mock_test_prefs", Context.MODE_PRIVATE) }
     val examChoices = listOf("RPSC", "RSSB", "CTET", "UGC NET")
-    var examName by remember { mutableStateOf(prefs.getString("saved_exam", initialConfig.examName) ?: "RPSC") }
-    var subject by remember { mutableStateOf(prefs.getString("saved_subject", initialConfig.subject) ?: "Sociology") }
-    var title by remember { mutableStateOf(prefs.getString("saved_title", initialConfig.title) ?: initialConfig.title) }
-    var timeStr by remember { mutableStateOf(prefs.getInt("saved_time", initialConfig.timeMinutes).toString()) }
-    var marksStr by remember { mutableStateOf(prefs.getFloat("saved_marks", initialConfig.marksPerCorrect.toFloat()).toString()) }
-    var negStr by remember { mutableStateOf(prefs.getFloat("saved_neg", initialConfig.negativeMark.toFloat()).toString()) }
+    var examName by remember { mutableStateOf(prefs.safeString("saved_exam", initialConfig.examName) ?: "RPSC") }
+    var subject by remember { mutableStateOf(prefs.safeString("saved_subject", initialConfig.subject) ?: "Sociology") }
+    var title by remember { mutableStateOf(prefs.safeString("saved_title", initialConfig.title) ?: initialConfig.title) }
+    var timeStr by remember { mutableStateOf(prefs.safeInt("saved_time", initialConfig.timeMinutes).toString()) }
+    var marksStr by remember { mutableStateOf(prefs.safeFloat("saved_marks", initialConfig.marksPerCorrect.toFloat()).toString()) }
+    var negStr by remember { mutableStateOf(prefs.safeFloat("saved_neg", initialConfig.negativeMark.toFloat()).toString()) }
     var selectedFileName by remember { mutableStateOf("📂 .TXT फाइल चुनें") }
     var rawTextContent by remember { mutableStateOf("") }
 
@@ -6259,26 +6290,26 @@ fun AdminPortalScreenUI(
 
     // Default values loaded from the LAST created/published quiz (or latest online quiz if first time)
     val examChoices = listOf("RPSC", "RSSB", "CTET", "UGC NET")
-    val defaultExam = prefs.getString("last_admin_exam", null)
+    val defaultExam = prefs.safeString("last_admin_exam", null)
         ?: latestQuiz?.examName
         ?: "RPSC"
-    val defaultSubject = prefs.getString("last_admin_subject", null)
+    val defaultSubject = prefs.safeString("last_admin_subject", null)
         ?: latestQuiz?.subject
         ?: existingSubjects.firstOrNull()
         ?: "Sociology"
-    val defaultTitle = prefs.getString("last_admin_title", null)
+    val defaultTitle = prefs.safeString("last_admin_title", null)
         ?: latestQuiz?.title
         ?: "Rajasthan SET & UGC NET Mock Test"
-    val defaultSubtitle = prefs.getString("last_admin_subtitle", null)
+    val defaultSubtitle = prefs.safeString("last_admin_subtitle", null)
         ?: latestQuiz?.subtitle
         ?: "Target Preparation & Revision Test"
-    val defaultTime = prefs.getString("last_admin_time", null)
+    val defaultTime = prefs.safeString("last_admin_time", null)
         ?: latestQuiz?.timeMinutes?.toString()
         ?: "60"
-    val defaultMarks = prefs.getString("last_admin_marks", null)
+    val defaultMarks = prefs.safeString("last_admin_marks", null)
         ?: latestQuiz?.marksPerCorrect?.toString()
         ?: "2.0"
-    val defaultNeg = prefs.getString("last_admin_neg", null)
+    val defaultNeg = prefs.safeString("last_admin_neg", null)
         ?: latestQuiz?.negativeMark?.toString()
         ?: "0.0"
 
@@ -6742,7 +6773,7 @@ fun printTwoColumnA4ResultPdf(
     val maxMarks = questions.size * config.marksPerCorrect
     val percentage = if (maxMarks > 0) ((totalMarks / maxMarks) * 100.0).coerceIn(0.0, 100.0) else 0.0
     val attempted = correct + wrong
-    val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).roundToInt() else 0
+    val accuracy = if (attempted > 0) ((correct.toDouble() / attempted) * 100).safeRoundToInt() else 0
     val negInfo = if (config.negativeMark > 0) "-%.2f Negative".format(config.negativeMark) else "No Negative"
 
     val fullHtml = """
