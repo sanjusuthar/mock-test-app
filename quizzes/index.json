@@ -10,7 +10,8 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794913207212.enc",
     "repoPath": "quizzes\/music\/quiz_1794913207212.enc",
-    "publishedDate": "17 Nov 2026"
+    "publishedDate": "17 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794912233789",
@@ -23,7 +24,8 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794912233789.enc",
     "repoPath": "quizzes\/music\/quiz_1794912233789.enc",
-    "publishedDate": "17 Nov 2026"
+    "publishedDate": "17 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794911410938",
@@ -36,7 +38,8 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794911410938.enc",
     "repoPath": "quizzes\/music\/quiz_1794911410938.enc",
-    "publishedDate": "17 Nov 2026"
+    "publishedDate": "17 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794894535591",
@@ -49,7 +52,8 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794894535591.enc",
     "repoPath": "quizzes\/music\/quiz_1794894535591.enc",
-    "publishedDate": "17 Nov 2026"
+    "publishedDate": "17 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794889269484",
@@ -62,7 +66,8 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794889269484.enc",
     "repoPath": "quizzes\/music\/quiz_1794889269484.enc",
-    "publishedDate": "17 Nov 2026"
+    "publishedDate": "17 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794888137314",
@@ -75,7 +80,8 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794888137314.enc",
     "repoPath": "quizzes\/music\/quiz_1794888137314.enc",
-    "publishedDate": "17 Nov 2026"
+    "publishedDate": "17 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794744629050",
@@ -88,7 +94,8 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/music\/quiz_1794744629050.enc",
     "repoPath": "quizzes\/music\/quiz_1794744629050.enc",
-    "publishedDate": "15 Nov 2026"
+    "publishedDate": "15 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794744439195",
@@ -101,7 +108,8 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/sociology\/quiz_1794744439195.enc",
     "repoPath": "quizzes\/sociology\/quiz_1794744439195.enc",
-    "publishedDate": "15 Nov 2026"
+    "publishedDate": "15 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794742656311",
@@ -114,12 +122,14 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/sociology\/quiz_1794742656311.enc",
     "repoPath": "quizzes\/sociology\/quiz_1794742656311.enc",
-    "publishedDate": "15 Nov 2026"
+    "publishedDate": "15 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794742526988",
     "title": "इकाई 1: जनसंख्या वृद्धि — अर्थ, कारण एवं परिणाम",
     "subtitle": "Target Preparation & Revision Test",
+    "examName": "RPSC",
     "subject": "Sociology",
     "timeMinutes": 30,
     "marksPerCorrect": 2,
@@ -140,7 +150,8 @@
     "questionCount": 160,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/ctet\/quiz_1794675349877.enc",
     "repoPath": "quizzes\/ctet\/quiz_1794675349877.enc",
-    "publishedDate": "14 Nov 2026"
+    "publishedDate": "14 Nov 2026",
+    "examName": "CTET"
   },
   {
     "id": "quiz_1794918054728",
@@ -153,7 +164,8 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/sociology\/quiz_1794918054728.enc",
     "repoPath": "quizzes\/sociology\/quiz_1794918054728.enc",
-    "publishedDate": "17 Nov 2026"
+    "publishedDate": "17 Nov 2026",
+    "examName": "RPSC"
   },
   {
     "id": "quiz_1794982069561",
