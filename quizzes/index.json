@@ -101,6 +101,7 @@
     "id": "quiz_1794744439195",
     "title": "इकाई 3: बाल श्रम — कारण एवं संवैधानिक प्रावधान",
     "subtitle": "Target Preparation & Revision Test",
+    "examName": "RPSC",
     "subject": "Sociology",
     "timeMinutes": 30,
     "marksPerCorrect": 2,
@@ -108,8 +109,7 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/sociology\/quiz_1794744439195.enc",
     "repoPath": "quizzes\/sociology\/quiz_1794744439195.enc",
-    "publishedDate": "15 Nov 2026",
-    "examName": "RPSC"
+    "publishedDate": "15 Nov 2026"
   },
   {
     "id": "quiz_1794742656311",
