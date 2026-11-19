@@ -698,6 +698,15 @@
         .replace(/\n/g, "<br>");
     }
 
+    function escHtmlWithLinks(str, linkColor = "#38bdf8") {
+      const escaped = escHtml(str);
+      return escaped.replace(/https?:\/\/[^\s<]+/gi, (raw) => {
+        const clean = raw.replace(/[.,);:\]]+$/, "");
+        const trailing = raw.slice(clean.length);
+        return `<a href="${clean}" target="_blank" rel="noopener noreferrer" style="color:${linkColor};text-decoration:underline;word-break:break-all;">${clean}</a>${trailing}`;
+      });
+    }
+
     // ==================== 3. BROWSER AES-256-CBC DECRYPTION (ENCv1:) ====================
     async function decryptQuizContent(content) {
       const trimmed = String(content || "").trim();
@@ -1047,7 +1056,7 @@
             <div class="print-options-grid">${opts}</div>
             <div class="print-ans-row"><strong>आपका उत्तर:</strong> <span style="color:${color}">${uText}</span></div>
             <div class="print-ans-row"><strong>सही उत्तर:</strong> <span style="color:#10b981">${cText}</span></div>
-            <div class="print-sol-box"><strong>व्याख्या:</strong> ${escHtml(q.solution)}</div>
+            <div class="print-sol-box"><strong>व्याख्या:</strong> ${escHtmlWithLinks(q.solution, "#0284c7")}</div>
           </div>`;
       });
 
@@ -1578,7 +1587,7 @@
               <div style="font-size:14px;font-weight:700;margin-bottom:8px;">${escHtml(q.text)}</div>
               <div style="font-size:12px;margin-bottom:3px;"><strong>आपका उत्तर:</strong> <span style="color:${isRight ? "var(--green)" : "var(--red)"}">${(uAns !== null && uAns !== undefined) ? `(${letters[uAns]}) ${escHtml(q.options[uAns])}` : "छोड़ा गया (Skipped)"}</span></div>
               <div style="font-size:12px;margin-bottom:6px;"><strong>सही उत्तर:</strong> <span style="color:var(--green)">(${letters[q.correctAnswer]}) ${escHtml(q.options[q.correctAnswer])}</span></div>
-              <div style="font-size:12px;background:#08112B;border-left:3px solid var(--rose);padding:8px;border-radius:6px;color:#E2E8F0;"><strong>व्याख्या:</strong> ${escHtml(q.solution)}</div>
+              <div style="font-size:12px;background:#08112B;border-left:3px solid var(--rose);padding:8px;border-radius:6px;color:#E2E8F0;"><strong>व्याख्या:</strong> ${escHtmlWithLinks(q.solution, "#38bdf8")}</div>
             </div>`;
         }).join("")}</div>`;
     }
