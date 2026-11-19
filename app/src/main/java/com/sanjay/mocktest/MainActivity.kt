@@ -35,6 +35,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -52,6 +53,12 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -6209,12 +6216,75 @@ fun ResultScreenUI(
                             .padding(10.dp)
                     ) {
                         Text("💡 व्याख्या (Solution):", color = PrimaryRose, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        Text(q.solution, color = Color(0xFFE2E8F0), fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                        LinkifiedSolutionText(
+                            text = q.solution,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+fun LinkifiedSolutionText(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+    val urlRegex = remember { Regex("https?://[^\\s<>\"]+", RegexOption.IGNORE_CASE) }
+    val annotated = remember(text) {
+        buildAnnotatedString {
+            var lastIndex = 0
+            urlRegex.findAll(text).forEach { match ->
+                val rawUrl = match.value
+                val cleanUrl = rawUrl.trimEnd('.', ',', ')', ']', ';', ':')
+                val start = match.range.first
+                val cleanEnd = start + cleanUrl.length
+                if (start > lastIndex) {
+                    append(text.substring(lastIndex, start))
+                }
+                if (cleanUrl.isNotEmpty()) {
+                    pushStringAnnotation(tag = "URL", annotation = cleanUrl)
+                    withStyle(
+                        SpanStyle(
+                            color = SecondarySky,
+                            textDecoration = TextDecoration.Underline,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    ) {
+                        append(cleanUrl)
+                    }
+                    pop()
+                }
+                lastIndex = cleanEnd
+            }
+            if (lastIndex < text.length) {
+                append(text.substring(lastIndex))
+            }
+        }
+    }
+    ClickableText(
+        text = annotated,
+        style = TextStyle(
+            color = Color(0xFFE2E8F0),
+            fontSize = 13.sp,
+            lineHeight = 19.sp
+        ),
+        modifier = modifier,
+        onClick = { offset ->
+            annotated.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                .firstOrNull()?.let { ann ->
+                    try {
+                        uriHandler.openUri(ann.item)
+                    } catch (_: Throwable) {
+                        Toast.makeText(context, "लिंक नहीं खुल सका: ${ann.item}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+        }
+    )
 }
 
 // ==================== 15. FULL-SCREEN CUSTOM LOCAL QUIZ BUILDER (ZERO KEYBOARD JITTER) ====================
@@ -7028,6 +7098,16 @@ fun printTwoColumnA4ResultPdf(
     val qHtmlBuilder = StringBuilder()
 
     fun esc(s: String): String = TextUtils.htmlEncode(s).replace("\n", "<br>")
+    val pdfUrlRegex = Regex("https?://[^\\s<]+", RegexOption.IGNORE_CASE)
+    fun escWithLinks(s: String): String {
+        val escaped = esc(s)
+        return pdfUrlRegex.replace(escaped) { m ->
+            val raw = m.value
+            val clean = raw.trimEnd('.', ',', ')', ']', ';', ':')
+            val trailing = raw.substring(clean.length)
+            "<a href=\"$clean\" style=\"color:#0284c7;text-decoration:underline;word-break:break-all;\">$clean</a>$trailing"
+        }
+    }
 
     questions.forEachIndexed { idx, q ->
         val uAns = userAnswers.getOrNull(idx)
@@ -7050,7 +7130,7 @@ fun printTwoColumnA4ResultPdf(
                 <div class="print-options-grid">$optsHtml</div>
                 <div class="print-ans-row"><strong>आपका उत्तर:</strong> <span style="color:$printColor">$uAnsText</span></div>
                 <div class="print-ans-row"><strong>सही उत्तर:</strong> <span style="color:#10b981">$cAnsText</span></div>
-                <div class="print-sol-box"><strong>व्याख्या:</strong> ${esc(q.solution)}</div>
+                <div class="print-sol-box"><strong>व्याख्या:</strong> ${escWithLinks(q.solution)}</div>
             </div>
             """.trimIndent()
         )
