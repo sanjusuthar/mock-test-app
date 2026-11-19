@@ -115,6 +115,7 @@
     "id": "quiz_1794742656311",
     "title": "इकाई 2: यौन उत्पीड़न — रूप एवं कानूनी प्रावधान",
     "subtitle": "Target Preparation & Revision Test",
+    "examName": "RPSC",
     "subject": "Sociology",
     "timeMinutes": 30,
     "marksPerCorrect": 2,
@@ -122,8 +123,7 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/sociology\/quiz_1794742656311.enc",
     "repoPath": "quizzes\/sociology\/quiz_1794742656311.enc",
-    "publishedDate": "15 Nov 2026",
-    "examName": "RPSC"
+    "publishedDate": "15 Nov 2026"
   },
   {
     "id": "quiz_1794742526988",
