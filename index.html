@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Online Mock Test — RPSC | RSSB | CTET | UGC NET</title>
   <style>
     :root {
@@ -454,10 +454,129 @@
     /* Printable 2-Column A4 Sheet (Hidden on screen, visible only on Print/PDF) */
     #print-sheet { display: none; }
 
+
+    /* Desktop Left Sidebar (Hidden on Mobile/Tablet) */
+    .desktop-sidebar { display: none; }
+    .cards-grid-2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .cbt-layout { display: block; }
+    .cbt-side-palette { display: none; }
+    .form-center-wrap { max-width: 640px; margin: 0 auto; }
+
+    /* Tablet Optimization (768px - 1023px) */
+    @media (min-width: 768px) {
+      .app-shell {
+        max-width: 860px;
+        padding: 18px 24px 104px 24px;
+      }
+      .bottom-nav { max-width: 620px; }
+      .cards-grid-2 { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+      .hero-banner { padding: 24px; }
+      .hero-h1 { font-size: 24px; }
+      .hero-h2 { font-size: 28px; }
+      .hero-banner::after { font-size: 110px; right: 24px; bottom: 6px; }
+      .quick-tile { padding: 16px 8px; }
+      .quick-icon { width: 50px; height: 50px; font-size: 22px; }
+      .quick-label { font-size: 13px; }
+      .exam-card { min-height: 118px; padding: 14px 8px; }
+      .exam-code { font-size: 15px; }
+      .exam-sub { font-size: 10px; }
+      .split-card { padding: 16px; gap: 14px; min-height: 124px; }
+    }
+
+    /* Desktop Optimization (1024px+) */
+    @media (min-width: 1024px) {
+      body { display: flex; }
+      .desktop-sidebar {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 248px;
+        background: #071026;
+        border-right: 1px solid rgba(14, 165, 233, 0.25);
+        padding: 20px 16px;
+        z-index: 45;
+      }
+      .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 16px;
+      }
+      .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
+      .side-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 14px;
+        border-radius: 12px;
+        color: #CBD5E1;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .side-link:hover { background: rgba(14, 165, 233, 0.12); color: #fff; }
+      .side-link.active {
+        background: linear-gradient(90deg, rgba(225, 29, 72, 0.25), rgba(14, 165, 233, 0.12));
+        border: 1px solid rgba(225, 29, 72, 0.55);
+        color: #fff;
+      }
+      .sidebar-profile {
+        background: #0D1A3B;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .app-shell {
+        margin-left: 248px;
+        margin-right: auto;
+        width: calc(100% - 248px);
+        max-width: 1220px;
+        padding: 24px 36px 48px 36px;
+      }
+      .bottom-nav { display: none !important; }
+      .top-header .brand-center { display: none; }
+      .top-header .mobile-menu-btn { display: none; }
+      .top-header { justify-content: flex-end; gap: 10px; }
+
+      /* Desktop CBT Split Exam Layout */
+      .cbt-layout {
+        display: grid;
+        grid-template-columns: 1fr 310px;
+        gap: 20px;
+        align-items: start;
+      }
+      .cbt-side-palette {
+        display: block;
+        position: sticky;
+        top: 20px;
+        background: #0B1636;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+      }
+      .mobile-grid-btn { display: none !important; }
+      .opt-card:hover { border-color: var(--sky); background: rgba(14, 165, 233, 0.1); }
+      .quick-tile:hover, .exam-card:hover, .split-card:hover, .folder-row:hover {
+        transform: translateY(-2px);
+        transition: transform 0.15s ease;
+      }
+    }
+
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
       body { background: #fff !important; color: #000 !important; }
-      .app-shell, .bottom-nav, .modal-backdrop { display: none !important; }
+      .app-shell, .bottom-nav, .desktop-sidebar, .modal-backdrop { display: none !important; }
       #print-sheet {
         display: block !important;
         background: #fff;
@@ -505,6 +624,7 @@
   </style>
 </head>
 <body>
+  <aside id="desktop-sidebar" class="desktop-sidebar"></aside>
   <div id="app" class="app-shell"></div>
   <div id="print-sheet"></div>
 
@@ -983,7 +1103,7 @@
       const count = state.onlineQuizzes.length;
       return `
         <div class="top-header">
-          <div class="icon-btn" onclick="goScreen('SETTINGS')">☰</div>
+          <div class="icon-btn mobile-menu-btn" onclick="goScreen('SETTINGS')">☰</div>
           <div class="brand-center">
             <div class="brand-row">
               <span style="font-size:26px">🎓</span>
@@ -997,6 +1117,44 @@
               ${count > 0 ? `<span class="bell-badge">${count}</span>` : ""}
             </div>
             <div class="icon-btn circle-btn" style="border-color:var(--sky)" onclick="goScreen('PROFILE_SETUP')">${avatar}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderDesktopSidebar() {
+      const el = document.getElementById("desktop-sidebar");
+      if (!el) return;
+      if (state.screen === "PROFILE_SETUP") {
+        el.style.display = "none";
+        return;
+      }
+      el.style.display = "";
+      const p = state.profile || { name: "Student", targetExam: "RPSC", avatarEmoji: "🎓" };
+      const scr = state.screen;
+      const isHome = scr === "HOME";
+      const isTests = scr === "MY_TESTS" || scr === "SUBJECT_TESTS" || scr === "TEST";
+      const isSol = scr === "SOLUTIONS" || scr === "RESULT";
+      const isCustom = scr === "CUSTOM_BUILDER";
+      const isSet = scr === "SETTINGS";
+      el.innerHTML = `
+        <div>
+          <div class="sidebar-brand" onclick="goScreen('HOME')" style="cursor:pointer;">
+            <span style="font-size:30px;">🎓</span>
+            <div class="brand-title">Online<span>Mock Test</span></div>
+          </div>
+          <div class="sidebar-nav">
+            <div class="side-link ${isHome ? "active" : ""}" onclick="goScreen('HOME')"><span>🏠</span><span>Home</span></div>
+            <div class="side-link ${isTests ? "active" : ""}" onclick="goScreen('MY_TESTS')"><span>📊</span><span>My Tests</span></div>
+            <div class="side-link ${isSol ? "active" : ""}" onclick="goScreen('SOLUTIONS')"><span>📄</span><span>Solutions & PDF</span></div>
+            <div class="side-link ${isCustom ? "active" : ""}" onclick="goScreen('CUSTOM_BUILDER')"><span>📝</span><span>Custom Test</span></div>
+            <div class="side-link ${isSet ? "active" : ""}" onclick="goScreen('SETTINGS')"><span>⚙️</span><span>Settings</span></div>
+          </div>
+        </div>
+        <div class="sidebar-profile" onclick="goScreen('PROFILE_SETUP')">
+          <div class="icon-btn circle-btn" style="width:42px;height:42px;font-size:20px;border-color:var(--sky);flex-shrink:0;">${p.avatarEmoji}</div>
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.name)}</div>
+            <div style="font-size:11px;color:var(--cyan);font-weight:700;">🎯 ${normalizeExamCode(p.targetExam)}</div>
           </div>
         </div>`;
     }
@@ -1028,7 +1186,7 @@
         "CTET (Central Teacher Eligibility Test)",
         "UGC NET (National Eligibility Test)"
       ];
-      return `
+      return `<div class="form-center-wrap">
         <div style="text-align:center;margin:10px 0 18px;">
           <div style="color:var(--gold);font-size:13px;font-weight:800;">Study Smart... Score High...</div>
           <div style="font-size:24px;font-weight:900;margin-top:4px;">ONLINE MOCK TEST</div>
@@ -1048,7 +1206,7 @@
             ${exams.map(e => `<option value="${e}" ${p.targetExam === e ? "selected" : ""}>${e}</option>`).join("")}
           </select>
           <button class="btn-primary" style="width:100%;margin-top:18px;padding:13px;font-size:15px;" onclick="saveProfileForm()">🚀 प्रोफाइल सेव करें व वेबसाइट खोलें</button>
-        </div>`;
+        </div></div>`;
     }
 
     function renderHome() {
@@ -1111,7 +1269,7 @@
           <div style="font-size:12px;color:var(--muted)">${subEntries.length} Folders</div>
         </div>
         ${subEntries.length === 0 ? `<div class="card-box" style="text-align:center;color:var(--muted);font-size:12.5px;">इस परीक्षा के लिए कोई फोल्डर नहीं मिला। ऊपर 🔔 पर टैप करें।</div>` :
-          subEntries.map(([subName, list]) => {
+          `<div class="cards-grid-2">` + subEntries.map(([subName, list]) => {
             const done = list.filter(q => state.attemptsMap[q.id]).length;
             return `
               <div class="card-box folder-row" onclick="openSubject('${subName.replace(/'/g, "\\'")}')">
@@ -1122,7 +1280,7 @@
                 </div>
                 <span class="btn-primary" style="padding:6px 12px;font-size:11px;">खोलें ➔</span>
               </div>`;
-          }).join("")}
+          }).join("") + `</div>`}
         ${bottomNavHtml(0)}`;
     }
 
@@ -1165,7 +1323,7 @@
         </div>
 
         ${shownSubs.length === 0 ? `<div class="card-box" style="text-align:center;color:var(--muted);">इस परीक्षा के कोई टेस्ट उपलब्ध नहीं हैं।</div>` :
-          shownSubs.map(([subName, list]) => {
+          `<div class="cards-grid-2">` + shownSubs.map(([subName, list]) => {
             const done = list.filter(q => state.attemptsMap[q.id]).length;
             const pct = list.length ? Math.round((done / list.length) * 100) : 0;
             const totalQs = list.reduce((s, q) => s + q.questionCount, 0);
@@ -1182,7 +1340,7 @@
                   <button class="btn-outline" style="padding:5px 10px;font-size:11px;" onclick="openSubject('${subName.replace(/'/g, "\\'")}')">View Details</button>
                 </div>
               </div>`;
-          }).join("")}
+          }).join("") + `</div>`}
         ${bottomNavHtml(1)}`;
     }
 
@@ -1196,7 +1354,7 @@
             <div style="font-size:11px;color:var(--muted);">${state.selectedExam} • ${list.length} Tests (Unit 1 से आगे)</div>
           </div>
         </div>
-        ${list.map((q, idx) => {
+        <div class="cards-grid-2">${list.map((q, idx) => {
           const atts = state.attemptsMap[q.id] || [];
           const latest = atts[atts.length - 1];
           return `
@@ -1217,7 +1375,7 @@
                 <button class="btn-primary" style="flex:1;" onclick="launchById('${q.id}')">${latest ? "🔄 Re-Test" : "▶ Start Test"}</button>
               </div>
             </div>`;
-        }).join("")}`;
+        }).join("")}</div>`;
     }
 
     function renderSolutions() {
@@ -1235,7 +1393,7 @@
         ${state.solutionsTab === "SUBMISSIONS" ? (
           allAtts.length === 0
             ? `<div class="card-box" style="text-align:center;color:var(--muted);padding:24px;">अभी तक कोई सबमिट किया गया टेस्ट नहीं है।</div>`
-            : allAtts.map((att, idx) => `
+            : `<div class="cards-grid-2">` + allAtts.map((att, idx) => `
               <div class="card-box">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                   <span class="pill-rose" style="margin:0;">${normalizeExamCode(att.config.examName)}</span>
@@ -1247,15 +1405,15 @@
                   <button class="btn-sky" style="flex:1;" onclick="openSavedFromAll(${idx})">📊 View Solutions</button>
                   <button class="btn-primary" style="flex:1;" onclick="printSavedFromAll(${idx})">🖨️ Print / Save PDF</button>
                 </div>
-              </div>`).join("")
-        ) : state.onlineQuizzes.map(q => `
+              </div>`).join("") + `</div>`
+        ) : `<div class="cards-grid-2">` + state.onlineQuizzes.map(q => `
           <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
             <div>
               <div style="font-size:13.5px;font-weight:800;">[${q.examName}] ${escHtml(q.title)}</div>
               <div style="font-size:11px;color:var(--muted);">${escHtml(q.subject)} • ${q.questionCount} Qs • ${q.timeMinutes} Min</div>
             </div>
             <button class="btn-primary" style="padding:7px 12px;font-size:11.5px;" onclick="launchById('${q.id}')">▶ Start</button>
-          </div>`).join("")}
+          </div>`).join("") + `</div>`}
         ${bottomNavHtml(2)}`;
     }
 
@@ -1297,7 +1455,7 @@
 
     function renderCustomBuilder() {
       const cfg = loadJson(LS_CUSTOM_CFG, { examName: state.selectedExam, subject: "General", title: "Custom Mock Test", timeMinutes: 60, marksPerCorrect: 2.0, negativeMark: 0.0 });
-      return `
+      return `<div class="form-center-wrap">
         <div class="test-topbar">
           <button class="btn-outline" style="padding:6px 10px;" onclick="goScreen('HOME')">← Back</button>
           <div style="font-size:15px;font-weight:900;">⚙️ Custom Quiz Builder</div>
@@ -1321,7 +1479,7 @@
           <input type="file" accept=".txt,text/plain" class="input" style="margin-bottom:8px;" onchange="handleCustomTxtFile(event)" />
           <textarea id="cust-raw" class="input" placeholder="TOPIC: विषय...\nQ: 1. प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या..."></textarea>
           <button class="btn-primary" style="width:100%;margin-top:14px;padding:12px;" onclick="startCustomQuizFromForm()">▶ Save & Start Custom Test</button>
-        </div>`;
+        </div></div>`;
     }
 
     function renderTestScreen() {
@@ -1340,23 +1498,39 @@
           <div id="live-timer-text" class="timer-pill">${formatMMSS(t.remainingSec)}</div>
         </div>
 
-        <div class="card-box">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span class="pill-rose" style="margin:0;">${escHtml(q.topic)}</span>
-            <span style="font-size:12px;font-weight:800;cursor:pointer;color:${isRev ? "var(--gold)" : "var(--muted)"}" onclick="toggleReview()">${isRev ? "🔖 Marked Review" : "🔖 Mark Review"}</span>
-          </div>
-          <div style="font-size:15.5px;font-weight:700;line-height:1.5;margin-bottom:14px;">Q${t.currentQ + 1}. ${escHtml(q.text)}</div>
-          ${q.options.map((opt, idx) => `
-            <div class="opt-card ${t.answers[t.currentQ] === idx ? "selected" : ""}" onclick="selectOption(${idx})">
-              <div class="opt-badge">${letters[idx] || idx + 1}</div>
-              <div style="font-size:14px;line-height:1.4;">${escHtml(opt)}</div>
-            </div>`).join("")}
-        </div>
+        <div class="cbt-layout">
+          <div>
+            <div class="card-box">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span class="pill-rose" style="margin:0;">${escHtml(q.topic)}</span>
+                <span style="font-size:12px;font-weight:800;cursor:pointer;color:${isRev ? "var(--gold)" : "var(--muted)"}" onclick="toggleReview()">${isRev ? "🔖 Marked Review" : "🔖 Mark Review"}</span>
+              </div>
+              <div style="font-size:16px;font-weight:700;line-height:1.55;margin-bottom:14px;">Q${t.currentQ + 1}. ${escHtml(q.text)}</div>
+              ${q.options.map((opt, idx) => `
+                <div class="opt-card ${t.answers[t.currentQ] === idx ? "selected" : ""}" onclick="selectOption(${idx})">
+                  <div class="opt-badge">${letters[idx] || idx + 1}</div>
+                  <div style="font-size:14.5px;line-height:1.45;">${escHtml(opt)}</div>
+                </div>`).join("")}
+            </div>
 
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <button class="btn-outline" style="flex:1;" onclick="prevQ()" ${t.currentQ === 0 ? "disabled" : ""}>← Prev</button>
-          <button class="btn-sky" style="flex:1;" onclick="openModal('PALETTE')">☷ Grid</button>
-          <button class="btn-primary" style="flex:1;" onclick="${t.currentQ < t.questions.length - 1 ? "nextQ()" : "confirmSubmit()"}">${t.currentQ < t.questions.length - 1 ? "Next →" : "✅ Submit"}</button>
+            <div style="display:flex;gap:10px;margin-top:10px;">
+              <button class="btn-outline" style="flex:1;" onclick="prevQ()" ${t.currentQ === 0 ? "disabled" : ""}>← Prev</button>
+              <button class="btn-sky mobile-grid-btn" style="flex:1;" onclick="openModal('PALETTE')">☷ Grid</button>
+              <button class="btn-primary" style="flex:1;" onclick="${t.currentQ < t.questions.length - 1 ? "nextQ()" : "confirmSubmit()"}">${t.currentQ < t.questions.length - 1 ? "Next →" : "✅ Submit"}</button>
+            </div>
+          </div>
+
+          <div class="cbt-side-palette">
+            <div style="font-size:14.5px;font-weight:900;margin-bottom:4px;">Question Palette</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">हरा: उत्तर | पीला: Review | लाल: वर्तमान</div>
+            <div class="palette-grid" style="max-height:360px;overflow-y:auto;padding-right:4px;">
+              ${t.questions.map((_, i) => {
+                const cls = i === t.currentQ ? "cur" : t.review[i] ? "rev" : (t.answers[i] !== null ? "ans" : "");
+                return `<button class="pal-btn ${cls}" onclick="jumpToQ(${i})">${i + 1}</button>`;
+              }).join("")}
+            </div>
+            <button class="btn-primary" style="width:100%;background:var(--green);margin-top:8px;" onclick="confirmSubmit()">✅ Submit Exam</button>
+          </div>
         </div>`;
     }
 
@@ -1395,7 +1569,7 @@
           </div>
         </div>
 
-        ${r.questions.map((q, idx) => {
+        <div class="cards-grid-2">${r.questions.map((q, idx) => {
           const uAns = r.answers[idx];
           const isRight = uAns === q.correctAnswer;
           return `
@@ -1406,7 +1580,7 @@
               <div style="font-size:12px;margin-bottom:6px;"><strong>सही उत्तर:</strong> <span style="color:var(--green)">(${letters[q.correctAnswer]}) ${escHtml(q.options[q.correctAnswer])}</span></div>
               <div style="font-size:12px;background:#08112B;border-left:3px solid var(--rose);padding:8px;border-radius:6px;color:#E2E8F0;"><strong>व्याख्या:</strong> ${escHtml(q.solution)}</div>
             </div>`;
-        }).join("")}`;
+        }).join("")}</div>`;
     }
 
     function renderModal() {
@@ -1466,6 +1640,7 @@
         case "RESULT": html = renderResultScreen(); break;
       }
       root.innerHTML = html + renderModal();
+      renderDesktopSidebar();
     }
 
     // ==================== 8. ACTION HANDLERS ====================
