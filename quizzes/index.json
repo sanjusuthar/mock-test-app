@@ -157,6 +157,7 @@
     "id": "quiz_1794918054728",
     "title": "इकाई 4: घरेलू हिंसा — प्रकार एवं घरेलू हिंसा से महिला संरक्षण अधिनियम, 2005",
     "subtitle": "Target Preparation & Revision Test",
+    "examName": "RPSC",
     "subject": "Sociology",
     "timeMinutes": 30,
     "marksPerCorrect": 2,
@@ -164,8 +165,7 @@
     "questionCount": 30,
     "fileUrl": "https:\/\/raw.githubusercontent.com\/sanjusuthar\/mock-test-app\/main\/quizzes\/sociology\/quiz_1794918054728.enc",
     "repoPath": "quizzes\/sociology\/quiz_1794918054728.enc",
-    "publishedDate": "17 Nov 2026",
-    "examName": "RPSC"
+    "publishedDate": "17 Nov 2026"
   },
   {
     "id": "quiz_1794982069561",
