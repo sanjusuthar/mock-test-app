@@ -917,6 +917,33 @@
     const LS_THEME = "web_mock_theme_v1";
     const LS_LOCAL_PHOTO = "web_mock_local_avatar_v1";
 
+    function enterExamFullscreen() {
+      try {
+        const el = document.documentElement;
+        if (document.fullscreenElement || document.webkitFullscreenElement) return;
+        if (el.requestFullscreen) {
+          const p = el.requestFullscreen({ navigationUI: "hide" });
+          if (p && typeof p.catch === "function") p.catch(() => {});
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        }
+      } catch {}
+    }
+    function exitExamFullscreen() {
+      try {
+        if (document.fullscreenElement && document.exitFullscreen) {
+          const p = document.exitFullscreen();
+          if (p && typeof p.catch === "function") p.catch(() => {});
+        } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      } catch {}
+    }
+    window.toggleExamFullscreen = () => {
+      if (document.fullscreenElement || document.webkitFullscreenElement) exitExamFullscreen();
+      else enterExamFullscreen();
+    };
+
     function getLocalPhoto() {
       try { return localStorage.getItem(LS_LOCAL_PHOTO) || ""; } catch { return ""; }
     }
@@ -1480,6 +1507,7 @@
         answers: t.answers,
         spentSec: spent
       };
+      exitExamFullscreen();
       state.screen = "RESULT";
       pushNavHistory("RESULT");
       render();
@@ -1627,7 +1655,7 @@
     function renderDesktopSidebar() {
       const el = document.getElementById("desktop-sidebar");
       if (!el) return;
-      if (state.screen === "PROFILE_SETUP") {
+      if (state.screen === "PROFILE_SETUP" || state.screen === "TEST") {
         el.style.display = "none";
         return;
       }
@@ -2142,6 +2170,7 @@
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
             <button class="btn-outline" style="padding:5px 9px;font-size:12px;border-color:var(--gold);color:var(--gold);flex-shrink:0;" onclick="pauseTestInPlace()">⏸ Pause</button>
             <div style="flex:1;min-width:0;font-size:13px;font-weight:800;line-height:1.3;color:var(--rose);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escHtml(t.config.title)}</div>
+            <button class="btn-outline" style="padding:4px 7px;font-size:12px;flex-shrink:0;" title="Full Screen" onclick="toggleExamFullscreen()">⛶</button>
             <div id="live-timer-text" class="timer-pill" style="flex-shrink:0;">${formatMMSS(t.remainingSec)}</div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
@@ -2580,7 +2609,10 @@
     };
     window.launchById = (id) => {
       const meta = state.onlineQuizzes.find(q => q.id === id);
-      if (meta) launchOnlineQuiz(meta);
+      if (meta) {
+        enterExamFullscreen();
+        launchOnlineQuiz(meta);
+      }
     };
     window.resumeOrStart = () => {
       if (state.resumeState) {
@@ -2591,6 +2623,7 @@
           if (qs.length) {
             state.prevScreen = "HOME";
             state.activeTest = { config: r.config, questions: qs, rawTxt: plain, currentQ: r.currentQ || 0, answers: r.answers, review: r.review, remainingSec: Math.max(1, r.remainingSec) };
+            enterExamFullscreen();
             state.screen = "TEST";
             pushNavHistory("TEST");
             startTimer();
@@ -2626,6 +2659,7 @@
       stopTimer();
       state.isPaused = false;
       state.modal = null;
+      exitExamFullscreen();
       try { sessionStorage.removeItem("web_mock_active_test"); } catch {}
       goScreen(state.prevScreen || "HOME");
     };
@@ -2759,6 +2793,7 @@
     window.retakeActiveResult = () => {
       const r = state.resultData;
       if (!r) return;
+      enterExamFullscreen();
       const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + r.config.id + "_plain") || "";
       startExamSession(r.config, r.questions, plain);
     };
@@ -2779,6 +2814,7 @@
       const rawTxt = document.getElementById("cust-raw").value;
       const res = parseQuizTxt(rawTxt);
       if (!res.questions.length) { alert("कृपया सही प्रश्नों और ANS: वाला टेक्स्ट या .txt फाइल डालें!"); return; }
+      enterExamFullscreen();
       const cfg = { id: "custom_" + Math.abs(rawTxt.split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0)), title, examName, subject, timeMinutes, marksPerCorrect, negativeMark };
       saveJson(LS_CUSTOM_CFG, cfg);
       startExamSession(cfg, res.questions, rawTxt);
