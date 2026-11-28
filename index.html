@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Online Mock Test — RPSC | RSSB | CTET | UGC NET</title>
+  <title>Online Mock Test — RPSC | RSSB | CTET | HTET | UGC NET</title>
   <meta name="theme-color" content="#050C24" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23050C24'/%3E%3Cstop offset='100%25' stop-color='%230E1B3D'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23E11D48'/%3E%3Cstop offset='100%25' stop-color='%230EA5E9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)' stroke='url(%23b)' stroke-width='3'/%3E%3Cpath d='M32 14L10 25l22 11 22-11-22-11z' fill='%23F8FAFC'/%3E%3Cpath d='M18 31v10c0 4 6.5 7 14 7s14-3 14-7V31l-14 7-14-7z' fill='%23E11D48'/%3E%3Ccircle cx='51' cy='38' r='2.5' fill='%23F59E0B'/%3E%3Cpath d='M51 27v11' stroke='%23F59E0B' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23050C24'/%3E%3Cpath d='M32 14L10 25l22 11 22-11-22-11z' fill='%23F8FAFC'/%3E%3Cpath d='M18 31v10c0 4 6.5 7 14 7s14-3 14-7V31l-14 7-14-7z' fill='%23E11D48'/%3E%3C/svg%3E" />
@@ -989,6 +989,7 @@
       if (up.includes("RPSC")) return "RPSC";
       if (up.includes("RSSB")) return "RSSB";
       if (up.includes("CTET")) return "CTET";
+      if (up.includes("HTET")) return "HTET";
       if (up.includes("NET")) return "UGC NET";
       return String(raw || "RPSC").split(" (")[0].trim() || "RPSC";
     }
@@ -1305,7 +1306,7 @@
           const rawExam = String(obj.examName || "").trim();
           const resolvedExam = rawExam
             ? normalizeExamCode(rawExam)
-            : (rawSubject.toUpperCase().includes("CTET") || rawTitle.toUpperCase().includes("CTET") ? "CTET" : "RPSC");
+            : (rawSubject.toUpperCase().includes("CTET") || rawTitle.toUpperCase().includes("CTET") ? "CTET" : (rawSubject.toUpperCase().includes("HTET") || rawTitle.toUpperCase().includes("HTET") ? "HTET" : "RPSC"));
           return {
             id: obj.id || `quiz_${idx}`,
             title: rawTitle,
@@ -1747,6 +1748,7 @@
         "RPSC (Rajasthan Public Service Commission)",
         "RSSB (Rajasthan Staff Selection Board)",
         "CTET (Central Teacher Eligibility Test)",
+        "HTET (Haryana Teacher Eligibility Test)",
         "UGC NET (National Eligibility Test)"
       ];
       const showAuthTabs = isFirebaseConfigured() && !state.auth?.uid;
@@ -1818,7 +1820,7 @@
           <div class="hero-h1">Prepare Smart...</div>
           <div class="hero-h2">Score High...</div>
           <div class="pill-rose">Rajasthan Exams</div>
-          <div class="hero-exams">RPSC &nbsp;|&nbsp; RSSB &nbsp;|&nbsp; CTET &nbsp;|&nbsp; UGC NET</div>
+          <div class="hero-exams">RPSC &nbsp;|&nbsp; RSSB &nbsp;|&nbsp; CTET &nbsp;|&nbsp; HTET &nbsp;|&nbsp; UGC NET</div>
           <button class="btn-gold" onclick="goScreen('MY_TESTS')">Start Mock Test ➔</button>
         </div>
 
@@ -1833,10 +1835,11 @@
           <div class="sec-title"><span class="sec-bar"></span>Popular Exams</div>
           <div class="sec-link" onclick="fetchOnlineQuizzes()">${state.isLoadingOnline ? "Syncing..." : "Refresh ➔"}</div>
         </div>
-        <div class="grid-4" style="margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(84px,1fr));gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;">
           <div class="exam-card" style="border-color:var(--rose)" onclick="pickExam('RPSC')"><div class="exam-emblem">🏛️</div><div class="exam-code">RPSC</div><div class="exam-sub">Rajasthan Public Service Commission</div></div>
           <div class="exam-card" style="border-color:var(--sky)" onclick="pickExam('RSSB')"><div class="exam-emblem">🏢</div><div class="exam-code">RSSB</div><div class="exam-sub">Rajasthan Staff Selection Board</div></div>
           <div class="exam-card" style="border-color:var(--purple)" onclick="pickExam('CTET')"><div class="exam-emblem">📘</div><div class="exam-code">CTET</div><div class="exam-sub">Central Teacher Eligibility Test</div></div>
+          <div class="exam-card" style="border-color:var(--gold)" onclick="pickExam('HTET')"><div class="exam-emblem">📗</div><div class="exam-code">HTET</div><div class="exam-sub">Haryana Teacher Eligibility Test</div></div>
           <div class="exam-card" style="border-color:var(--green)" onclick="pickExam('UGC NET')"><div class="exam-emblem">☸️</div><div class="exam-code">UGC NET</div><div class="exam-sub">National Eligibility Test</div></div>
         </div>
 
@@ -1880,7 +1883,7 @@
     }
 
     function renderMyTests() {
-      const exams = ["RPSC", "RSSB", "CTET", "UGC NET"];
+      const exams = ["RPSC", "RSSB", "CTET", "HTET", "UGC NET"];
       const subMap = getExamSubjectsMap(state.selectedExam);
       const subNames = Object.keys(subMap);
       const shownSubs = (state.subjectFilterChip === "ALL" || !subMap[state.subjectFilterChip])
@@ -2128,7 +2131,7 @@
         <div class="card-box">
           <label class="field-label">Exam Name</label>
           <select id="cust-exam" class="input">
-            ${["RPSC", "RSSB", "CTET", "UGC NET"].map(e => `<option value="${e}" ${cfg.examName === e ? "selected" : ""}>${e}</option>`).join("")}
+            ${["RPSC", "RSSB", "CTET", "HTET", "UGC NET"].map(e => `<option value="${e}" ${cfg.examName === e ? "selected" : ""}>${e}</option>`).join("")}
           </select>
           <label class="field-label">Subject</label>
           <input id="cust-sub" class="input" value="${escHtml(cfg.subject).replace(/<br>/g, "")}" />
@@ -2346,7 +2349,7 @@
             <div class="modal-card" onclick="event.stopPropagation()">
               <div style="font-size:17px;font-weight:900;margin-bottom:8px;">ℹ️ About Online Mock Test</div>
               <div style="font-size:13px;line-height:1.65;color:var(--muted);">
-                <strong>Online Mock Test</strong> (RPSC, RSSB, CTET, UGC NET) प्रतियोगी परीक्षाओं की सटीक प्रैक्टिस, नेगेटिव मार्किंग एनालिसिस, विस्तृत व्याख्या (Solutions) और 2-Column A4 PDF प्रिंट सुविधा के लिए बनाया गया है।<br/><br/>
+                <strong>Online Mock Test</strong> (RPSC, RSSB, CTET, HTET, UGC NET) प्रतियोगी परीक्षाओं की सटीक प्रैक्टिस, नेगेटिव मार्किंग एनालिसिस, विस्तृत व्याख्या (Solutions) और 2-Column A4 PDF प्रिंट सुविधा के लिए बनाया गया है।<br/><br/>
                 आपका प्रोफ़ाइल और स्कोर Android ऐप और वेबसाइट दोनों पर ऑटोमैटिक सिंक रहता है।
               </div>
               <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">बंद करें</button>
