@@ -676,10 +676,26 @@
       color: #CBD5E1;
       margin-top: 4px;
       line-height: 1.45;
+      white-space: pre-line;
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
+    }
+    .test-desc.expanded {
+      display: block;
+      -webkit-line-clamp: unset;
+      overflow: visible;
+    }
+    .read-more-btn {
+      background: none;
+      border: none;
+      color: var(--sky);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 2px 0;
+      margin-top: 2px;
+      cursor: pointer;
     }
 
     /* Android-style Settings Menu Rows & Toggle Switch */
@@ -1989,7 +2005,7 @@
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                 <div>
                   <div style="font-size:14.5px;font-weight:800;">${idx + 1}. ${escHtml(q.title)}</div>
-                  ${q.subtitle && q.subtitle !== "Online Practice Test" ? `<div class="test-desc">${escHtml(q.subtitle)}</div>` : ""}
+                  ${renderTestDescHtml(q.subtitle, "sub_" + q.id)}
                   <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">${q.questionCount} Questions • ${q.timeMinutes} Min • +${q.marksPerCorrect}/-${q.negativeMark}</div>
                 </div>
                 ${atts.length ? `<span class="pill-rose" style="background:var(--green);margin:0;flex-shrink:0;">${atts.length}x Done</span>` : ""}
@@ -2038,7 +2054,7 @@
           <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
             <div style="flex:1;min-width:0;">
               <div style="font-size:13.5px;font-weight:800;">[${q.examName}] ${escHtml(q.title)}</div>
-              ${q.subtitle && q.subtitle !== "Online Practice Test" ? `<div class="test-desc">${escHtml(q.subtitle)}</div>` : ""}
+              ${renderTestDescHtml(q.subtitle, "all_" + q.id)}
               <div style="font-size:11px;color:var(--muted);margin-top:3px;">${escHtml(q.subject)} • ${q.questionCount} Qs • ${q.timeMinutes} Min</div>
             </div>
             <button class="btn-primary" style="padding:7px 12px;font-size:11.5px;" onclick="launchById('${q.id}')">▶ Start</button>
@@ -2587,6 +2603,20 @@
     };
     window.confirmSubmit = () => { if (confirm("क्या आप वाकई परीक्षा सबमिट करना चाहते हैं?")) finishExam(); };
     window.openModal = (m) => { state.modal = m; render(); };
+    function renderTestDescHtml(subtitle, uidKey) {
+      const txt = String(subtitle || "").trim();
+      if (!txt || txt === "Online Practice Test") return "";
+      const safeId = String(uidKey).replace(/[^a-zA-Z0-9_-]/g, "_");
+      const needsMore = txt.length > 110 || txt.split("\n").length > 3;
+      return `<div class="test-desc" id="desc-${safeId}">${escHtml(txt)}</div>` +
+        (needsMore ? `<button type="button" class="read-more-btn" onclick="event.stopPropagation();toggleDescExpand('${safeId}', this)">Read more ▾</button>` : "");
+    }
+    window.toggleDescExpand = (safeId, btn) => {
+      const el = document.getElementById("desc-" + safeId);
+      if (!el) return;
+      const expanded = el.classList.toggle("expanded");
+      btn.textContent = expanded ? "Show less ▴" : "Read more ▾";
+    };
     window.toggleWebsiteTheme = () => {
       const next = document.body.classList.contains("light-theme") ? "dark" : "light";
       applyTheme(next);
