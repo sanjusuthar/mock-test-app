@@ -882,6 +882,7 @@
 <body>
   <aside id="desktop-sidebar" class="desktop-sidebar"></aside>
   <div id="app" class="app-shell"></div>
+  <input type="file" id="local-avatar-input" accept="image/*" style="display:none" onchange="onLocalPhotoPicked(event)" />
   <div id="print-sheet"></div>
 
   <script>
@@ -914,6 +915,17 @@
     const LS_ATTEMPTS = "web_mock_attempts_v2";
     const LS_RESUME = "web_mock_resume_v2";
     const LS_THEME = "web_mock_theme_v1";
+    const LS_LOCAL_PHOTO = "web_mock_local_avatar_v1";
+
+    function getLocalPhoto() {
+      try { return localStorage.getItem(LS_LOCAL_PHOTO) || ""; } catch { return ""; }
+    }
+    function avatarHtml(emoji) {
+      const pic = getLocalPhoto();
+      if (pic) return `<img src="${pic}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" />`;
+      return emoji || "🎓";
+    }
+    let cropState = { img: null, zoom: 1, ox: 0, oy: 0, dragging: false, lastX: 0, lastY: 0 };
 
     function applyTheme(theme) {
       const isLight = theme === "light";
@@ -1494,20 +1506,6 @@
           }
         } catch {}
       }
-      if (state.modal === "CONTACT") {
-        return `
-          <div class="modal-backdrop" onclick="closeModal()">
-            <div class="modal-card" onclick="event.stopPropagation()">
-              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">✉️ Contact Us</div>
-              <div style="font-size:13px;line-height:1.7;color:var(--muted);">
-                किसी भी प्रश्न, सुझाव या टेस्ट त्रुटि की सूचना के लिए हमसे संपर्क करें:<br/><br/>
-                📧 <strong>Support:</strong> अपने शिक्षक / Admin से संपर्क करें या टेस्ट के Solution पेज से प्रश्न संख्या नोट करके भेजें।<br/>
-                🌐 <strong>Platform:</strong> Online Mock Test Portal (Android + Web)
-              </div>
-              <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">बंद करें</button>
-            </div>
-          </div>`;
-      }
       return "";
     }
 
@@ -1621,7 +1619,7 @@
               ${state.isLoadingOnline ? "⏳" : "🔔"}
               ${count > 0 ? `<span class="bell-badge">${count}</span>` : ""}
             </div>
-            <div class="icon-btn circle-btn" style="border-color:var(--sky)" onclick="goScreen('PROFILE_SETUP')">${avatar}</div>
+            <div class="icon-btn circle-btn" style="border-color:var(--sky);overflow:hidden;padding:0;" onclick="goScreen('PROFILE_SETUP')">${avatarHtml(avatar)}</div>
           </div>
         </div>`;
     }
@@ -1656,7 +1654,7 @@
           </div>
         </div>
         <div class="sidebar-profile" onclick="goScreen('PROFILE_SETUP')">
-          <div class="icon-btn circle-btn" style="width:42px;height:42px;font-size:20px;border-color:var(--sky);flex-shrink:0;">${p.avatarEmoji}</div>
+          <div class="icon-btn circle-btn" style="width:42px;height:42px;font-size:20px;border-color:var(--sky);flex-shrink:0;overflow:hidden;padding:0;">${avatarHtml(p.avatarEmoji)}</div>
           <div style="min-width:0;flex:1;">
             <div style="font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.name)}</div>
             <div style="font-size:11px;color:var(--cyan);font-weight:700;">🎯 ${normalizeExamCode(p.targetExam)}</div>
@@ -1752,7 +1750,17 @@
             <button class="btn-outline" style="width:100%;margin-top:10px;border-color:var(--sky);color:var(--sky);" onclick="handleForgotPassword()">🔑 Forgot Password? (ईमेल से रीसेट)</button>
           ` : `
             ${p.studentId ? `<div style="text-align:center;margin-bottom:10px;"><span class="pill-rose" style="background:#0A1938;border:1px solid var(--cyan);color:var(--cyan);">Student ID: ${escHtml(p.studentId)}</span></div>` : ""}
-            <div class="field-label" style="text-align:center;">अपना प्रोफाइल आइकन चुनें</div>
+            <div style="display:flex;align-items:center;gap:12px;margin:6px 0 14px;padding:10px;border-radius:14px;border:1px solid var(--border);background:rgba(14,165,233,0.06);">
+              <div class="icon-btn circle-btn" style="width:54px;height:54px;font-size:24px;border:2px solid var(--sky);flex-shrink:0;overflow:hidden;padding:0;" onclick="triggerLocalPhotoPick()">${avatarHtml(p.avatarEmoji)}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button type="button" class="btn-outline" style="padding:6px 10px;font-size:11.5px;border-color:var(--sky);color:var(--sky);" onclick="triggerLocalPhotoPick()">📷 Gallery फोटो चुनें</button>
+                  ${getLocalPhoto() ? `<button type="button" class="btn-outline" style="padding:6px 10px;font-size:11.5px;border-color:var(--rose);color:var(--rose);" onclick="removeLocalPhoto()">🗑️ हटाएं</button>` : ""}
+                </div>
+                <div style="font-size:10.5px;color:var(--muted);margin-top:4px;">केवल ब्राउज़र में सेव होगी (ऑटो क्रॉप व कंप्रेस ~20 KB)</div>
+              </div>
+            </div>
+            <div class="field-label" style="text-align:center;">या प्रोफाइल आइकन चुनें</div>
             <div style="display:flex;justify-content:center;gap:10px;margin:10px 0 14px;flex-wrap:wrap;">
               ${avatars.map(a => `<div onclick="selectAvatar('${a}')" class="icon-btn circle-btn" style="width:44px;height:44px;font-size:20px;background:${p.avatarEmoji === a ? "var(--rose)" : "#1E293B"};border:2px solid ${p.avatarEmoji === a ? "var(--gold)" : "transparent"}">${a}</div>`).join("")}
             </div>
@@ -1998,7 +2006,10 @@
       return `
         ${headerHtml()}
         <div class="card-box" style="display:flex;align-items:center;gap:12px;">
-          <div class="icon-btn circle-btn" style="width:58px;height:58px;font-size:28px;border:2px solid var(--rose);">${p.avatarEmoji}</div>
+          <div style="position:relative;width:58px;height:58px;flex-shrink:0;cursor:pointer;" onclick="triggerLocalPhotoPick()" title="फोटो बदलें">
+            <div class="icon-btn circle-btn" style="width:58px;height:58px;font-size:28px;border:2px solid var(--rose);overflow:hidden;padding:0;">${avatarHtml(p.avatarEmoji)}</div>
+            <div style="position:absolute;right:-2px;bottom:-2px;width:21px;height:21px;border-radius:50%;background:var(--sky);border:2px solid var(--card);display:flex;align-items:center;justify-content:center;font-size:10px;">📷</div>
+          </div>
           <div style="flex:1;">
             <div style="font-size:16px;font-weight:900;">${escHtml(p.name)}</div>
             <div style="font-size:11px;color:var(--cyan);font-weight:700;">${p.studentId ? `ID: ${escHtml(p.studentId)} • ` : ""}${escHtml(p.email || state.auth?.email || p.districtOrCity)}</div>
@@ -2127,13 +2138,19 @@
       const ansCount = t.answers.filter(a => a !== null).length;
       const isRev = t.review[t.currentQ];
       return `
-        <div class="test-topbar">
-          <button class="btn-outline" style="padding:5px 10px;border-color:var(--gold);color:var(--gold);" onclick="pauseTestInPlace()">⏸ Pause</button>
-          <div style="text-align:center;flex:1;padding:0 6px;overflow:hidden;">
-            <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(t.config.title)}</div>
-            <div style="font-size:10.5px;color:var(--muted);">Q ${t.currentQ + 1}/${t.questions.length} • Solved: ${ansCount}</div>
+        <div class="test-topbar" style="flex-direction:column;align-items:stretch;gap:6px;padding:9px 10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <button class="btn-outline" style="padding:5px 9px;font-size:12px;border-color:var(--gold);color:var(--gold);flex-shrink:0;" onclick="pauseTestInPlace()">⏸ Pause</button>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:800;line-height:1.3;color:var(--rose);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escHtml(t.config.title)}</div>
+            <div id="live-timer-text" class="timer-pill" style="flex-shrink:0;">${formatMMSS(t.remainingSec)}</div>
           </div>
-          <div id="live-timer-text" class="timer-pill">${formatMMSS(t.remainingSec)}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="font-size:11px;color:var(--muted);font-weight:600;">Q ${t.currentQ + 1}/${t.questions.length} • Solved: ${ansCount}</div>
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;">
+              <div style="width:22px;height:22px;border-radius:50%;border:1.2px solid var(--sky);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;background:rgba(14,165,233,0.15);">${avatarHtml(state.profile?.avatarEmoji || "🎓")}</div>
+              <div style="font-size:11.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">${escHtml((state.profile?.name || "Student").toUpperCase())}</div>
+            </div>
+          </div>
         </div>
 
         <div class="cbt-layout">
@@ -2327,6 +2344,41 @@
             </div>
           </div>`;
       }
+      if (state.modal === "CONTACT") {
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">✉️ Contact Us</div>
+              <div style="font-size:13px;line-height:1.7;color:var(--muted);">
+                किसी भी प्रश्न, सुझाव या टेस्ट त्रुटि की सूचना के लिए हमसे संपर्क करें:<br/><br/>
+                📧 <strong>Support:</strong> अपने शिक्षक / Admin से संपर्क करें या टेस्ट के Solution पेज से प्रश्न संख्या नोट करके भेजें।<br/>
+                🌐 <strong>Platform:</strong> Online Mock Test Portal (Android + Web)
+              </div>
+              <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">बंद करें</button>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "PHOTO_CROP" && cropState.img) {
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" style="text-align:center;" onclick="event.stopPropagation()">
+              <div style="font-size:16.5px;font-weight:900;margin-bottom:4px;">✂️ प्रोफाइल फोटो क्रॉप करें</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-bottom:12px;">फोटो को उंगली/माउस से खिसकाएं और नीचे स्लाइडर से ज़ूम करें:</div>
+              <div style="width:220px;height:220px;margin:0 auto;border-radius:50%;overflow:hidden;border:2.5px solid var(--sky);background:#04091A;touch-action:none;cursor:grab;">
+                <canvas id="crop-preview-canvas" width="220" height="220" style="display:block;width:220px;height:220px;"></canvas>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin:12px 0 8px;">
+                <span style="font-size:11.5px;font-weight:700;color:var(--muted);">🔍 Zoom</span>
+                <input type="range" id="crop-zoom-slider" min="1" max="3" step="0.05" value="${cropState.zoom}" style="flex:1;" oninput="onCropZoomChange(this.value)" />
+              </div>
+              <div style="font-size:10.5px;color:var(--sky);margin-bottom:12px;">📱 यह फोटो केवल आपके ब्राउज़र में (~20 KB) सेव होगी, Firebase सर्वर पर नहीं।</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn-outline" style="flex:1;" onclick="closeModal()">Cancel</button>
+                <button class="btn-primary" style="flex:1;" onclick="saveCroppedLocalPhoto()">✅ Save Photo</button>
+              </div>
+            </div>
+          </div>`;
+      }
       return "";
     }
 
@@ -2346,6 +2398,7 @@
       }
       root.innerHTML = html + renderModal();
       renderDesktopSidebar();
+      if (state.modal === "PHOTO_CROP" && cropState.img) initCropCanvasInteraction();
     }
 
     // ==================== 8. ACTION HANDLERS ====================
@@ -2497,6 +2550,7 @@
         localStorage.removeItem(LS_ATTEMPTS);
         localStorage.removeItem(LS_RESUME);
         localStorage.removeItem(LS_INDEX_CACHE);
+        localStorage.removeItem(LS_LOCAL_PHOTO);
         try { sessionStorage.removeItem("web_mock_active_test"); } catch {}
         state.auth = null;
         state.profile = null;
@@ -2590,6 +2644,97 @@
       if (!el) return;
       const expanded = el.classList.toggle("expanded");
       btn.textContent = expanded ? "Show less ▴" : "Read more ▾";
+    };
+    window.triggerLocalPhotoPick = () => {
+      const inp = document.getElementById("local-avatar-input");
+      if (inp) { inp.value = ""; inp.click(); }
+    };
+    window.removeLocalPhoto = () => {
+      try { localStorage.removeItem(LS_LOCAL_PHOTO); } catch {}
+      showToast("कस्टम प्रोफाइल फोटो हटा दी गई।");
+      render();
+    };
+    window.onLocalPhotoPicked = (ev) => {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          cropState = { img, zoom: 1, ox: 0, oy: 0, dragging: false, lastX: 0, lastY: 0 };
+          state.modal = "PHOTO_CROP";
+          render();
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    };
+    function drawCropCanvas(canvas, outSize) {
+      const img = cropState.img;
+      if (!canvas || !img) return;
+      const ctx = canvas.getContext("2d");
+      const sz = outSize || canvas.width;
+      ctx.clearRect(0, 0, sz, sz);
+      const baseScale = Math.max(sz / img.width, sz / img.height);
+      const scale = baseScale * cropState.zoom;
+      const drawW = img.width * scale;
+      const drawH = img.height * scale;
+      const ratio = sz / 220;
+      const maxOx = Math.max(0, (drawW - sz) / 2);
+      const maxOy = Math.max(0, (drawH - sz) / 2);
+      const dx = Math.max(-maxOx, Math.min(maxOx, cropState.ox * ratio));
+      const dy = Math.max(-maxOy, Math.min(maxOy, cropState.oy * ratio));
+      const x = (sz - drawW) / 2 + dx;
+      const y = (sz - drawH) / 2 + dy;
+      ctx.drawImage(img, x, y, drawW, drawH);
+    }
+    function initCropCanvasInteraction() {
+      const canvas = document.getElementById("crop-preview-canvas");
+      if (!canvas) return;
+      drawCropCanvas(canvas, 220);
+      canvas.onpointerdown = (e) => {
+        cropState.dragging = true;
+        cropState.lastX = e.clientX;
+        cropState.lastY = e.clientY;
+        try { canvas.setPointerCapture(e.pointerId); } catch {}
+      };
+      canvas.onpointermove = (e) => {
+        if (!cropState.dragging) return;
+        const dx = e.clientX - cropState.lastX;
+        const dy = e.clientY - cropState.lastY;
+        cropState.lastX = e.clientX;
+        cropState.lastY = e.clientY;
+        const maxShift = 110 * cropState.zoom;
+        cropState.ox = Math.max(-maxShift, Math.min(maxShift, cropState.ox + dx));
+        cropState.oy = Math.max(-maxShift, Math.min(maxShift, cropState.oy + dy));
+        drawCropCanvas(canvas, 220);
+      };
+      canvas.onpointerup = () => { cropState.dragging = false; };
+      canvas.onpointercancel = () => { cropState.dragging = false; };
+    }
+    window.onCropZoomChange = (val) => {
+      cropState.zoom = parseFloat(val) || 1;
+      const canvas = document.getElementById("crop-preview-canvas");
+      if (canvas) drawCropCanvas(canvas, 220);
+    };
+    window.saveCroppedLocalPhoto = () => {
+      if (!cropState.img) return;
+      const out = document.createElement("canvas");
+      out.width = 256;
+      out.height = 256;
+      drawCropCanvas(out, 256);
+      const dataUrl = out.toDataURL("image/jpeg", 0.78);
+      try {
+        localStorage.setItem(LS_LOCAL_PHOTO, dataUrl);
+      } catch (e) {
+        alert("ब्राउज़र स्टोरेज भर गया है, कृपया Settings से पुराना कैश साफ़ करें।");
+        return;
+      }
+      const approxKb = Math.max(1, Math.round((dataUrl.length * 0.75) / 1024));
+      cropState.img = null;
+      state.modal = null;
+      showToast(`✅ प्रोफाइल फोटो सेव हो गई (${approxKb} KB)!`);
+      render();
     };
     window.toggleWebsiteTheme = () => {
       const next = document.body.classList.contains("light-theme") ? "dark" : "light";
