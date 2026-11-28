@@ -1522,54 +1522,6 @@
           }
         } catch {}
       }
-      if (state.modal === "DOWNLOAD_CENTER") {
-        const all = getAllAttemptsSorted();
-        return `
-          <div class="modal-backdrop" onclick="closeModal()">
-            <div class="modal-card" style="max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
-              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">⬇️ Download Center</div>
-              <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">अपने सबमिट किए गए टेस्ट की 2-Column A4 Solution PDF सीधे डाउनलोड या प्रिंट करें:</div>
-              ${all.length === 0
-                ? `<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">अभी कोई सबमिट किया गया टेस्ट नहीं है। कोई टेस्ट दें, फिर यहाँ PDF उपलब्ध होगी।</div>`
-                : all.map((att, idx) => `
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;">
-                    <div style="min-width:0;flex:1;">
-                      <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(att.config.title)}</div>
-                      <div style="font-size:11px;color:var(--muted);">Attempt ${att.attemptNumber} • ${att.percentage.toFixed(1)}% • ${att.completedDate}</div>
-                    </div>
-                    <button class="btn-primary" style="padding:6px 10px;font-size:11.5px;flex-shrink:0;" onclick="closeModal();printSavedFromAll(${idx})">🖨️ PDF</button>
-                  </div>`).join("")}
-              <button class="btn-outline" style="width:100%;margin-top:8px;" onclick="closeModal()">बंद करें</button>
-            </div>
-          </div>`;
-      }
-      if (state.modal === "PRIVACY") {
-        return `
-          <div class="modal-backdrop" onclick="closeModal()">
-            <div class="modal-card" onclick="event.stopPropagation()">
-              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">🛡️ Privacy Policy</div>
-              <div style="font-size:13px;line-height:1.65;color:var(--muted);">
-                • आपका नाम, ईमेल और टेस्ट स्कोर सुरक्षित रूप से केवल आपके वेरिफाइड अकाउंट से लिंक होकर Firebase Cloud में सेव रहते हैं।<br/>
-                • हम आपका डेटा किसी थर्ड-पार्टी के साथ साझा नहीं करते।<br/>
-                • आप कभी भी Settings से अपना लोकल ब्राउज़र कैश साफ़ कर सकते हैं।
-              </div>
-              <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">समझ गया</button>
-            </div>
-          </div>`;
-      }
-      if (state.modal === "ABOUT") {
-        return `
-          <div class="modal-backdrop" onclick="closeModal()">
-            <div class="modal-card" onclick="event.stopPropagation()">
-              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">ℹ️ About Online Mock Test</div>
-              <div style="font-size:13px;line-height:1.65;color:var(--muted);">
-                <strong>Online Mock Test</strong> (RPSC, RSSB, CTET, UGC NET) प्रतियोगी परीक्षाओं की सटीक प्रैक्टिस, नेगेटिव मार्किंग एनालिसिस, विस्तृत व्याख्या (Solutions) और 2-Column A4 PDF प्रिंट सुविधा के लिए बनाया गया है।<br/><br/>
-                आपका प्रोफ़ाइल और स्कोर Android ऐप और वेबसाइट दोनों पर ऑटोमैटिक सिंक रहता है।
-              </div>
-              <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">बंद करें</button>
-            </div>
-          </div>`;
-      }
       if (state.modal === "CONTACT") {
         return `
           <div class="modal-backdrop" onclick="closeModal()">
@@ -2350,6 +2302,54 @@
                 <button class="btn-primary" style="flex:1;" onclick="goScreen('SOLUTIONS')">सभी रिजल्ट देखें</button>
                 <button class="btn-outline" onclick="closeModal()">बंद करें</button>
               </div>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "DOWNLOAD_CENTER") {
+        const all = getAllAttemptsSorted();
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" style="max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">⬇️ Download Center</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">अपने सबमिट किए गए टेस्ट की 2-Column A4 Solution PDF सीधे डाउनलोड या प्रिंट करें:</div>
+              ${all.length === 0
+                ? `<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">अभी कोई सबमिट किया गया टेस्ट नहीं है। कोई टेस्ट दें, फिर यहाँ PDF उपलब्ध होगी।</div>`
+                : all.map((att, idx) => `
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;">
+                    <div style="min-width:0;flex:1;">
+                      <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(att.config.title)}</div>
+                      <div style="font-size:11px;color:var(--muted);">Attempt ${att.attemptNumber} • ${att.percentage.toFixed(1)}% • ${att.completedDate}</div>
+                    </div>
+                    <button class="btn-primary" style="padding:6px 10px;font-size:11.5px;flex-shrink:0;" onclick="closeModal();printSavedFromAll(${idx})">🖨️ PDF</button>
+                  </div>`).join("")}
+              <button class="btn-outline" style="width:100%;margin-top:8px;" onclick="closeModal()">बंद करें</button>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "PRIVACY") {
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">🛡️ Privacy Policy</div>
+              <div style="font-size:13px;line-height:1.65;color:var(--muted);">
+                • आपका नाम, ईमेल और टेस्ट स्कोर सुरक्षित रूप से केवल आपके वेरिफाइड अकाउंट से लिंक होकर Firebase Cloud में सेव रहते हैं।<br/>
+                • हम आपका डेटा किसी थर्ड-पार्टी के साथ साझा नहीं करते।<br/>
+                • आप कभी भी Settings से अपना लोकल ब्राउज़र कैश साफ़ कर सकते हैं।
+              </div>
+              <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">समझ गया</button>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "ABOUT") {
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">ℹ️ About Online Mock Test</div>
+              <div style="font-size:13px;line-height:1.65;color:var(--muted);">
+                <strong>Online Mock Test</strong> (RPSC, RSSB, CTET, UGC NET) प्रतियोगी परीक्षाओं की सटीक प्रैक्टिस, नेगेटिव मार्किंग एनालिसिस, विस्तृत व्याख्या (Solutions) और 2-Column A4 PDF प्रिंट सुविधा के लिए बनाया गया है।<br/><br/>
+                आपका प्रोफ़ाइल और स्कोर Android ऐप और वेबसाइट दोनों पर ऑटोमैटिक सिंक रहता है।
+              </div>
+              <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">बंद करें</button>
             </div>
           </div>`;
       }
