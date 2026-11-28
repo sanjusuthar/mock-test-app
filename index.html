@@ -1,0 +1,2393 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Mock Test — RPSC | RSSB | CTET | UGC NET</title>
+  <meta name="theme-color" content="#050C24" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23050C24'/%3E%3Cstop offset='100%25' stop-color='%230E1B3D'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23E11D48'/%3E%3Cstop offset='100%25' stop-color='%230EA5E9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)' stroke='url(%23b)' stroke-width='3'/%3E%3Cpath d='M32 14L10 25l22 11 22-11-22-11z' fill='%23F8FAFC'/%3E%3Cpath d='M18 31v10c0 4 6.5 7 14 7s14-3 14-7V31l-14 7-14-7z' fill='%23E11D48'/%3E%3Ccircle cx='51' cy='38' r='2.5' fill='%23F59E0B'/%3E%3Cpath d='M51 27v11' stroke='%23F59E0B' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23050C24'/%3E%3Cpath d='M32 14L10 25l22 11 22-11-22-11z' fill='%23F8FAFC'/%3E%3Cpath d='M18 31v10c0 4 6.5 7 14 7s14-3 14-7V31l-14 7-14-7z' fill='%23E11D48'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg-top: #050C24;
+      --bg-mid: #09153E;
+      --bg-bot: #04091A;
+      --card: #0E1B3D;
+      --card-dark: #18181B;
+      --rose: #E11D48;
+      --sky: #0EA5E9;
+      --cyan: #00F0FF;
+      --gold: #F59E0B;
+      --green: #10B981;
+      --red: #EF4444;
+      --purple: #8B5CF6;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --border: rgba(14, 165, 233, 0.28);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      overscroll-behavior-y: contain;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif;
+      background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 50%, var(--bg-bot) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .app-shell {
+      max-width: 540px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 12px 14px 96px 14px;
+      position: relative;
+    }
+
+    /* Header */
+    .top-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+    }
+    .circle-btn { border-radius: 50%; }
+    .bell-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      background: var(--rose);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      min-width: 17px;
+      height: 17px;
+      border-radius: 99px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+    .brand-center { text-align: center; }
+    .brand-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .brand-title { font-size: 18px; font-weight: 900; line-height: 1.05; text-align: left; }
+    .brand-title span { display: block; color: var(--rose); font-size: 19px; }
+    .brand-sub { font-size: 10px; color: #CBD5E1; font-weight: 600; margin-top: 2px; }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(120deg, #07163B 0%, #0D235A 55%, #1E3A8A 100%);
+      border: 1.5px solid rgba(14, 165, 233, 0.55);
+      border-radius: 20px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+    }
+    .hero-banner::after {
+      content: "🏰";
+      position: absolute;
+      right: 14px;
+      bottom: 8px;
+      font-size: 74px;
+      opacity: 0.22;
+      pointer-events: none;
+    }
+    .hero-h1 { font-size: 19px; font-weight: 800; }
+    .hero-h2 { font-size: 21px; font-weight: 900; color: var(--gold); margin-bottom: 8px; }
+    .pill-rose {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--rose), #BE123C);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 6px;
+    }
+    .hero-exams { font-size: 10.5px; font-weight: 800; color: #E2E8F0; margin-bottom: 12px; }
+    .btn-gold {
+      background: linear-gradient(90deg, #FACC15, #F59E0B);
+      color: #09090B;
+      border: none;
+      border-radius: 99px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Quick 4 Tiles */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .quick-tile {
+      background: linear-gradient(180deg, #132046, #0B132B);
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      border-radius: 16px;
+      padding: 12px 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .quick-icon {
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 6px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      border: 1.5px solid rgba(255,255,255,0.55);
+    }
+    .quick-label { font-size: 11px; font-weight: 700; color: #fff; }
+
+    /* Section Title */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .sec-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .sec-bar { width: 4px; height: 18px; border-radius: 3px; background: var(--rose); }
+    .sec-link { font-size: 12.5px; font-weight: 700; color: var(--sky); cursor: pointer; }
+
+    /* Popular Exam White Cards */
+    .exam-card {
+      background: #fff;
+      color: #0F172A;
+      border-radius: 14px;
+      padding: 10px 5px;
+      text-align: center;
+      cursor: pointer;
+      border-bottom: 3px solid var(--rose);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 102px;
+    }
+    .exam-emblem { font-size: 22px; }
+    .exam-code { font-size: 12.5px; font-weight: 900; margin: 3px 0; }
+    .exam-sub { font-size: 8.5px; color: #334155; line-height: 1.2; font-weight: 600; }
+
+    /* Split 2 Cards */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .split-card {
+      background: linear-gradient(135deg, #0F1E46, #1E1B4B);
+      border: 1px solid rgba(225, 29, 72, 0.45);
+      border-radius: 16px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      min-height: 110px;
+    }
+    .split-card.sky { border-color: rgba(14, 165, 233, 0.5); background: linear-gradient(135deg, #0F1E46, #091534); }
+    .ring-wrap {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+    .btn-mini {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #fff;
+      background: var(--rose);
+      border: none;
+      cursor: pointer;
+    }
+    .btn-mini.sky { background: var(--sky); }
+
+    /* Subject Folders & Test Cards */
+    .card-box {
+      background: #0B1636;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px;
+      margin-bottom: 10px;
+    }
+    .folder-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .folder-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(14, 165, 233, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+      flex-shrink: 0;
+    }
+
+    /* Filter Chips */
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .chip-row::-webkit-scrollbar { display: none; }
+    .chip {
+      white-space: nowrap;
+      padding: 7px 14px;
+      border-radius: 99px;
+      background: #0E1B3D;
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      color: #E2E8F0;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: linear-gradient(90deg, var(--rose), #BE123C);
+      border-color: rgba(255,255,255,0.65);
+      color: #fff;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(90deg, var(--rose), #BE123C);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 12px;
+      padding: 9px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-sky {
+      background: linear-gradient(90deg, #0284C7, var(--sky));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 9px 14px;
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 24px);
+      max-width: 516px;
+      background: #081229;
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      border-radius: 22px;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 6px;
+      z-index: 40;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .nav-item {
+      text-align: center;
+      cursor: pointer;
+      padding: 2px 10px;
+      color: #CBD5E1;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .nav-item.active { color: var(--rose); font-weight: 800; }
+    .nav-item .nav-ic { font-size: 18px; display: block; margin-bottom: 1px; }
+
+    /* Forms & Inputs */
+    .field-label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 5px; margin-top: 10px; }
+    .input {
+      width: 100%;
+      background: #08112B;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 10px;
+      color: #fff;
+      padding: 10px 12px;
+      font-size: 13.5px;
+      outline: none;
+    }
+    .input:focus { border-color: var(--sky); }
+    textarea.input { min-height: 150px; resize: vertical; font-family: inherit; }
+
+    /* Exam Test Runner */
+    .test-topbar {
+      position: sticky;
+      top: 8px;
+      z-index: 35;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(11, 22, 54, 0.96);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+    .test-bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 540px;
+      background: rgba(8, 18, 41, 0.97);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(14, 165, 233, 0.35);
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)) 14px;
+      display: flex;
+      gap: 10px;
+      z-index: 42;
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .timer-pill {
+      background: rgba(225, 29, 72, 0.16);
+      border: 1px solid var(--rose);
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .opt-card {
+      background: #132046;
+      border: 1.5px solid rgba(148, 163, 184, 0.25);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 9px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .opt-card.selected {
+      background: rgba(14, 165, 233, 0.18);
+      border-color: var(--sky);
+    }
+    .opt-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #1E293B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .opt-card.selected .opt-badge { background: var(--sky); color: #fff; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 60;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 440px;
+      max-height: 85vh;
+      overflow-y: auto;
+      background: #0F172A;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .pal-btn {
+      aspect-ratio: 1 / 1;
+      border-radius: 8px;
+      border: none;
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      background: #1E293B;
+    }
+    .pal-btn.cur { background: var(--rose); }
+    .pal-btn.rev { background: var(--gold); color: #000; }
+    .pal-btn.ans { background: var(--green); }
+
+    /* Printable 2-Column A4 Sheet (Hidden on screen, visible only on Print/PDF) */
+    #print-sheet { display: none; }
+
+
+
+    .web-toast {
+      position: fixed;
+      bottom: 78px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.96);
+      color: #fff;
+      border: 1px solid var(--sky);
+      padding: 9px 16px;
+      border-radius: 99px;
+      font-size: 12.5px;
+      font-weight: 700;
+      z-index: 80;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+
+    /* Desktop Left Sidebar (Hidden on Mobile/Tablet) */
+    .desktop-sidebar { display: none; }
+    .cards-grid-2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .cbt-layout { display: block; }
+    .cbt-side-palette { display: none; }
+    .form-center-wrap { max-width: 640px; margin: 0 auto; }
+
+    /* Tablet Optimization (768px - 1023px) */
+    @media (min-width: 768px) {
+      .app-shell {
+        max-width: 860px;
+        padding: 18px 24px 104px 24px;
+      }
+      .bottom-nav { max-width: 620px; }
+      .test-bottom-bar { max-width: 860px; padding: 12px 24px; }
+      .cards-grid-2 { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+      .hero-banner { padding: 24px; }
+      .hero-h1 { font-size: 24px; }
+      .hero-h2 { font-size: 28px; }
+      .hero-banner::after { font-size: 110px; right: 24px; bottom: 6px; }
+      .quick-tile { padding: 16px 8px; }
+      .quick-icon { width: 50px; height: 50px; font-size: 22px; }
+      .quick-label { font-size: 13px; }
+      .exam-card { min-height: 118px; padding: 14px 8px; }
+      .exam-code { font-size: 15px; }
+      .exam-sub { font-size: 10px; }
+      .split-card { padding: 16px; gap: 14px; min-height: 124px; }
+    }
+
+    /* Desktop Optimization (1024px+) */
+    @media (min-width: 1024px) {
+      body { display: flex; }
+      .desktop-sidebar {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 248px;
+        background: #071026;
+        border-right: 1px solid rgba(14, 165, 233, 0.25);
+        padding: 20px 16px;
+        z-index: 45;
+      }
+      .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 16px;
+      }
+      .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
+      .side-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 14px;
+        border-radius: 12px;
+        color: #CBD5E1;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .side-link:hover { background: rgba(14, 165, 233, 0.12); color: #fff; }
+      .side-link.active {
+        background: linear-gradient(90deg, rgba(225, 29, 72, 0.25), rgba(14, 165, 233, 0.12));
+        border: 1px solid rgba(225, 29, 72, 0.55);
+        color: #fff;
+      }
+      .sidebar-profile {
+        background: #0D1A3B;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .app-shell {
+        margin-left: 248px;
+        margin-right: auto;
+        width: calc(100% - 248px);
+        max-width: 1220px;
+        padding: 24px 36px 48px 36px;
+      }
+      .bottom-nav { display: none !important; }
+      .top-header .brand-center { display: none; }
+      .top-header .mobile-menu-btn { display: none; }
+      .top-header { justify-content: flex-end; gap: 10px; }
+
+      /* Desktop CBT Split Exam Layout */
+      .cbt-layout {
+        display: grid;
+        grid-template-columns: 1fr 310px;
+        gap: 20px;
+        align-items: start;
+      }
+      .cbt-side-palette {
+        display: block;
+        position: sticky;
+        top: 20px;
+        background: #0B1636;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+      }
+      .mobile-grid-btn { display: none !important; }
+      .test-bottom-bar { position: sticky; bottom: 12px; left: auto; transform: none; max-width: none; border: 1px solid rgba(14, 165, 233, 0.35); border-radius: 14px; margin-top: 12px; }
+      .opt-card:hover { border-color: var(--sky); background: rgba(14, 165, 233, 0.1); }
+      .quick-tile:hover, .exam-card:hover, .split-card:hover, .folder-row:hover {
+        transform: translateY(-2px);
+        transition: transform 0.15s ease;
+      }
+    }
+
+    @media print {
+      @page { size: A4 portrait; margin: 8mm; }
+      body { background: #fff !important; color: #000 !important; }
+      .app-shell, .bottom-nav, .test-bottom-bar, .desktop-sidebar, .modal-backdrop { display: none !important; }
+      #print-sheet {
+        display: block !important;
+        background: #fff;
+        color: #000;
+        font-family: sans-serif;
+      }
+      .print-header-box {
+        border: 1.5px solid #000;
+        padding: 10px 14px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        text-align: center;
+        background: #f8fafc;
+      }
+      .print-header-box h2 { font-size: 16px; margin-bottom: 4px; }
+      .print-header-box h3 { font-size: 12px; margin-bottom: 4px; color: #333; }
+      .print-header-box p { font-size: 11px; margin-bottom: 8px; color: #555; }
+      .print-score-row {
+        display: flex;
+        justify-content: space-around;
+        border-top: 1px dashed #000;
+        padding-top: 6px;
+        font-size: 11px;
+        font-weight: bold;
+      }
+      .two-col-container {
+        column-count: 2;
+        column-gap: 14px;
+        column-rule: 1px solid #cbd5e1;
+      }
+      .print-q-box {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .print-q-head { display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; margin-bottom: 3px; }
+      .print-q-topic { background: #e11d48; color: #fff; padding: 1px 6px; font-size: 9px; border-radius: 10px; }
+      .print-q-text { font-size: 11px; font-weight: 600; margin-bottom: 4px; line-height: 1.35; }
+      .print-options-grid { margin-bottom: 4px; font-size: 10.5px; padding-left: 6px; line-height: 1.3; }
+      .print-ans-row { font-size: 10px; margin-bottom: 2px; }
+      .print-sol-box { background: #f8fafc; border-left: 3px solid #e11d48; padding: 4px 6px; margin-top: 4px; font-size: 10px; line-height: 1.3; }
+    }
+  </style>
+</head>
+<body>
+  <aside id="desktop-sidebar" class="desktop-sidebar"></aside>
+  <div id="app" class="app-shell"></div>
+  <div id="print-sheet"></div>
+
+  <script>
+    // ==================== 1. GITHUB & ENCRYPTION CONFIG ====================
+    const GITHUB_OWNER = "sanjusuthar";
+    const GITHUB_REPO = "mock-test-app";
+    const GITHUB_BRANCH = "main";
+    const QUIZ_SECRET_PASSPHRASE = "SanjayMockTest#2026!SecureKey";
+
+    // ==================== 1B. FIREBASE AUTH & CLOUD DATABASE CONFIG ====================
+    // यहाँ अपनी Firebase Web API Key और Realtime Database URL पेस्ट करें:
+    const FIREBASE_API_KEY = "YOUR_FIREBASE_API_KEY";
+    const FIREBASE_DATABASE_URL = "YOUR_FIREBASE_DATABASE_URL";
+    const LS_AUTH = "web_mock_firebase_auth_v1";
+    const LS_PENDING_PROFILE = "web_mock_pending_profile_v1";
+
+    function isFirebaseConfigured() {
+      return FIREBASE_API_KEY && !FIREBASE_API_KEY.includes("YOUR_FIREBASE") &&
+             FIREBASE_DATABASE_URL && !FIREBASE_DATABASE_URL.includes("YOUR_FIREBASE");
+    }
+    function cleanDbUrl() {
+      return FIREBASE_DATABASE_URL.replace(/\/+$/, "");
+    }
+    function generateStudentId(uid) {
+      let h = 0;
+      const s = String(uid || "student");
+      for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+      const num = String(Math.abs(h) % 900000 + 100000);
+      return "OMT-" + num;
+    }
+
+    const LS_PROFILE = "web_mock_profile_v1";
+    const LS_ATTEMPTS = "web_mock_attempts_v2";
+    const LS_RESUME = "web_mock_resume_v2";
+    const LS_INDEX_CACHE = "web_mock_index_cache_v1";
+    const LS_QUIZ_CACHE_PREFIX = "web_mock_quiz_txt_";
+    const LS_CUSTOM_CFG = "web_mock_custom_cfg_v1";
+
+    // ==================== 2. APP STATE ====================
+    const state = {
+      screen: "HOME", // PROFILE_SETUP | HOME | MY_TESTS | SUBJECT_TESTS | SOLUTIONS | SETTINGS | CUSTOM_BUILDER | TEST | RESULT
+      prevScreen: "HOME",
+      profile: loadJson(LS_PROFILE, null),
+      auth: loadJson(LS_AUTH, null), // { uid, email, idToken, refreshToken }
+      authMode: "SIGNUP", // SIGNUP | LOGIN
+      authBusy: false,
+      verifyNotice: "",
+      pendingVerifyToken: "",
+      onlineQuizzes: [],
+      isLoadingOnline: false,
+      selectedExam: "RPSC",
+      selectedSubject: "",
+      attemptsMap: loadJson(LS_ATTEMPTS, {}),
+      resumeState: loadJson(LS_RESUME, null),
+      solutionsTab: "SUBMISSIONS",
+      subjectFilterChip: "ALL",
+      activeTest: null, // { config, questions, rawTxt, currentQ, answers, review, remainingSec, spentSec }
+      resultData: null, // { config, questions, answers, spentSec }
+      modal: null, // null | "PALETTE" | "PERFORMANCE" | "RESULTS_LIST" | "INFO"
+      infoModal: { title: "", body: "" },
+      isPaused: false,
+      lastBackPress: 0,
+      timerInterval: null
+    };
+
+    if (!state.profile || (isFirebaseConfigured() && !state.auth?.uid)) {
+      state.screen = "PROFILE_SETUP";
+      if (state.profile && isFirebaseConfigured() && !state.auth?.uid) {
+        state.authMode = "LOGIN";
+      }
+    } else {
+      state.selectedExam = normalizeExamCode(state.profile.targetExam || "RPSC");
+    }
+
+    function loadJson(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+    function saveJson(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+    }
+
+    function normalizeExamCode(raw) {
+      const up = String(raw || "").toUpperCase();
+      if (up.includes("RPSC")) return "RPSC";
+      if (up.includes("RSSB")) return "RSSB";
+      if (up.includes("CTET")) return "CTET";
+      if (up.includes("NET")) return "UGC NET";
+      return String(raw || "RPSC").split(" (")[0].trim() || "RPSC";
+    }
+
+    function escHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/\n/g, "<br>");
+    }
+
+    function escHtmlWithLinks(str, linkColor = "#38bdf8") {
+      const escaped = escHtml(str);
+      return escaped.replace(/https?:\/\/[^\s<]+/gi, (raw) => {
+        const clean = raw.replace(/[.,);:\]]+$/, "");
+        const trailing = raw.slice(clean.length);
+        return `<a href="${clean}" target="_blank" rel="noopener noreferrer" style="color:${linkColor};text-decoration:underline;word-break:break-all;">${clean}</a>${trailing}`;
+      });
+    }
+
+    // ==================== 2B. FIREBASE AUTH & REALTIME DB REST SYNC ====================
+    async function fbRefreshTokenIfNeeded() {
+      if (!isFirebaseConfigured() || !state.auth || !state.auth.refreshToken) return state.auth?.idToken || null;
+      try {
+        const res = await fetch(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(state.auth.refreshToken)}`
+        });
+        const data = await res.json();
+        if (res.ok && data.id_token) {
+          state.auth.idToken = data.id_token;
+          state.auth.refreshToken = data.refresh_token || state.auth.refreshToken;
+          state.auth.uid = data.user_id || state.auth.uid;
+          saveJson(LS_AUTH, state.auth);
+          return state.auth.idToken;
+        }
+      } catch {}
+      return state.auth?.idToken || null;
+    }
+
+    async function fbAuthRequest(endpoint, payload) {
+      const res = await fetch(`https://identitytoolkit.googleapis.com/v1/${endpoint}?key=${encodeURIComponent(FIREBASE_API_KEY)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const code = data?.error?.message || "AUTH_ERROR";
+        const msgMap = {
+          EMAIL_EXISTS: "यह Email ID पहले से रजिस्टर्ड है। कृपया Login टैब से लॉगिन करें।",
+          INVALID_LOGIN_CREDENTIALS: "गलत Email या Password! कृपया दोबारा जांचें।",
+          EMAIL_NOT_FOUND: "इस Email से कोई अकाउंट नहीं मिला। कृपया New Account बनाएं।",
+          INVALID_PASSWORD: "पासवर्ड गलत है।",
+          WEAK_PASSWORD: "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
+          INVALID_EMAIL: "कृपया सही Email ID डालें।"
+        };
+        throw new Error(msgMap[code] || code);
+      }
+      return data;
+    }
+
+    async function fbPushProfileAndAttempts() {
+      if (!isFirebaseConfigured() || !state.auth?.uid) return;
+      const token = await fbRefreshTokenIfNeeded();
+      if (!token) return;
+      try {
+        await fetch(`${cleanDbUrl()}/users/${state.auth.uid}.json?auth=${encodeURIComponent(token)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            profile: state.profile,
+            attempts: state.attemptsMap
+          })
+        });
+      } catch {}
+    }
+
+    async function fbPullUserData() {
+      if (!isFirebaseConfigured() || !state.auth?.uid) return;
+      const token = await fbRefreshTokenIfNeeded();
+      if (!token) return;
+      try {
+        const res = await fetch(`${cleanDbUrl()}/users/${state.auth.uid}.json?auth=${encodeURIComponent(token)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.profile) {
+          state.profile = {
+            ...data.profile,
+            email: data.profile.email || state.auth.email || "",
+            studentId: data.profile.studentId || generateStudentId(state.auth.uid)
+          };
+          saveJson(LS_PROFILE, state.profile);
+          state.selectedExam = normalizeExamCode(state.profile.targetExam || "RPSC");
+        }
+        if (data && data.attempts && typeof data.attempts === "object") {
+          // Merge cloud attempts with local attempts by quizId
+          const merged = { ...state.attemptsMap };
+          for (const [qid, list] of Object.entries(data.attempts)) {
+            if (Array.isArray(list) && list.length > 0) {
+              const localList = merged[qid] || [];
+              if (list.length >= localList.length) {
+                merged[qid] = list.map((a, idx) => ({
+                  ...a,
+                  attemptNumber: a.attemptNumber || (idx + 1),
+                  answers: a.answers || a.userAnswers || [],
+                  spentSec: a.spentSec ?? a.timeSpentSeconds ?? 0,
+                  config: a.config || {
+                    id: a.id || qid,
+                    title: a.title || "Mock Test",
+                    subtitle: a.subtitle || "",
+                    examName: a.examName || "RPSC",
+                    subject: a.subject || "General",
+                    timeMinutes: a.timeMinutes || 60,
+                    marksPerCorrect: a.marksPerCorrect || 2.0,
+                    negativeMark: a.negativeMark || 0.0
+                  }
+                }));
+              }
+            }
+          }
+          state.attemptsMap = merged;
+          saveJson(LS_ATTEMPTS, state.attemptsMap);
+        }
+        render();
+      } catch {}
+    }
+
+    // ==================== 3. BROWSER AES-256-CBC DECRYPTION (ENCv1:) ====================
+    async function decryptQuizContent(content) {
+      const trimmed = String(content || "").trim();
+      if (!trimmed.startsWith("ENCv1:")) return content;
+
+      const b64 = trimmed.slice(6).replace(/\s+/g, "");
+      const binStr = atob(b64);
+      const bytes = new Uint8Array(binStr.length);
+      for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+
+      const iv = bytes.slice(0, 16);
+      const ciphertext = bytes.slice(16);
+
+      const passBytes = new TextEncoder().encode(QUIZ_SECRET_PASSPHRASE);
+      const keyHash = await crypto.subtle.digest("SHA-256", passBytes);
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        keyHash,
+        { name: "AES-CBC" },
+        false,
+        ["decrypt"]
+      );
+      const decryptedBuf = await crypto.subtle.decrypt(
+        { name: "AES-CBC", iv },
+        cryptoKey,
+        ciphertext
+      );
+      return new TextDecoder("utf-8").decode(decryptedBuf);
+    }
+
+    // ==================== 4. STRICT MULTI-LINE TXT QUESTION PARSER ====================
+    function parseQuizTxt(rawText) {
+      if (!rawText || !rawText.trim()) return { questions: [], warnings: [] };
+      const parsed = [];
+      const warnings = [];
+      const normalized = rawText
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .replace(/([^\n])(\s*TOPIC\s*:)/gi, "$1\n$2");
+
+      let pendingTopic = "General";
+      let qTopic = "General";
+      let qText = "";
+      let options = [];
+      let answerIndex = null;
+      let solution = "व्याख्या उपलब्ध नहीं है।";
+      let currentField = "NONE";
+
+      function flush() {
+        if (qText.trim() && options.length >= 2) {
+          const cleanSol = solution.replace(/\n?TOPIC\s*:.*$/i, "").replace(/<br>/g, "\n").trim();
+          if (answerIndex === null || answerIndex < 0 || answerIndex >= options.length) {
+            warnings.push(`Q${parsed.length + 1}: ANS: गलत या गायब है`);
+          } else {
+            parsed.push({
+              topic: qTopic.trim() || "General",
+              text: qText.replace(/<br>/g, "\n").trim(),
+              options: options.map(o => o.trim()),
+              correctAnswer: answerIndex,
+              solution: cleanSol || "व्याख्या उपलब्ध नहीं है।"
+            });
+          }
+        }
+        qText = "";
+        options = [];
+        answerIndex = null;
+        solution = "व्याख्या उपलब्ध नहीं है।";
+        currentField = "NONE";
+      }
+
+      const topicRx = /^TOPIC\s*:\s*(.*)/i;
+      const qRx = /^(?:Q|Question|प्र|प्रश्न)\s*[:.]\s*(.*)/i;
+      const optRx = /^([A-E])[).:-]\s*(.*)/i;
+      const ansRx = /^(?:ANS|Answer|उत्तर)\s*[:.-]\s*(.*)/i;
+      const solRx = /^(?:SOL|SOLUTION|व्याख्या)\s*[:.-]\s*(.*)/i;
+      const ansMap = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+
+      for (const rawLine of normalized.split("\n")) {
+        const line = rawLine.trim();
+        if (!line) continue;
+
+        const mTopic = line.match(topicRx);
+        const mQ = line.match(qRx);
+        const mOpt = line.match(optRx);
+        const mAns = line.match(ansRx);
+        const mSol = line.match(solRx);
+
+        if (mTopic) {
+          if (qText.trim()) flush();
+          pendingTopic = mTopic[1].trim() || "General";
+          currentField = "TOPIC";
+        } else if (mQ) {
+          if (qText.trim()) flush();
+          qTopic = pendingTopic;
+          qText = mQ[1].trim();
+          currentField = "Q";
+        } else if (mOpt && (currentField === "Q" || currentField === "OPT")) {
+          options.push(mOpt[2].trim());
+          currentField = "OPT";
+        } else if (mAns && options.length > 0) {
+          const tok = mAns[1].trim().toUpperCase();
+          const mTok = tok.match(/([A-E]|[1-5])/);
+          const ch = mTok ? mTok[1] : "";
+          if (ch in ansMap) answerIndex = ansMap[ch];
+          else if (ch && !isNaN(parseInt(ch, 10))) answerIndex = parseInt(ch, 10) - 1;
+          currentField = "ANS";
+        } else if (mSol && options.length > 0) {
+          solution = mSol[1].trim();
+          currentField = "SOL";
+        } else {
+          if (currentField === "TOPIC") pendingTopic = `${pendingTopic} ${line}`.trim();
+          else if (currentField === "Q") qText = qText ? `${qText}\n${line}` : line;
+          else if (currentField === "OPT" && options.length > 0) options[options.length - 1] += " " + line;
+          else if (currentField === "SOL") {
+            solution = (solution === "व्याख्या उपलब्ध नहीं है।" || !solution) ? line : `${solution}\n${line}`;
+          }
+        }
+      }
+      if (qText.trim()) flush();
+      return { questions: parsed, warnings };
+    }
+
+    // ==================== 5. GITHUB CLOUD SYNC ====================
+    async function fetchOnlineQuizzes() {
+      state.isLoadingOnline = true;
+      render();
+      let itemsList = null;
+
+      // 1. Primary: Load securely from Firebase Realtime Database (requires verified login)
+      if (isFirebaseConfigured() && state.auth?.uid) {
+        try {
+          const token = await fbRefreshTokenIfNeeded();
+          if (token) {
+            const fbRes = await fetch(`${cleanDbUrl()}/quizzes_index.json?auth=${encodeURIComponent(token)}`, { cache: "no-store" });
+            if (fbRes.ok) {
+              const fbData = await fbRes.json();
+              if (fbData && typeof fbData === "object") {
+                const arr = Object.values(fbData).filter(Boolean).map(o => ({ ...o, fileUrl: "firebase", source: "firebase" }));
+                if (arr.length > 0) {
+                  itemsList = arr;
+                  localStorage.setItem(LS_INDEX_CACHE, JSON.stringify(arr));
+                }
+              }
+            } else if (fbRes.status === 401 || fbRes.status === 403) {
+              showToast("सेशन समाप्त या Email अनवेरिफाइड है—कृपया दोबारा Login करें।");
+            }
+          }
+        } catch {}
+      }
+
+      // 2. Fallback: Legacy GitHub quizzes/index.json (only if Firebase is NOT configured)
+      if (!itemsList && !isFirebaseConfigured()) {
+        try {
+          const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/quizzes/index.json?ref=${GITHUB_BRANCH}&t=${Date.now()}`;
+          let res = await fetch(apiUrl, { headers: { Accept: "application/vnd.github.raw+json" }, cache: "no-store" });
+          if (!res.ok) {
+            const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/quizzes/index.json?t=${Date.now()}`;
+            res = await fetch(rawUrl, { cache: "no-store" });
+          }
+          if (res.ok) {
+            const rawJson = await res.text();
+            const parsedArr = JSON.parse(rawJson);
+            if (Array.isArray(parsedArr)) {
+              itemsList = parsedArr;
+              localStorage.setItem(LS_INDEX_CACHE, rawJson);
+            }
+          }
+        } catch {}
+      }
+
+      // 3. Offline Cache Fallback
+      if (!itemsList) {
+        try {
+          const cached = localStorage.getItem(LS_INDEX_CACHE);
+          if (cached) itemsList = JSON.parse(cached);
+        } catch {}
+      }
+
+      if (Array.isArray(itemsList)) {
+        state.onlineQuizzes = itemsList.map((obj, idx) => {
+          const rawSubject = String(obj.subject || "").trim();
+          const rawTitle = String(obj.title || "Mock Test");
+          const rawExam = String(obj.examName || "").trim();
+          const resolvedExam = rawExam
+            ? normalizeExamCode(rawExam)
+            : (rawSubject.toUpperCase().includes("CTET") || rawTitle.toUpperCase().includes("CTET") ? "CTET" : "RPSC");
+          return {
+            id: obj.id || `quiz_${idx}`,
+            title: rawTitle,
+            subtitle: obj.subtitle || "Online Practice Test",
+            examName: resolvedExam,
+            subject: rawSubject || "General Tests",
+            timeMinutes: Number(obj.timeMinutes || 60),
+            marksPerCorrect: Number(obj.marksPerCorrect || 2.0),
+            negativeMark: Number(obj.negativeMark || 0.0),
+            questionCount: Number(obj.questionCount || 0),
+            fileUrl: obj.fileUrl || (obj.source === "firebase" ? "firebase" : ""),
+            publishedDate: obj.publishedDate || ""
+          };
+        }).sort((a, b) => {
+          const ta = Number(String(a.id).split("quiz_")[1]) || 0;
+          const tb = Number(String(b.id).split("quiz_")[1]) || 0;
+          return ta - tb;
+        });
+      }
+
+      state.isLoadingOnline = false;
+      render();
+    }
+
+    async function launchOnlineQuiz(meta) {
+      try {
+        let plainTxt = "";
+
+        // 1. Try Firebase Realtime Database first (secured behind verified login)
+        if (isFirebaseConfigured() && state.auth?.uid) {
+          try {
+            const token = await fbRefreshTokenIfNeeded();
+            if (token) {
+              const res = await fetch(`${cleanDbUrl()}/quizzes_content/${encodeURIComponent(meta.id)}.json?auth=${encodeURIComponent(token)}`, { cache: "no-store" });
+              if (res.ok) {
+                const data = await res.json();
+                const content = typeof data === "string" ? data : (data?.rawTxt || "");
+                if (content) {
+                  plainTxt = await decryptQuizContent(content);
+                  localStorage.setItem(LS_QUIZ_CACHE_PREFIX + meta.id + "_plain", plainTxt);
+                }
+              }
+            }
+          } catch {}
+        }
+
+        // 2. Fallback to GitHub URL or local cache
+        if (!plainTxt && meta.fileUrl && meta.fileUrl !== "firebase") {
+          const sep = meta.fileUrl.includes("?") ? "&" : "?";
+          try {
+            const res = await fetch(`${meta.fileUrl}${sep}t=${Date.now()}`, { cache: "no-store" });
+            if (res.ok) {
+              const rawDownloaded = await res.text();
+              localStorage.setItem(LS_QUIZ_CACHE_PREFIX + meta.id, rawDownloaded);
+              plainTxt = await decryptQuizContent(rawDownloaded);
+              localStorage.setItem(LS_QUIZ_CACHE_PREFIX + meta.id + "_plain", plainTxt);
+            }
+          } catch {}
+        }
+
+        if (!plainTxt) {
+          plainTxt = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + meta.id + "_plain") || "";
+          if (!plainTxt) {
+            const rawCached = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + meta.id) || "";
+            if (rawCached) plainTxt = await decryptQuizContent(rawCached);
+          }
+        }
+
+        if (!plainTxt) {
+          throw new Error("टेस्ट डेटा उपलब्ध नहीं है। कृपया इंटरनेट और लॉगिन जांचें।");
+        }
+
+        const parsed = parseQuizTxt(plainTxt).questions;
+        if (!parsed.length) {
+          alert("टेस्ट फाइल में कोई मान्य प्रश्न नहीं मिला।");
+          return;
+        }
+        startExamSession(meta, parsed, plainTxt);
+      } catch (e) {
+        alert("टेस्ट लोड नहीं हो सका: " + e.message);
+      }
+    }
+
+    function startExamSession(config, questions, plainTxt) {
+      stopTimer();
+      state.prevScreen = state.screen;
+      state.isPaused = false;
+      state.activeTest = {
+        config,
+        questions,
+        rawTxt: plainTxt,
+        currentQ: 0,
+        answers: new Array(questions.length).fill(null),
+        review: new Array(questions.length).fill(false),
+        remainingSec: config.timeMinutes * 60
+      };
+      persistResume();
+      try { sessionStorage.setItem("web_mock_active_test", "1"); } catch {}
+      state.screen = "TEST";
+      pushNavHistory("TEST");
+      startTimer();
+      render();
+    }
+
+    function startTimer() {
+      stopTimer();
+      state.isPaused = false;
+      state.timerInterval = setInterval(() => {
+        if (state.screen !== "TEST" || !state.activeTest || state.isPaused) return;
+        if (state.activeTest.remainingSec > 0) {
+          state.activeTest.remainingSec--;
+          if (state.activeTest.remainingSec % 5 === 0) persistResume();
+          const el = document.getElementById("live-timer-text");
+          if (el) el.textContent = formatMMSS(state.activeTest.remainingSec);
+          if (state.activeTest.remainingSec <= 0) {
+            finishExam();
+          }
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+    }
+
+    function persistResume() {
+      if (!state.activeTest) return;
+      const t = state.activeTest;
+      saveJson(LS_RESUME, {
+        config: t.config,
+        currentQ: t.currentQ,
+        remainingSec: t.remainingSec,
+        answers: t.answers,
+        review: t.review
+      });
+      state.resumeState = loadJson(LS_RESUME, null);
+    }
+
+    function finishExam() {
+      if (state.screen === "RESULT" || !state.activeTest) return;
+      stopTimer();
+      const t = state.activeTest;
+      const spent = Math.max(0, t.config.timeMinutes * 60 - t.remainingSec);
+      let correct = 0, wrong = 0, skipped = 0;
+      t.questions.forEach((q, i) => {
+        const a = t.answers[i];
+        if (a === null) skipped++;
+        else if (a === q.correctAnswer) correct++;
+        else wrong++;
+      });
+      const obtained = correct * t.config.marksPerCorrect - wrong * t.config.negativeMark;
+      const maxM = t.questions.length * t.config.marksPerCorrect;
+      const pct = maxM > 0 ? Math.max(0, Math.min(100, (obtained / maxM) * 100)) : 0;
+      const dateStr = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
+      try {
+        localStorage.setItem(LS_QUIZ_CACHE_PREFIX + t.config.id + "_plain", t.rawTxt);
+      } catch {}
+
+      const list = state.attemptsMap[t.config.id] || [];
+      list.push({
+        attemptNumber: list.length + 1,
+        config: t.config,
+        answers: t.answers,
+        spentSec: spent,
+        obtainedMarks: obtained,
+        maxMarks: maxM,
+        percentage: pct,
+        completedDate: dateStr,
+        completedAtMillis: Date.now(),
+        correctCount: correct,
+        wrongCount: wrong,
+        skippedCount: skipped
+      });
+      state.attemptsMap[t.config.id] = list;
+      saveJson(LS_ATTEMPTS, state.attemptsMap);
+      fbPushProfileAndAttempts();
+
+      localStorage.removeItem(LS_RESUME);
+      try { sessionStorage.removeItem("web_mock_active_test"); } catch {}
+      state.resumeState = null;
+      state.resultData = {
+        config: t.config,
+        questions: t.questions,
+        answers: t.answers,
+        spentSec: spent
+      };
+      state.screen = "RESULT";
+      pushNavHistory("RESULT");
+      render();
+    }
+
+    function openSavedAttempt(att) {
+      const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + att.config.id + "_plain");
+      if (!plain) {
+        alert("इस टेस्ट के प्रश्न ब्राउज़र कैश में नहीं हैं, कृपया एक बार Re-Test खोलें।");
+        return;
+      }
+      const parsed = parseQuizTxt(plain).questions;
+      if (!parsed.length) return;
+      state.prevScreen = state.screen;
+      state.resultData = {
+        config: att.config,
+        questions: parsed,
+        answers: att.answers,
+        spentSec: att.spentSec || 0
+      };
+      state.screen = "RESULT";
+      pushNavHistory("RESULT");
+      render();
+    }
+
+    function printTwoColumnPdf(config, questions, answers) {
+      let correct = 0, wrong = 0, skipped = 0;
+      const letters = ["A", "B", "C", "D", "E"];
+      let qHtml = "";
+      questions.forEach((q, idx) => {
+        const uAns = answers[idx];
+        const color = uAns === q.correctAnswer ? "#10b981" : "#ef4444";
+        if (uAns === null || uAns === undefined) skipped++;
+        else if (uAns === q.correctAnswer) correct++;
+        else wrong++;
+
+        const uText = (uAns !== null && uAns !== undefined) ? `(${letters[uAns]}) ${escHtml(q.options[uAns])}` : "कोई नहीं";
+        const cText = `(${letters[q.correctAnswer]}) ${escHtml(q.options[q.correctAnswer])}`;
+        const opts = q.options.map((o, i) => `<div>(${letters[i]}) ${escHtml(o)}</div>`).join("");
+        qHtml += `
+          <div class="print-q-box">
+            <div class="print-q-head"><span>Q${idx + 1}.</span><span class="print-q-topic">${escHtml(q.topic)}</span></div>
+            <div class="print-q-text">${escHtml(q.text)}</div>
+            <div class="print-options-grid">${opts}</div>
+            <div class="print-ans-row"><strong>आपका उत्तर:</strong> <span style="color:${color}">${uText}</span></div>
+            <div class="print-ans-row"><strong>सही उत्तर:</strong> <span style="color:#10b981">${cText}</span></div>
+            <div class="print-sol-box"><strong>व्याख्या:</strong> ${escHtmlWithLinks(q.solution, "#0284c7")}</div>
+          </div>`;
+      });
+
+      const totalMarks = correct * config.marksPerCorrect - wrong * config.negativeMark;
+      const maxMarks = questions.length * config.marksPerCorrect;
+      const pct = maxMarks > 0 ? Math.max(0, Math.min(100, (totalMarks / maxMarks) * 100)) : 0;
+      const attempted = correct + wrong;
+      const acc = attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
+      const negInfo = config.negativeMark > 0 ? `-${config.negativeMark.toFixed(2)} Negative` : "No Negative";
+      const studentName = state.profile?.name || "Student";
+
+      document.getElementById("print-sheet").innerHTML = `
+        <div class="print-header-box">
+          <h2>${escHtml(config.title)}</h2>
+          <h3>Candidate: ${escHtml(studentName)} | Total Questions: ${questions.length}</h3>
+          <p>Marking: +${config.marksPerCorrect.toFixed(2)} / Correct | ${negInfo}</p>
+          <div class="print-score-row">
+            <span>Score: ${totalMarks.toFixed(2)} / ${maxMarks.toFixed(2)} (${pct.toFixed(1)}%)</span>
+            <span>Correct: ${correct}</span>
+            <span>Wrong: ${wrong}</span>
+            <span>Skipped: ${skipped}</span>
+            <span>Accuracy: ${acc}%</span>
+          </div>
+        </div>
+        <div class="two-col-container">${qHtml}</div>`;
+      window.print();
+    }
+
+    function formatMMSS(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function getAllAttemptsSorted() {
+      return Object.values(state.attemptsMap).flat().sort((a, b) => (b.completedAtMillis || 0) - (a.completedAtMillis || 0));
+    }
+
+    function getExamSubjectsMap(examCode) {
+      const map = {};
+      state.onlineQuizzes
+        .filter(q => normalizeExamCode(q.examName) === normalizeExamCode(examCode))
+        .forEach(q => {
+          if (!map[q.subject]) map[q.subject] = [];
+          map[q.subject].push(q);
+        });
+      return map;
+    }
+
+    // ==================== 6. RENDER HELPERS ====================
+    function headerHtml() {
+      const avatar = state.profile?.avatarEmoji || "🎓";
+      const count = state.onlineQuizzes.length;
+      return `
+        <div class="top-header">
+          <div class="icon-btn mobile-menu-btn" onclick="goScreen('SETTINGS')">☰</div>
+          <div class="brand-center">
+            <div class="brand-row">
+              <span style="font-size:26px">🎓</span>
+              <div class="brand-title">Online<span>Mock Test</span></div>
+            </div>
+            <div class="brand-sub">Target Preparation & Revision Test</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="icon-btn circle-btn" onclick="fetchOnlineQuizzes()">
+              ${state.isLoadingOnline ? "⏳" : "🔔"}
+              ${count > 0 ? `<span class="bell-badge">${count}</span>` : ""}
+            </div>
+            <div class="icon-btn circle-btn" style="border-color:var(--sky)" onclick="goScreen('PROFILE_SETUP')">${avatar}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderDesktopSidebar() {
+      const el = document.getElementById("desktop-sidebar");
+      if (!el) return;
+      if (state.screen === "PROFILE_SETUP") {
+        el.style.display = "none";
+        return;
+      }
+      el.style.display = "";
+      const p = state.profile || { name: "Student", targetExam: "RPSC", avatarEmoji: "🎓" };
+      const scr = state.screen;
+      const isHome = scr === "HOME";
+      const isTests = scr === "MY_TESTS" || scr === "SUBJECT_TESTS" || scr === "TEST";
+      const isSol = scr === "SOLUTIONS" || scr === "RESULT";
+      const isCustom = scr === "CUSTOM_BUILDER";
+      const isSet = scr === "SETTINGS";
+      el.innerHTML = `
+        <div>
+          <div class="sidebar-brand" onclick="goScreen('HOME')" style="cursor:pointer;">
+            <span style="font-size:30px;">🎓</span>
+            <div class="brand-title">Online<span>Mock Test</span></div>
+          </div>
+          <div class="sidebar-nav">
+            <div class="side-link ${isHome ? "active" : ""}" onclick="goScreen('HOME')"><span>🏠</span><span>Home</span></div>
+            <div class="side-link ${isTests ? "active" : ""}" onclick="goScreen('MY_TESTS')"><span>📊</span><span>My Tests</span></div>
+            <div class="side-link ${isSol ? "active" : ""}" onclick="goScreen('SOLUTIONS')"><span>📄</span><span>Solutions & PDF</span></div>
+            <div class="side-link ${isCustom ? "active" : ""}" onclick="goScreen('CUSTOM_BUILDER')"><span>📝</span><span>Custom Test</span></div>
+            <div class="side-link ${isSet ? "active" : ""}" onclick="goScreen('SETTINGS')"><span>⚙️</span><span>Settings</span></div>
+          </div>
+        </div>
+        <div class="sidebar-profile" onclick="goScreen('PROFILE_SETUP')">
+          <div class="icon-btn circle-btn" style="width:42px;height:42px;font-size:20px;border-color:var(--sky);flex-shrink:0;">${p.avatarEmoji}</div>
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.name)}</div>
+            <div style="font-size:11px;color:var(--cyan);font-weight:700;">🎯 ${normalizeExamCode(p.targetExam)}</div>
+          </div>
+        </div>`;
+    }
+
+    function bottomNavHtml(activeIdx) {
+      return `
+        <div class="bottom-nav">
+          <div class="nav-item ${activeIdx === 0 ? "active" : ""}" onclick="goScreen('HOME')"><span class="nav-ic">🏠</span>Home</div>
+          <div class="nav-item ${activeIdx === 1 ? "active" : ""}" onclick="goScreen('MY_TESTS')"><span class="nav-ic">📊</span>My Tests</div>
+          <div class="nav-item ${activeIdx === 2 ? "active" : ""}" onclick="goScreen('SOLUTIONS')"><span class="nav-ic">📄</span>Solutions</div>
+          <div class="nav-item ${activeIdx === 3 ? "active" : ""}" onclick="goScreen('SETTINGS')"><span class="nav-ic">⚙️</span>Settings</div>
+        </div>`;
+    }
+
+    function pushNavHistory(scr) {
+      try {
+        window.history.pushState({ appScreen: scr, ts: Date.now() }, "");
+      } catch {}
+    }
+
+    function showToast(msg) {
+      let el = document.getElementById("web-toast-el");
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "web-toast-el";
+        el.className = "web-toast";
+        document.body.appendChild(el);
+      }
+      el.textContent = msg;
+      el.style.display = "block";
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { el.style.display = "none"; }, 2200);
+    }
+
+    function goScreen(scr, skipPush = false) {
+      if (state.screen === "TEST" && scr !== "TEST") {
+        persistResume();
+        stopTimer();
+        state.isPaused = false;
+      }
+      const changed = state.screen !== scr;
+      state.screen = scr;
+      state.modal = null;
+      if (changed && !skipPush) {
+        pushNavHistory(scr);
+      }
+      render();
+      window.scrollTo(0, 0);
+    }
+
+    // ==================== 7. SCREEN RENDERERS ====================
+    function renderProfileSetup() {
+      const isLoggedIn = Boolean(state.profile && (state.auth?.uid || !isFirebaseConfigured()));
+      const p = state.profile || { name: "", email: "", districtOrCity: "Rajasthan", targetExam: "RPSC (Rajasthan Public Service Commission)", avatarEmoji: "🎓", studentId: "" };
+      const avatars = ["🎓", "👨‍🎓", "👩‍🎓", "📚", "🏆", "🎯"];
+      const exams = [
+        "RPSC (Rajasthan Public Service Commission)",
+        "RSSB (Rajasthan Staff Selection Board)",
+        "CTET (Central Teacher Eligibility Test)",
+        "UGC NET (National Eligibility Test)"
+      ];
+      const showAuthTabs = isFirebaseConfigured() && !state.auth?.uid;
+      const isLoginMode = showAuthTabs && state.authMode === "LOGIN";
+
+      return `<div class="form-center-wrap">
+        <div style="text-align:center;margin:10px 0 16px;">
+          <div style="color:var(--gold);font-size:13px;font-weight:800;">Study Smart... Score High...</div>
+          <div style="font-size:24px;font-weight:900;margin-top:4px;">ONLINE MOCK TEST</div>
+          <div style="color:var(--sky);font-size:12.5px;font-weight:700;">${isLoginMode ? "Student Cloud Login" : (isLoggedIn ? "Edit Student Profile" : "Create Your Student Account")}</div>
+        </div>
+
+        ${showAuthTabs ? `
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <button class="${!isLoginMode ? "btn-primary" : "btn-outline"}" style="flex:1;" onclick="setAuthMode('SIGNUP')">✨ New Account</button>
+            <button class="${isLoginMode ? "btn-primary" : "btn-outline"}" style="flex:1;" onclick="setAuthMode('LOGIN')">🔐 Login</button>
+          </div>` : ""}
+
+        <div class="card-box" style="padding:18px;">
+          ${isLoginMode ? `
+            <label class="field-label">आपकी Email ID (User ID)</label>
+            <input id="auth-email" type="email" class="input" placeholder="student@gmail.com" />
+            <label class="field-label">Password (पासवर्ड)</label>
+            <input id="auth-pass" type="password" class="input" placeholder="कम से कम 6 अक्षर" />
+            <button class="btn-primary" style="width:100%;margin-top:16px;padding:13px;font-size:15px;" ${state.authBusy ? "disabled" : ""} onclick="handleCloudLogin()">
+              ${state.authBusy ? "⏳ Logging in..." : "🔐 Login & Sync My Scores"}
+            </button>
+            ${state.verifyNotice ? `<div style="margin-top:12px;padding:10px;border-radius:10px;background:rgba(245,158,11,0.14);border:1px solid var(--gold);color:#FDE68A;font-size:12px;line-height:1.45;">${escHtml(state.verifyNotice)}</div>` : ""}
+            ${state.pendingVerifyToken ? `<button class="btn-outline" style="width:100%;margin-top:10px;border-color:var(--gold);color:var(--gold);" ${state.authBusy ? "disabled" : ""} onclick="handleResendVerification()">📧 Resend Verification Email</button>` : ""}
+            <button class="btn-outline" style="width:100%;margin-top:10px;border-color:var(--sky);color:var(--sky);" onclick="handleForgotPassword()">🔑 Forgot Password? (ईमेल से रीसेट)</button>
+          ` : `
+            ${p.studentId ? `<div style="text-align:center;margin-bottom:10px;"><span class="pill-rose" style="background:#0A1938;border:1px solid var(--cyan);color:var(--cyan);">Student ID: ${escHtml(p.studentId)}</span></div>` : ""}
+            <div class="field-label" style="text-align:center;">अपना प्रोफाइल आइकन चुनें</div>
+            <div style="display:flex;justify-content:center;gap:10px;margin:10px 0 14px;flex-wrap:wrap;">
+              ${avatars.map(a => `<div onclick="selectAvatar('${a}')" class="icon-btn circle-btn" style="width:44px;height:44px;font-size:20px;background:${p.avatarEmoji === a ? "var(--rose)" : "#1E293B"};border:2px solid ${p.avatarEmoji === a ? "var(--gold)" : "transparent"}">${a}</div>`).join("")}
+            </div>
+            <label class="field-label">आपका पूरा नाम (Student Name)</label>
+            <input id="prof-name" class="input" value="${escHtml(p.name).replace(/<br>/g, "")}" placeholder="उदा. संजय सुथार" />
+            <label class="field-label">Email ID (आपकी Login ID)</label>
+            <input id="prof-email" type="email" class="input" value="${escHtml(p.email || state.auth?.email || "").replace(/<br>/g, "")}" ${state.auth?.uid ? "readonly style='opacity:0.75'" : ""} placeholder="student@gmail.com" />
+            ${showAuthTabs ? `
+              <label class="field-label">अपना Password बनाएं (Create Password)</label>
+              <input id="prof-pass" type="password" class="input" placeholder="कम से कम 6 अक्षर का पासवर्ड" />
+            ` : ""}
+            <label class="field-label">शहर / जिला (City / District)</label>
+            <input id="prof-city" class="input" value="${escHtml(p.districtOrCity).replace(/<br>/g, "")}" placeholder="उदा. हनुमानगढ़, राजस्थान" />
+            <label class="field-label">अपनी मुख्य परीक्षा चुनें (Target Exam)</label>
+            <select id="prof-exam" class="input">
+              ${exams.map(e => `<option value="${e}" ${p.targetExam === e ? "selected" : ""}>${e}</option>`).join("")}
+            </select>
+            <button class="btn-primary" style="width:100%;margin-top:18px;padding:13px;font-size:15px;" ${state.authBusy ? "disabled" : ""} onclick="saveProfileForm()">
+              ${state.authBusy ? "⏳ Creating Cloud Account..." : (state.auth?.uid ? "💾 प्रोफाइल अपडेट करें" : "🚀 अकाउंट बनाएं व वेबसाइट खोलें")}
+            </button>
+          `}
+        </div></div>`;
+    }
+
+    function renderHome() {
+      const latestPerQuiz = Object.values(state.attemptsMap).map(arr => arr[arr.length - 1]).filter(Boolean);
+      const completedCount = latestPerQuiz.length;
+      const totalTests = state.onlineQuizzes.length;
+      const avgPct = completedCount ? Math.round(latestPerQuiz.reduce((s, a) => s + a.percentage, 0) / completedCount) : 0;
+      const subjectsMap = getExamSubjectsMap(state.selectedExam);
+      const subEntries = Object.entries(subjectsMap);
+
+      return `
+        ${headerHtml()}
+        <div class="hero-banner">
+          <div class="hero-h1">Prepare Smart...</div>
+          <div class="hero-h2">Score High...</div>
+          <div class="pill-rose">Rajasthan Exams</div>
+          <div class="hero-exams">RPSC &nbsp;|&nbsp; RSSB &nbsp;|&nbsp; CTET &nbsp;|&nbsp; UGC NET</div>
+          <button class="btn-gold" onclick="goScreen('MY_TESTS')">Start Mock Test ➔</button>
+        </div>
+
+        <div class="grid-4">
+          <div class="quick-tile" onclick="goScreen('MY_TESTS')"><div class="quick-icon" style="background:rgba(225,29,72,0.35)">📋</div><div class="quick-label">Mock Tests</div></div>
+          <div class="quick-tile" onclick="goScreen('CUSTOM_BUILDER')"><div class="quick-icon" style="background:rgba(14,165,233,0.35)">📝</div><div class="quick-label">Custom Test</div></div>
+          <div class="quick-tile" onclick="openModal('PERFORMANCE')"><div class="quick-icon" style="background:rgba(139,92,246,0.35)">📈</div><div class="quick-label">Performance</div></div>
+          <div class="quick-tile" onclick="goScreen('SOLUTIONS')"><div class="quick-icon" style="background:rgba(245,158,11,0.35)">🏆</div><div class="quick-label">Results</div></div>
+        </div>
+
+        <div class="sec-head">
+          <div class="sec-title"><span class="sec-bar"></span>Popular Exams</div>
+          <div class="sec-link" onclick="fetchOnlineQuizzes()">${state.isLoadingOnline ? "Syncing..." : "Refresh ➔"}</div>
+        </div>
+        <div class="grid-4" style="margin-bottom:16px;">
+          <div class="exam-card" style="border-color:var(--rose)" onclick="pickExam('RPSC')"><div class="exam-emblem">🏛️</div><div class="exam-code">RPSC</div><div class="exam-sub">Rajasthan Public Service Commission</div></div>
+          <div class="exam-card" style="border-color:var(--sky)" onclick="pickExam('RSSB')"><div class="exam-emblem">🏢</div><div class="exam-code">RSSB</div><div class="exam-sub">Rajasthan Staff Selection Board</div></div>
+          <div class="exam-card" style="border-color:var(--purple)" onclick="pickExam('CTET')"><div class="exam-emblem">📘</div><div class="exam-code">CTET</div><div class="exam-sub">Central Teacher Eligibility Test</div></div>
+          <div class="exam-card" style="border-color:var(--green)" onclick="pickExam('UGC NET')"><div class="exam-emblem">☸️</div><div class="exam-code">UGC NET</div><div class="exam-sub">National Eligibility Test</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="split-card" onclick="resumeOrStart()">
+            <div class="ring-wrap" style="background:rgba(14,165,233,0.2);border:2px solid var(--sky);font-size:24px;">⏱️</div>
+            <div>
+              <div style="font-size:13px;font-weight:800;">${state.resumeState ? "Resume Test!" : "Time Matters!"}</div>
+              <div style="font-size:10px;color:#CBD5E1;margin-top:2px;">${state.resumeState ? `बचा समय: ${formatMMSS(state.resumeState.remainingSec)}` : "Practice Regularly & Boost Score"}</div>
+              <span class="btn-mini">${state.resumeState ? "Resume ➔" : "Start Now ➔"}</span>
+            </div>
+          </div>
+          <div class="split-card sky" onclick="goScreen('SOLUTIONS')">
+            <div class="ring-wrap" style="background:conic-gradient(var(--cyan) ${avgPct * 3.6}deg, #1E293B 0deg);"><div style="width:42px;height:42px;border-radius:50%;background:#091534;display:flex;align-items:center;justify-content:center;">${avgPct}%</div></div>
+            <div>
+              <div style="font-size:13px;font-weight:800;">Your Progress</div>
+              <div style="font-size:11px;color:#CBD5E1;margin-top:2px;">${completedCount} / ${totalTests} Tests</div>
+              <span class="btn-mini sky">View Details ➔</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-head">
+          <div class="sec-title"><span class="sec-bar" style="background:var(--sky)"></span>${state.selectedExam} Subject Folders</div>
+          <div style="font-size:12px;color:var(--muted)">${subEntries.length} Folders</div>
+        </div>
+        ${subEntries.length === 0 ? `<div class="card-box" style="text-align:center;color:var(--muted);font-size:12.5px;">इस परीक्षा के लिए कोई फोल्डर नहीं मिला। ऊपर 🔔 पर टैप करें।</div>` :
+          `<div class="cards-grid-2">` + subEntries.map(([subName, list]) => {
+            const done = list.filter(q => state.attemptsMap[q.id]).length;
+            return `
+              <div class="card-box folder-row" onclick="openSubject('${subName.replace(/'/g, "\\'")}')">
+                <div class="folder-icon">📁</div>
+                <div style="flex:1;">
+                  <div style="font-size:15px;font-weight:800;">${escHtml(subName)}</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px;">${list.length} मॉक टेस्ट • ${done} पूर्ण (Completed)</div>
+                </div>
+                <span class="btn-primary" style="padding:6px 12px;font-size:11px;">खोलें ➔</span>
+              </div>`;
+          }).join("") + `</div>`}
+        ${bottomNavHtml(0)}`;
+    }
+
+    function renderMyTests() {
+      const exams = ["RPSC", "RSSB", "CTET", "UGC NET"];
+      const subMap = getExamSubjectsMap(state.selectedExam);
+      const subNames = Object.keys(subMap);
+      const shownSubs = (state.subjectFilterChip === "ALL" || !subMap[state.subjectFilterChip])
+        ? Object.entries(subMap)
+        : [[state.subjectFilterChip, subMap[state.subjectFilterChip]]];
+      const totalExamTests = Object.values(subMap).reduce((s, arr) => s + arr.length, 0);
+
+      return `
+        ${headerHtml()}
+        <div class="card-box" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div>
+            <div style="font-size:10.5px;color:var(--muted);font-weight:700;">Selected Exam</div>
+            <div style="font-size:18px;font-weight:900;">${state.selectedExam}</div>
+          </div>
+          <select class="input" style="width:auto;padding:7px 12px;font-weight:800;border-color:var(--cyan);" onchange="pickExam(this.value)">
+            ${exams.map(e => `<option value="${e}" ${state.selectedExam === e ? "selected" : ""}>⇄ ${e}</option>`).join("")}
+          </select>
+        </div>
+
+        <div class="hero-banner" style="padding:14px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:20px;font-weight:900;">My Tests</div>
+            <div style="font-size:11.5px;color:#E2E8F0;">Subject-wise Test Series for ${state.selectedExam}</div>
+          </div>
+          <div style="background:rgba(8,20,44,0.92);border:1px solid var(--sky);border-radius:12px;padding:7px 12px;text-align:center;">
+            <div style="font-size:9.5px;color:#CBD5E1;">Total Tests</div>
+            <div style="font-size:17px;font-weight:900;color:var(--cyan);">${totalExamTests}</div>
+          </div>
+        </div>
+
+        <div class="chip-row">
+          <div class="chip ${state.subjectFilterChip === "ALL" ? "active" : ""}" onclick="setSubjectChip('ALL')">📖 All Subjects</div>
+          ${subNames.map(s => `<div class="chip ${state.subjectFilterChip === s ? "active" : ""}" onclick="setSubjectChip('${s.replace(/'/g, "\\'")}')">🌐 ${escHtml(s)}</div>`).join("")}
+          <div class="chip" onclick="goScreen('CUSTOM_BUILDER')">➕ Custom Test</div>
+        </div>
+
+        ${shownSubs.length === 0 ? `<div class="card-box" style="text-align:center;color:var(--muted);">इस परीक्षा के कोई टेस्ट उपलब्ध नहीं हैं।</div>` :
+          `<div class="cards-grid-2">` + shownSubs.map(([subName, list]) => {
+            const done = list.filter(q => state.attemptsMap[q.id]).length;
+            const pct = list.length ? Math.round((done / list.length) * 100) : 0;
+            const totalQs = list.reduce((s, q) => s + q.questionCount, 0);
+            const firstPending = list.find(q => !state.attemptsMap[q.id]) || list[0];
+            return `
+              <div class="card-box" style="display:flex;align-items:center;gap:10px;">
+                <div class="ring-wrap" style="background:conic-gradient(var(--cyan) ${Math.max(pct, 5) * 3.6}deg, #1E293B 0deg);"><div style="width:42px;height:42px;border-radius:50%;background:#0B1636;display:flex;align-items:center;justify-content:center;">${pct}%</div></div>
+                <div style="flex:1;min-width:0;" onclick="openSubject('${subName.replace(/'/g, "\\'")}')">
+                  <div style="font-size:15px;font-weight:800;">${escHtml(subName)}</div>
+                  <div style="font-size:11px;color:var(--muted);">${list.length} Tests | ${totalQs} Questions</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                  <button class="btn-primary" style="padding:6px 10px;font-size:11px;" onclick="launchById('${firstPending.id}')">▶ Start Test</button>
+                  <button class="btn-outline" style="padding:5px 10px;font-size:11px;" onclick="openSubject('${subName.replace(/'/g, "\\'")}')">View Details</button>
+                </div>
+              </div>`;
+          }).join("") + `</div>`}
+        ${bottomNavHtml(1)}`;
+    }
+
+    function renderSubjectTests() {
+      const list = getExamSubjectsMap(state.selectedExam)[state.selectedSubject] || [];
+      return `
+        <div class="test-topbar">
+          <button class="btn-outline" style="padding:6px 10px;" onclick="goScreen('MY_TESTS')">← Back</button>
+          <div style="flex:1;margin-left:10px;">
+            <div style="font-size:15px;font-weight:900;">${escHtml(state.selectedSubject)}</div>
+            <div style="font-size:11px;color:var(--muted);">${state.selectedExam} • ${list.length} Tests (Unit 1 से आगे)</div>
+          </div>
+        </div>
+        <div class="cards-grid-2">${list.map((q, idx) => {
+          const atts = state.attemptsMap[q.id] || [];
+          const latest = atts[atts.length - 1];
+          return `
+            <div class="card-box">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div>
+                  <div style="font-size:14.5px;font-weight:800;">${idx + 1}. ${escHtml(q.title)}</div>
+                  <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${q.questionCount} Questions • ${q.timeMinutes} Min • +${q.marksPerCorrect}/-${q.negativeMark}</div>
+                </div>
+                ${atts.length ? `<span class="pill-rose" style="background:var(--green);margin:0;">${atts.length}x Done</span>` : ""}
+              </div>
+              ${latest ? `
+                <div style="margin-top:8px;padding:8px;border-radius:10px;background:#08112B;font-size:12px;">
+                  <strong style="color:var(--gold);">नवीनतम (Attempt ${latest.attemptNumber}):</strong> ${latest.obtainedMarks.toFixed(2)} / ${latest.maxMarks.toFixed(2)} (${latest.percentage.toFixed(1)}%)
+                </div>` : ""}
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                ${latest ? `<button class="btn-sky" style="flex:1;" onclick="openSavedByQuizId('${q.id}', ${atts.length - 1})">📊 Result</button>` : ""}
+                <button class="btn-primary" style="flex:1;" onclick="launchById('${q.id}')">${latest ? "🔄 Re-Test" : "▶ Start Test"}</button>
+              </div>
+            </div>`;
+        }).join("")}</div>`;
+    }
+
+    function renderSolutions() {
+      const allAtts = getAllAttemptsSorted();
+      return `
+        ${headerHtml()}
+        <div class="hero-banner" style="padding:14px;">
+          <div style="font-size:20px;font-weight:900;">Solutions & <span style="color:var(--cyan);">PDF</span></div>
+          <div style="font-size:11.5px;color:#E2E8F0;">Get Complete Solutions and Download / Print 2-Column A4 PDF</div>
+        </div>
+        <div class="chip-row">
+          <div class="chip ${state.solutionsTab === "SUBMISSIONS" ? "active" : ""}" onclick="setSolutionsTab('SUBMISSIONS')">✔ My Submissions (${allAtts.length})</div>
+          <div class="chip ${state.solutionsTab === "ALL" ? "active" : ""}" onclick="setSolutionsTab('ALL')">🕒 All Tests (${state.onlineQuizzes.length})</div>
+        </div>
+        ${state.solutionsTab === "SUBMISSIONS" ? (
+          allAtts.length === 0
+            ? `<div class="card-box" style="text-align:center;color:var(--muted);padding:24px;">अभी तक कोई सबमिट किया गया टेस्ट नहीं है।</div>`
+            : `<div class="cards-grid-2">` + allAtts.map((att, idx) => `
+              <div class="card-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span class="pill-rose" style="margin:0;">${normalizeExamCode(att.config.examName)}</span>
+                  <span style="font-size:11px;color:var(--green);font-weight:800;">✔ Attempt ${att.attemptNumber} • ${att.completedDate}</span>
+                </div>
+                <div style="font-size:14.5px;font-weight:800;">${escHtml(att.config.title)}</div>
+                <div style="font-size:12px;color:var(--cyan);font-weight:800;margin:4px 0 8px;">Score: ${att.percentage.toFixed(1)}% &nbsp;|&nbsp; Marks: ${att.obtainedMarks.toFixed(2)} / ${att.maxMarks.toFixed(2)}</div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn-sky" style="flex:1;" onclick="openSavedFromAll(${idx})">📊 View Solutions</button>
+                  <button class="btn-primary" style="flex:1;" onclick="printSavedFromAll(${idx})">🖨️ Print / Save PDF</button>
+                </div>
+              </div>`).join("") + `</div>`
+        ) : `<div class="cards-grid-2">` + state.onlineQuizzes.map(q => `
+          <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div>
+              <div style="font-size:13.5px;font-weight:800;">[${q.examName}] ${escHtml(q.title)}</div>
+              <div style="font-size:11px;color:var(--muted);">${escHtml(q.subject)} • ${q.questionCount} Qs • ${q.timeMinutes} Min</div>
+            </div>
+            <button class="btn-primary" style="padding:7px 12px;font-size:11.5px;" onclick="launchById('${q.id}')">▶ Start</button>
+          </div>`).join("") + `</div>`}
+        ${bottomNavHtml(2)}`;
+    }
+
+    function renderSettings() {
+      const p = state.profile || { name: "Student", targetExam: "RPSC", districtOrCity: "Rajasthan", avatarEmoji: "🎓" };
+      const allAtts = getAllAttemptsSorted();
+      const totalC = allAtts.reduce((s, a) => s + (a.correctCount || 0), 0);
+      const totalW = allAtts.reduce((s, a) => s + (a.wrongCount || 0), 0);
+      const totalS = allAtts.reduce((s, a) => s + (a.skippedCount || 0), 0);
+      const avg = allAtts.length ? (allAtts.reduce((s, a) => s + a.percentage, 0) / allAtts.length).toFixed(1) : "0.0";
+      return `
+        ${headerHtml()}
+        <div class="card-box" style="display:flex;align-items:center;gap:12px;">
+          <div class="icon-btn circle-btn" style="width:58px;height:58px;font-size:28px;border:2px solid var(--rose);">${p.avatarEmoji}</div>
+          <div style="flex:1;">
+            <div style="font-size:16px;font-weight:900;">${escHtml(p.name)}</div>
+            <div style="font-size:11px;color:var(--cyan);font-weight:700;">${p.studentId ? `ID: ${escHtml(p.studentId)} • ` : ""}${escHtml(p.email || state.auth?.email || p.districtOrCity)}</div>
+            <div style="font-size:11px;color:var(--muted);">${escHtml(p.districtOrCity)} • ${normalizeExamCode(p.targetExam)}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:10px;color:var(--muted);">Overall</div>
+            <div style="font-size:17px;font-weight:900;color:var(--cyan);">${avg}%</div>
+          </div>
+        </div>
+        <div class="card-box">
+          <div style="font-size:14px;font-weight:800;margin-bottom:8px;">📊 Your Progress (${allAtts.length} Attempts)</div>
+          <div style="display:flex;justify-content:space-around;text-align:center;">
+            <div><div style="font-size:16px;font-weight:900;color:var(--green);">${totalC}</div><div style="font-size:11px;color:var(--muted);">Correct</div></div>
+            <div><div style="font-size:16px;font-weight:900;color:var(--red);">${totalW}</div><div style="font-size:11px;color:var(--muted);">Wrong</div></div>
+            <div><div style="font-size:16px;font-weight:900;color:var(--purple);">${totalS}</div><div style="font-size:11px;color:var(--muted);">Skipped</div></div>
+          </div>
+        </div>
+        <div class="card-box" style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn-outline" style="text-align:left;" onclick="goScreen('PROFILE_SETUP')">👤 Edit Profile (नाम व Exam बदलें)</button>
+          <button class="btn-outline" style="text-align:left;" onclick="goScreen('CUSTOM_BUILDER')">📝 Custom Quiz Builder (.txt अपलोड)</button>
+          <button class="btn-outline" style="text-align:left;border-color:var(--sky);color:var(--sky);" onclick="logoutAccount()">🚪 Logout (लॉगआउट करें)</button>
+          <button class="btn-outline" style="text-align:left;border-color:var(--red);color:var(--red);" onclick="clearAllData()">🗑️ Clear All Saved Scores & Cache</button>
+        </div>
+        ${bottomNavHtml(3)}`;
+    }
+
+    function renderCustomBuilder() {
+      const cfg = loadJson(LS_CUSTOM_CFG, { examName: state.selectedExam, subject: "General", title: "Custom Mock Test", timeMinutes: 60, marksPerCorrect: 2.0, negativeMark: 0.0 });
+      return `<div class="form-center-wrap">
+        <div class="test-topbar">
+          <button class="btn-outline" style="padding:6px 10px;" onclick="goScreen('HOME')">← Back</button>
+          <div style="font-size:15px;font-weight:900;">⚙️ Custom Quiz Builder</div>
+          <div></div>
+        </div>
+        <div class="card-box">
+          <label class="field-label">Exam Name</label>
+          <select id="cust-exam" class="input">
+            ${["RPSC", "RSSB", "CTET", "UGC NET"].map(e => `<option value="${e}" ${cfg.examName === e ? "selected" : ""}>${e}</option>`).join("")}
+          </select>
+          <label class="field-label">Subject</label>
+          <input id="cust-sub" class="input" value="${escHtml(cfg.subject).replace(/<br>/g, "")}" />
+          <label class="field-label">Test Title</label>
+          <input id="cust-title" class="input" value="${escHtml(cfg.title).replace(/<br>/g, "")}" />
+          <div class="grid-4" style="grid-template-columns:1fr 1fr 1fr;margin-top:6px;">
+            <div><label class="field-label">Time (Min)</label><input id="cust-time" type="number" class="input" value="${cfg.timeMinutes}" /></div>
+            <div><label class="field-label">Marks</label><input id="cust-marks" type="number" step="0.1" class="input" value="${cfg.marksPerCorrect}" /></div>
+            <div><label class="field-label">Negative</label><input id="cust-neg" type="number" step="0.01" class="input" value="${cfg.negativeMark}" /></div>
+          </div>
+          <label class="field-label">.TXT फाइल चुनें या नीचे प्रश्न पेस्ट करें:</label>
+          <input type="file" accept=".txt,text/plain" class="input" style="margin-bottom:8px;" onchange="handleCustomTxtFile(event)" />
+          <textarea id="cust-raw" class="input" placeholder="TOPIC: विषय...\nQ: 1. प्रश्न...\nA) विकल्प 1\nB) विकल्प 2\nANS: A\nSOL: व्याख्या..."></textarea>
+          <button class="btn-primary" style="width:100%;margin-top:14px;padding:12px;" onclick="startCustomQuizFromForm()">▶ Save & Start Custom Test</button>
+        </div></div>`;
+    }
+
+    function renderTestScreen() {
+      const t = state.activeTest;
+      const q = t.questions[t.currentQ];
+      const letters = ["A", "B", "C", "D", "E"];
+      const ansCount = t.answers.filter(a => a !== null).length;
+      const isRev = t.review[t.currentQ];
+      return `
+        <div class="test-topbar">
+          <button class="btn-outline" style="padding:5px 10px;border-color:var(--gold);color:var(--gold);" onclick="pauseTestInPlace()">⏸ Pause</button>
+          <div style="text-align:center;flex:1;padding:0 6px;overflow:hidden;">
+            <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(t.config.title)}</div>
+            <div style="font-size:10.5px;color:var(--muted);">Q ${t.currentQ + 1}/${t.questions.length} • Solved: ${ansCount}</div>
+          </div>
+          <div id="live-timer-text" class="timer-pill">${formatMMSS(t.remainingSec)}</div>
+        </div>
+
+        <div class="cbt-layout">
+          <div>
+            <div class="card-box">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span class="pill-rose" style="margin:0;">${escHtml(q.topic)}</span>
+                <span style="font-size:12px;font-weight:800;cursor:pointer;color:${isRev ? "var(--gold)" : "var(--muted)"}" onclick="toggleReview()">${isRev ? "🔖 Marked Review" : "🔖 Mark Review"}</span>
+              </div>
+              <div style="font-size:16px;font-weight:700;line-height:1.55;margin-bottom:14px;">Q${t.currentQ + 1}. ${escHtml(q.text)}</div>
+              ${q.options.map((opt, idx) => `
+                <div class="opt-card ${t.answers[t.currentQ] === idx ? "selected" : ""}" onclick="selectOption(${idx})">
+                  <div class="opt-badge">${letters[idx] || idx + 1}</div>
+                  <div style="font-size:14.5px;line-height:1.45;">${escHtml(opt)}</div>
+                </div>`).join("")}
+            </div>
+
+            <div class="test-bottom-bar">
+              <button class="btn-outline" style="flex:1;opacity:${t.currentQ === 0 ? "0.45" : "1"};" onclick="prevQ()" ${t.currentQ === 0 ? "disabled" : ""}>← Prev</button>
+              <button class="btn-sky mobile-grid-btn" style="flex:1;" onclick="openModal('PALETTE')">☷ Grid</button>
+              <button class="btn-primary" style="flex:1;" onclick="${t.currentQ < t.questions.length - 1 ? "nextQ()" : "confirmSubmit()"}">${t.currentQ < t.questions.length - 1 ? "Next →" : "✅ Submit"}</button>
+            </div>
+          </div>
+
+          <div class="cbt-side-palette">
+            <div style="font-size:14.5px;font-weight:900;margin-bottom:4px;">Question Palette</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">हरा: उत्तर | पीला: Review | लाल: वर्तमान</div>
+            <div class="palette-grid" style="max-height:360px;overflow-y:auto;padding-right:4px;">
+              ${t.questions.map((_, i) => {
+                const cls = i === t.currentQ ? "cur" : t.review[i] ? "rev" : (t.answers[i] !== null ? "ans" : "");
+                return `<button class="pal-btn ${cls}" onclick="jumpToQ(${i})">${i + 1}</button>`;
+              }).join("")}
+            </div>
+            <button class="btn-primary" style="width:100%;background:var(--green);margin-top:8px;" onclick="confirmSubmit()">✅ Submit Exam</button>
+          </div>
+        </div>`;
+    }
+
+    function renderResultScreen() {
+      const r = state.resultData;
+      const letters = ["A", "B", "C", "D", "E"];
+      let correct = 0, wrong = 0, skipped = 0;
+      r.questions.forEach((q, i) => {
+        const a = r.answers[i];
+        if (a === null || a === undefined) skipped++;
+        else if (a === q.correctAnswer) correct++;
+        else wrong++;
+      });
+      const obtained = correct * r.config.marksPerCorrect - wrong * r.config.negativeMark;
+      const maxM = r.questions.length * r.config.marksPerCorrect;
+      const pct = maxM > 0 ? Math.max(0, Math.min(100, (obtained / maxM) * 100)) : 0;
+      return `
+        <div class="test-topbar">
+          <button class="btn-outline" style="padding:5px 10px;" onclick="goScreen(state.prevScreen || 'HOME')">← Back</button>
+          <div style="font-size:15px;font-weight:900;">EXAM RESULT</div>
+          <button class="btn-sky" style="padding:6px 10px;font-size:11.5px;" onclick="printActiveResult()">🖨️ PDF</button>
+        </div>
+
+        <div class="card-box" style="text-align:center;">
+          <div style="font-size:13px;color:var(--muted);">${escHtml(state.profile?.name || "Student")} | ${escHtml(r.config.title)}</div>
+          <div style="font-size:28px;font-weight:900;color:var(--gold);margin:6px 0;">${obtained.toFixed(2)} / ${maxM.toFixed(2)}</div>
+          <div style="font-size:14px;font-weight:800;color:var(--cyan);">Percentage: ${pct.toFixed(2)}%</div>
+          <div style="display:flex;justify-content:space-around;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+            <div><strong style="color:var(--green);">${correct}</strong><div style="font-size:11px;color:var(--muted);">Correct</div></div>
+            <div><strong style="color:var(--red);">${wrong}</strong><div style="font-size:11px;color:var(--muted);">Wrong</div></div>
+            <div><strong style="color:var(--purple);">${skipped}</strong><div style="font-size:11px;color:var(--muted);">Skipped</div></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button class="btn-sky" style="flex:1;" onclick="printActiveResult()">🖨️ Save / Print 2-Col PDF</button>
+            <button class="btn-primary" style="flex:1;" onclick="retakeActiveResult()">🔄 Re-Test</button>
+          </div>
+        </div>
+
+        <div class="cards-grid-2">${r.questions.map((q, idx) => {
+          const uAns = r.answers[idx];
+          const isRight = uAns === q.correctAnswer;
+          return `
+            <div class="card-box">
+              <div style="font-size:11px;color:var(--rose);font-weight:800;margin-bottom:4px;">Q${idx + 1} • ${escHtml(q.topic)}</div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:8px;">${escHtml(q.text)}</div>
+              <div style="font-size:12px;margin-bottom:3px;"><strong>आपका उत्तर:</strong> <span style="color:${isRight ? "var(--green)" : "var(--red)"}">${(uAns !== null && uAns !== undefined) ? `(${letters[uAns]}) ${escHtml(q.options[uAns])}` : "छोड़ा गया (Skipped)"}</span></div>
+              <div style="font-size:12px;margin-bottom:6px;"><strong>सही उत्तर:</strong> <span style="color:var(--green)">(${letters[q.correctAnswer]}) ${escHtml(q.options[q.correctAnswer])}</span></div>
+              <div style="font-size:12px;background:#08112B;border-left:3px solid var(--rose);padding:8px;border-radius:6px;color:#E2E8F0;"><strong>व्याख्या:</strong> ${escHtmlWithLinks(q.solution, "#38bdf8")}</div>
+            </div>`;
+        }).join("")}</div>`;
+    }
+
+    function renderModal() {
+      if (!state.modal) return "";
+      if (state.modal === "PAUSED" && state.activeTest) {
+        const t = state.activeTest;
+        const solved = t.answers.filter(a => a !== null).length;
+        return `
+          <div class="modal-backdrop">
+            <div class="modal-card" style="text-align:center;" onclick="event.stopPropagation()">
+              <div style="font-size:38px;margin-bottom:6px;">⏸️</div>
+              <div style="font-size:19px;font-weight:900;color:var(--gold);">Test Paused</div>
+              <div style="font-size:12.5px;color:#CBD5E1;margin:6px 0 12px;">
+                आपका टाइमर रोक दिया गया है और उत्तर सुरक्षित हैं।<br/>
+                <strong>बचा समय:</strong> ${formatMMSS(t.remainingSec)} &nbsp;•&nbsp; <strong>हल प्रश्न:</strong> ${solved}/${t.questions.length}
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn-primary" style="width:100%;background:var(--green);padding:11px;" onclick="resumePausedTest()">▶ Resume Test (जारी रखें)</button>
+                <button class="btn-outline" style="width:100%;padding:10px;" onclick="pauseAndExitTest()">🏠 Save & Exit to Home</button>
+              </div>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "PALETTE" && state.activeTest) {
+        const t = state.activeTest;
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:16px;font-weight:800;">Question Palette</div>
+              <div style="font-size:11px;color:var(--muted);">हरा: उत्तर | पीला: Review | लाल: वर्तमान</div>
+              <div class="palette-grid">
+                ${t.questions.map((_, i) => {
+                  const cls = i === t.currentQ ? "cur" : t.review[i] ? "rev" : (t.answers[i] !== null ? "ans" : "");
+                  return `<button class="pal-btn ${cls}" onclick="jumpToQ(${i})">${i + 1}</button>`;
+                }).join("")}
+              </div>
+              <button class="btn-primary" style="width:100%;background:var(--green);" onclick="confirmSubmit()">✅ Submit Exam</button>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "PERFORMANCE") {
+        const all = getAllAttemptsSorted();
+        const avg = all.length ? (all.reduce((s, a) => s + a.percentage, 0) / all.length).toFixed(2) : "0.00";
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:10px;">📈 Performance Summary</div>
+              <div style="font-size:13px;line-height:1.8;">
+                <div>👤 <strong>छात्र:</strong> ${escHtml(state.profile?.name || "Student")}</div>
+                <div>🎯 <strong>लक्ष्य:</strong> ${state.selectedExam}</div>
+                <div>🔄 <strong>कुल Attempts:</strong> ${all.length}</div>
+                <div style="color:var(--gold);font-weight:800;">📊 औसत स्कोर: ${avg}%</div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:14px;">
+                <button class="btn-primary" style="flex:1;" onclick="goScreen('SOLUTIONS')">सभी रिजल्ट देखें</button>
+                <button class="btn-outline" onclick="closeModal()">बंद करें</button>
+              </div>
+            </div>
+          </div>`;
+      }
+      return "";
+    }
+
+    function render() {
+      const root = document.getElementById("app");
+      let html = "";
+      switch (state.screen) {
+        case "PROFILE_SETUP": html = renderProfileSetup(); break;
+        case "HOME": html = renderHome(); break;
+        case "MY_TESTS": html = renderMyTests(); break;
+        case "SUBJECT_TESTS": html = renderSubjectTests(); break;
+        case "SOLUTIONS": html = renderSolutions(); break;
+        case "SETTINGS": html = renderSettings(); break;
+        case "CUSTOM_BUILDER": html = renderCustomBuilder(); break;
+        case "TEST": html = renderTestScreen(); break;
+        case "RESULT": html = renderResultScreen(); break;
+      }
+      root.innerHTML = html + renderModal();
+      renderDesktopSidebar();
+    }
+
+    // ==================== 8. ACTION HANDLERS ====================
+    window.selectAvatar = (emoji) => {
+      if (!state.profile) state.profile = { name: "", districtOrCity: "Rajasthan", targetExam: "RPSC (Rajasthan Public Service Commission)", avatarEmoji: emoji };
+      else state.profile.avatarEmoji = emoji;
+      render();
+    };
+    window.setAuthMode = (m) => { state.authMode = m; render(); };
+
+    window.handleResendVerification = async () => {
+      if (!state.pendingVerifyToken) return;
+      state.authBusy = true;
+      render();
+      try {
+        await fbAuthRequest("accounts:sendOobCode", { requestType: "VERIFY_EMAIL", idToken: state.pendingVerifyToken });
+        state.verifyNotice = "✅ Verification Link दोबारा भेज दिया गया है! कृपया अपना Gmail Inbox (या Spam फोल्डर) चेक करें।";
+        showToast("Verification email दोबारा भेज दिया गया!");
+      } catch (e) {
+        alert("Resend Error: " + e.message);
+      } finally {
+        state.authBusy = false;
+        render();
+      }
+    };
+
+    window.handleCloudLogin = async () => {
+      const email = (document.getElementById("auth-email")?.value || "").trim();
+      const pass = document.getElementById("auth-pass")?.value || "";
+      if (!email || !pass) { alert("कृपया अपनी Email ID और Password दोनों डालें!"); return; }
+      state.authBusy = true;
+      render();
+      try {
+        const data = await fbAuthRequest("accounts:signInWithPassword", { email, password: pass, returnSecureToken: true });
+        // Mandatory Email Verification Check
+        const lookup = await fbAuthRequest("accounts:lookup", { idToken: data.idToken });
+        const verified = Boolean(lookup?.users?.[0]?.emailVerified);
+        if (!verified) {
+          state.pendingVerifyToken = data.idToken;
+          state.verifyNotice = "⚠️ आपकी Email (" + data.email + ") अभी Verify नहीं हुई है! कृपया अपना Gmail Inbox / Spam खोलकर Verification Link पर क्लिक करें, फिर दोबारा Login करें।";
+          alert("आपकी Email अभी Verify नहीं हुई है! कृपया ईमेल में आए लिंक पर क्लिक करें।");
+          return;
+        }
+
+        state.pendingVerifyToken = "";
+        state.verifyNotice = "";
+        state.auth = { uid: data.localId, email: data.email, idToken: data.idToken, refreshToken: data.refreshToken };
+        saveJson(LS_AUTH, state.auth);
+
+        const pending = loadJson(LS_PENDING_PROFILE, null);
+        const defaultProf = (pending && pending.email === data.email) ? {
+          ...pending,
+          uid: data.localId,
+          studentId: pending.studentId || generateStudentId(data.localId)
+        } : {
+          uid: data.localId,
+          studentId: generateStudentId(data.localId),
+          name: email.split("@")[0],
+          email: data.email,
+          districtOrCity: "Rajasthan",
+          targetExam: "RPSC (Rajasthan Public Service Commission)",
+          avatarEmoji: "🎓"
+        };
+        state.profile = defaultProf;
+        saveJson(LS_PROFILE, state.profile);
+        state.selectedExam = normalizeExamCode(state.profile.targetExam || "RPSC");
+
+        await fbPullUserData();
+        // If this was first verified login, push pending profile to cloud DB
+        if (pending && pending.email === data.email) {
+          await fbPushProfileAndAttempts();
+          localStorage.removeItem(LS_PENDING_PROFILE);
+        }
+        showToast("लॉगिन सफल! प्रोफाइल व मार्क्स सिंक हो गए।");
+        fetchOnlineQuizzes();
+        goScreen("HOME");
+      } catch (e) {
+        alert("Login Error: " + e.message);
+      } finally {
+        state.authBusy = false;
+        render();
+      }
+    };
+
+    window.handleForgotPassword = async () => {
+      const email = (document.getElementById("auth-email")?.value || "").trim();
+      if (!email) { alert("कृपया ऊपर अपनी Email ID लिखें, फिर Forgot Password दबाएं।"); return; }
+      try {
+        await fbAuthRequest("accounts:sendOobCode", { requestType: "PASSWORD_RESET", email });
+        alert("पासवर्ड रीसेट लिंक आपकी Email (" + email + ") पर भेज दिया गया है! (Spam फोल्डर भी चेक करें)");
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    };
+
+    window.saveProfileForm = async () => {
+      const name = document.getElementById("prof-name").value.trim();
+      const email = (document.getElementById("prof-email")?.value || "").trim();
+      const passEl = document.getElementById("prof-pass");
+      const pass = passEl ? passEl.value : "";
+      const city = document.getElementById("prof-city").value.trim() || "Rajasthan";
+      const exam = document.getElementById("prof-exam").value;
+      if (!name) { alert("कृपया अपना नाम लिखें!"); return; }
+      const avatar = state.profile?.avatarEmoji || "🎓";
+
+      if (isFirebaseConfigured() && !state.auth?.uid) {
+        if (!email || !email.includes("@")) { alert("कृपया अपनी सही Email ID डालें!"); return; }
+        if (pass.length < 6) { alert("कृपया कम से कम 6 अक्षरों का Password बनाएं!"); return; }
+        state.authBusy = true;
+        render();
+        try {
+          const data = await fbAuthRequest("accounts:signUp", { email, password: pass, returnSecureToken: true });
+          const sid = generateStudentId(data.localId);
+          // Save chosen profile details locally so they sync to Firebase right after email verification + first login
+          saveJson(LS_PENDING_PROFILE, { uid: data.localId, studentId: sid, name, email: data.email, districtOrCity: city, targetExam: exam, avatarEmoji: avatar });
+          // Set Firebase displayName so verification email greets student by name ("Hello <Name>,")
+          try {
+            await fbAuthRequest("accounts:update", { idToken: data.idToken, displayName: name, returnSecureToken: false });
+          } catch {}
+          await fbAuthRequest("accounts:sendOobCode", { requestType: "VERIFY_EMAIL", idToken: data.idToken });
+          state.pendingVerifyToken = data.idToken;
+          state.verifyNotice = "📧 अकाउंट बन गया! आपकी Email (" + data.email + ") पर Verification Link भेज दिया गया है। पहले लिंक पर क्लिक करें, फिर नीचे Login करें।";
+          state.authMode = "LOGIN";
+          alert("अकाउंट बन गया! कृपया अपनी Email (" + data.email + ") खोलकर Verification Link पर क्लिक करें, फिर Login करें।");
+        } catch (e) {
+          alert("Sign Up Error: " + e.message);
+        } finally {
+          state.authBusy = false;
+          render();
+        }
+        return;
+      }
+
+      const uid = state.auth?.uid || state.profile?.uid || "";
+      const sid = state.profile?.studentId || (uid ? generateStudentId(uid) : generateStudentId(email || name));
+      state.profile = { uid, studentId: sid, name, email: email || state.auth?.email || "", districtOrCity: city, targetExam: exam, avatarEmoji: avatar };
+      saveJson(LS_PROFILE, state.profile);
+      state.selectedExam = normalizeExamCode(exam);
+      if (isFirebaseConfigured() && state.auth?.uid) {
+        fbPushProfileAndAttempts();
+      }
+      goScreen("HOME");
+    };
+
+    window.logoutAccount = () => {
+      if (confirm("क्या आप लॉगआउट करना चाहते हैं? आपके मार्क्स क्लाउड में सुरक्षित हैं, दोबारा लॉगिन करने पर वापस मिल जाएंगे।")) {
+        localStorage.removeItem(LS_AUTH);
+        localStorage.removeItem(LS_PROFILE);
+        localStorage.removeItem(LS_ATTEMPTS);
+        localStorage.removeItem(LS_RESUME);
+        localStorage.removeItem(LS_INDEX_CACHE);
+        try { sessionStorage.removeItem("web_mock_active_test"); } catch {}
+        state.auth = null;
+        state.profile = null;
+        state.attemptsMap = {};
+        state.resumeState = null;
+        state.onlineQuizzes = [];
+        state.authMode = "LOGIN";
+        goScreen("PROFILE_SETUP");
+      }
+    };
+    window.pickExam = (code) => {
+      state.selectedExam = normalizeExamCode(code);
+      state.subjectFilterChip = "ALL";
+      goScreen("MY_TESTS");
+    };
+    window.openSubject = (subName) => {
+      state.selectedSubject = subName;
+      goScreen("SUBJECT_TESTS");
+    };
+    window.setSubjectChip = (chip) => {
+      state.subjectFilterChip = chip;
+      render();
+    };
+    window.setSolutionsTab = (tab) => {
+      state.solutionsTab = tab;
+      render();
+    };
+    window.launchById = (id) => {
+      const meta = state.onlineQuizzes.find(q => q.id === id);
+      if (meta) launchOnlineQuiz(meta);
+    };
+    window.resumeOrStart = () => {
+      if (state.resumeState) {
+        const r = state.resumeState;
+        const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + r.config.id + "_plain");
+        if (plain) {
+          const qs = parseQuizTxt(plain).questions;
+          if (qs.length) {
+            state.prevScreen = "HOME";
+            state.activeTest = { config: r.config, questions: qs, rawTxt: plain, currentQ: r.currentQ || 0, answers: r.answers, review: r.review, remainingSec: Math.max(1, r.remainingSec) };
+            state.screen = "TEST";
+            pushNavHistory("TEST");
+            startTimer();
+            render();
+            return;
+          }
+        }
+      }
+      goScreen("MY_TESTS");
+    };
+    window.selectOption = (idx) => { state.activeTest.answers[state.activeTest.currentQ] = idx; persistResume(); render(); };
+    window.toggleReview = () => { state.activeTest.review[state.activeTest.currentQ] = !state.activeTest.review[state.activeTest.currentQ]; persistResume(); render(); };
+    window.prevQ = () => { if (state.activeTest.currentQ > 0) { state.activeTest.currentQ--; persistResume(); render(); window.scrollTo(0, 0); } };
+    window.nextQ = () => { if (state.activeTest.currentQ < state.activeTest.questions.length - 1) { state.activeTest.currentQ++; persistResume(); render(); window.scrollTo(0, 0); } };
+    window.jumpToQ = (i) => { state.activeTest.currentQ = i; state.modal = null; persistResume(); render(); window.scrollTo(0, 0); };
+    window.pauseTestInPlace = () => {
+      if (state.screen !== "TEST" || !state.activeTest) return;
+      state.isPaused = true;
+      stopTimer();
+      persistResume();
+      state.modal = "PAUSED";
+      render();
+    };
+    window.resumePausedTest = () => {
+      if (state.screen !== "TEST" || !state.activeTest) return;
+      state.isPaused = false;
+      state.modal = null;
+      startTimer();
+      render();
+    };
+    window.pauseAndExitTest = () => {
+      persistResume();
+      stopTimer();
+      state.isPaused = false;
+      state.modal = null;
+      try { sessionStorage.removeItem("web_mock_active_test"); } catch {}
+      goScreen(state.prevScreen || "HOME");
+    };
+    window.confirmSubmit = () => { if (confirm("क्या आप वाकई परीक्षा सबमिट करना चाहते हैं?")) finishExam(); };
+    window.openModal = (m) => { state.modal = m; render(); };
+    window.closeModal = () => { state.modal = null; render(); };
+    window.openSavedByQuizId = (quizId, idx) => { const att = (state.attemptsMap[quizId] || [])[idx]; if (att) openSavedAttempt(att); };
+    window.openSavedFromAll = (idx) => { const att = getAllAttemptsSorted()[idx]; if (att) openSavedAttempt(att); };
+    window.printSavedFromAll = (idx) => {
+      const att = getAllAttemptsSorted()[idx];
+      if (!att) return;
+      const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + att.config.id + "_plain");
+      if (!plain) { alert("PDF के लिए प्रश्न कैश में उपलब्ध नहीं हैं, कृपया एक बार टेस्ट खोलें।"); return; }
+      const qs = parseQuizTxt(plain).questions;
+      if (qs.length) printTwoColumnPdf(att.config, qs, att.answers);
+    };
+    window.printActiveResult = () => {
+      if (state.resultData) printTwoColumnPdf(state.resultData.config, state.resultData.questions, state.resultData.answers);
+    };
+    window.retakeActiveResult = () => {
+      const r = state.resultData;
+      if (!r) return;
+      const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + r.config.id + "_plain") || "";
+      startExamSession(r.config, r.questions, plain);
+    };
+    window.handleCustomTxtFile = (ev) => {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { document.getElementById("cust-raw").value = reader.result || ""; };
+      reader.readAsText(file, "UTF-8");
+    };
+    window.startCustomQuizFromForm = () => {
+      const examName = document.getElementById("cust-exam").value;
+      const subject = document.getElementById("cust-sub").value.trim() || "General";
+      const title = document.getElementById("cust-title").value.trim() || "Custom Mock Test";
+      const timeMinutes = parseInt(document.getElementById("cust-time").value, 10) || 60;
+      const marksPerCorrect = parseFloat(document.getElementById("cust-marks").value) || 2.0;
+      const negativeMark = parseFloat(document.getElementById("cust-neg").value) || 0.0;
+      const rawTxt = document.getElementById("cust-raw").value;
+      const res = parseQuizTxt(rawTxt);
+      if (!res.questions.length) { alert("कृपया सही प्रश्नों और ANS: वाला टेक्स्ट या .txt फाइल डालें!"); return; }
+      const cfg = { id: "custom_" + Math.abs(rawTxt.split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0)), title, examName, subject, timeMinutes, marksPerCorrect, negativeMark };
+      saveJson(LS_CUSTOM_CFG, cfg);
+      startExamSession(cfg, res.questions, rawTxt);
+    };
+    window.clearAllData = () => {
+      if (confirm("क्या आप वाकई ब्राउज़र से सभी स्कोर और कैश हटाना चाहते हैं?")) {
+        localStorage.clear();
+        state.attemptsMap = {};
+        state.resumeState = null;
+        state.profile = null;
+        goScreen("PROFILE_SETUP");
+      }
+    };
+
+    // Auto-pause timer when user switches browser tab or minimizes phone browser
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && state.screen === "TEST" && state.activeTest && !state.isPaused) {
+        window.pauseTestInPlace();
+      }
+    });
+    window.addEventListener("beforeunload", (e) => {
+      if (state.screen === "TEST" && state.activeTest) {
+        persistResume();
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    });
+    window.addEventListener("pagehide", () => {
+      if (state.screen === "TEST" && state.activeTest) {
+        persistResume();
+        stopTimer();
+      }
+    });
+
+    // Phone Back Button / Browser Back Handler (Prevents accidental website close!)
+    try {
+      window.history.replaceState({ appScreen: state.screen, root: true }, "");
+      window.history.pushState({ appScreen: state.screen, guard: true }, "");
+    } catch {}
+
+    window.addEventListener("popstate", () => {
+      // 1. If any popup/modal is open (except PAUSED), close it first
+      if (state.modal && state.modal !== "PAUSED") {
+        state.modal = null;
+        pushNavHistory(state.screen);
+        render();
+        return;
+      }
+
+      // 2. On TEST screen: pause test instead of closing website!
+      if (state.screen === "TEST") {
+        pushNavHistory("TEST");
+        if (!state.isPaused) {
+          window.pauseTestInPlace();
+        } else {
+          showToast("बाहर जाने के लिए 'Save & Exit to Home' दबाएं");
+        }
+        return;
+      }
+
+      // 3. Navigate back screen-by-screen inside the website
+      if (state.screen === "RESULT") {
+        goScreen(state.prevScreen || "HOME", true);
+        pushNavHistory(state.screen);
+        return;
+      }
+      if (state.screen === "SUBJECT_TESTS") {
+        goScreen("MY_TESTS", true);
+        pushNavHistory("MY_TESTS");
+        return;
+      }
+      if (state.screen !== "HOME" && state.screen !== "PROFILE_SETUP") {
+        goScreen("HOME", true);
+        pushNavHistory("HOME");
+        return;
+      }
+      if (state.screen === "PROFILE_SETUP" && state.profile) {
+        goScreen("HOME", true);
+        pushNavHistory("HOME");
+        return;
+      }
+
+      // 4. Already on HOME: require double Back press within 2 seconds to exit
+      const now = Date.now();
+      if (now - state.lastBackPress < 2000) {
+        window.history.back();
+      } else {
+        state.lastBackPress = now;
+        pushNavHistory("HOME");
+        showToast("वेबसाइट बंद करने के लिए दोबारा Back दबाएं");
+      }
+    });
+
+    // Auto-restore active test if browser accidentally refreshed mid-test
+    try {
+      if (sessionStorage.getItem("web_mock_active_test") === "1" && state.resumeState) {
+        const r = state.resumeState;
+        const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + r.config.id + "_plain");
+        if (plain) {
+          const qs = parseQuizTxt(plain).questions;
+          if (qs.length) {
+            state.prevScreen = "HOME";
+            state.activeTest = {
+              config: r.config,
+              questions: qs,
+              rawTxt: plain,
+              currentQ: r.currentQ || 0,
+              answers: r.answers,
+              review: r.review,
+              remainingSec: Math.max(1, r.remainingSec)
+            };
+            state.screen = "TEST";
+            pushNavHistory("TEST");
+            startTimer();
+          }
+        }
+      }
+    } catch {}
+
+    // Init
+    render();
+    fetchOnlineQuizzes();
+    if (isFirebaseConfigured() && state.auth?.uid) {
+      fbPullUserData();
+    }
+  </script>
+</body>
+</html>
