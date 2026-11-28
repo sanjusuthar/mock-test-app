@@ -669,6 +669,204 @@
       .print-ans-row { font-size: 10px; margin-bottom: 2px; }
       .print-sol-box { background: #f8fafc; border-left: 3px solid #e11d48; padding: 4px 6px; margin-top: 4px; font-size: 10px; line-height: 1.3; }
     }
+  
+    /* Test Description (3-line clamp) */
+    .test-desc {
+      font-size: 12px;
+      color: #CBD5E1;
+      margin-top: 4px;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Android-style Settings Menu Rows & Toggle Switch */
+    .settings-menu-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      transition: background 0.15s;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row:active { background: rgba(255,255,255,0.05); }
+    .settings-ico {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,0.22);
+    }
+    .settings-txt { flex: 1; min-width: 0; }
+    .settings-title { font-size: 14.5px; font-weight: 800; color: var(--text); }
+    .settings-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+    .settings-chev { font-size: 18px; color: var(--muted); font-weight: 700; }
+
+    .toggle-track {
+      width: 48px;
+      height: 26px;
+      border-radius: 99px;
+      background: #334155;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-track.on { background: var(--sky); }
+    .toggle-knob {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .toggle-track.on .toggle-knob { transform: translateX(22px); }
+
+    .settings-action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .pill-action-btn {
+      padding: 12px 14px;
+      border-radius: 99px;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* ==================== LIGHT THEME ==================== */
+    body.light-theme {
+      --bg-top: #F1F5F9;
+      --bg-mid: #F8FAFC;
+      --bg-bot: #E2E8F0;
+      --card: #FFFFFF;
+      --card-dark: #F8FAFC;
+      --text: #0F172A;
+      --muted: #475569;
+      --cyan: #0284C7;
+      --border: rgba(15, 23, 42, 0.12);
+    }
+    body.light-theme .brand-sub { color: #475569; }
+    body.light-theme .icon-btn {
+      background: #FFFFFF;
+      border-color: rgba(15, 23, 42, 0.12);
+      color: #0F172A;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+    }
+    body.light-theme .hero-banner {
+      color: #FFFFFF;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.14);
+    }
+    body.light-theme .quick-tile {
+      background: #FFFFFF;
+      border-color: rgba(14, 165, 233, 0.28);
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+    }
+    body.light-theme .quick-label { color: #0F172A; }
+    body.light-theme .exam-card {
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-bottom: 3px solid var(--rose);
+    }
+    body.light-theme .split-card {
+      background: linear-gradient(135deg, #FFF1F2, #FFFFFF);
+      border-color: rgba(225, 29, 72, 0.28);
+      color: #0F172A;
+    }
+    body.light-theme .split-card.sky {
+      background: linear-gradient(135deg, #F0F9FF, #FFFFFF);
+      border-color: rgba(14, 165, 233, 0.32);
+    }
+    body.light-theme .card-box,
+    body.light-theme .settings-menu-card {
+      background: #FFFFFF;
+      border-color: rgba(15, 23, 42, 0.10);
+      box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
+    }
+    body.light-theme .settings-row { border-bottom-color: rgba(15, 23, 42, 0.08); }
+    body.light-theme .settings-row:active { background: rgba(15, 23, 42, 0.04); }
+    body.light-theme .test-desc { color: #334155; }
+    body.light-theme .chip {
+      background: #FFFFFF;
+      color: #334155;
+      border-color: rgba(15, 23, 42, 0.14);
+    }
+    body.light-theme .chip.active { background: var(--rose); color: #FFFFFF; border-color: var(--rose); }
+    body.light-theme .btn-outline {
+      background: #FFFFFF;
+      color: #0F172A;
+      border-color: rgba(15, 23, 42, 0.18);
+    }
+    body.light-theme .bottom-nav {
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(15, 23, 42, 0.12);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+    body.light-theme .nav-item { color: #64748B; }
+    body.light-theme .nav-item.active { color: var(--rose); }
+    body.light-theme .desktop-sidebar {
+      background: #FFFFFF;
+      border-right-color: rgba(15, 23, 42, 0.10);
+    }
+    body.light-theme .side-link { color: #334155; }
+    body.light-theme .side-link:hover,
+    body.light-theme .side-link.active { background: #FFF1F2; color: var(--rose); }
+    body.light-theme .input,
+    body.light-theme textarea.input,
+    body.light-theme select.input {
+      background: #F8FAFC;
+      color: #0F172A;
+      border-color: rgba(15, 23, 42, 0.18);
+    }
+    body.light-theme .test-topbar,
+    body.light-theme .test-bottom-bar {
+      background: rgba(255, 255, 255, 0.97);
+      border-color: rgba(15, 23, 42, 0.12);
+      color: #0F172A;
+    }
+    body.light-theme .opt-btn {
+      background: #FFFFFF;
+      color: #0F172A;
+      border-color: rgba(15, 23, 42, 0.15);
+    }
+    body.light-theme .opt-btn.selected {
+      background: #F0F9FF;
+      border-color: var(--sky);
+    }
+    body.light-theme .modal-card {
+      background: #FFFFFF;
+      color: #0F172A;
+      border-color: rgba(15, 23, 42, 0.12);
+    }
+    body.light-theme .latest-attempt-box {
+      background: #F1F5F9 !important;
+      color: #0F172A !important;
+    }
+
   </style>
 </head>
 <body>
@@ -708,6 +906,16 @@
     const LS_PROFILE = "web_mock_profile_v1";
     const LS_ATTEMPTS = "web_mock_attempts_v2";
     const LS_RESUME = "web_mock_resume_v2";
+    const LS_THEME = "web_mock_theme_v1";
+
+    function applyTheme(theme) {
+      const isLight = theme === "light";
+      document.body.classList.toggle("light-theme", isLight);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", isLight ? "#F1F5F9" : "#050C24");
+      try { localStorage.setItem(LS_THEME, isLight ? "light" : "dark"); } catch {}
+    }
+    applyTheme(localStorage.getItem(LS_THEME) || "dark");
     const LS_INDEX_CACHE = "web_mock_index_cache_v1";
     const LS_QUIZ_CACHE_PREFIX = "web_mock_quiz_txt_";
     const LS_CUSTOM_CFG = "web_mock_custom_cfg_v1";
@@ -1277,10 +1485,96 @@
       render();
     }
 
-    function openSavedAttempt(att) {
-      const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + att.config.id + "_plain");
+    async function ensureQuizPlainText(quizId) {
+      let plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + quizId + "_plain") || "";
+      if (plain) return plain;
+      if (isFirebaseConfigured() && state.auth?.uid) {
+        try {
+          showToast("क्लाउड से प्रश्न लोड हो रहे हैं...");
+          const token = await fbRefreshTokenIfNeeded();
+          if (token) {
+            const res = await fetch(`${cleanDbUrl()}/quizzes_content/${encodeURIComponent(quizId)}.json?auth=${encodeURIComponent(token)}`, { cache: "no-store" });
+            if (res.ok) {
+              const data = await res.json();
+              const content = typeof data === "string" ? data : (data?.rawTxt || "");
+              if (content) {
+                plain = await decryptQuizContent(content);
+                localStorage.setItem(LS_QUIZ_CACHE_PREFIX + quizId + "_plain", plain);
+                return plain;
+              }
+            }
+          }
+        } catch {}
+      }
+      if (state.modal === "DOWNLOAD_CENTER") {
+        const all = getAllAttemptsSorted();
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" style="max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">⬇️ Download Center</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">अपने सबमिट किए गए टेस्ट की 2-Column A4 Solution PDF सीधे डाउनलोड या प्रिंट करें:</div>
+              ${all.length === 0
+                ? `<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">अभी कोई सबमिट किया गया टेस्ट नहीं है। कोई टेस्ट दें, फिर यहाँ PDF उपलब्ध होगी।</div>`
+                : all.map((att, idx) => `
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;">
+                    <div style="min-width:0;flex:1;">
+                      <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(att.config.title)}</div>
+                      <div style="font-size:11px;color:var(--muted);">Attempt ${att.attemptNumber} • ${att.percentage.toFixed(1)}% • ${att.completedDate}</div>
+                    </div>
+                    <button class="btn-primary" style="padding:6px 10px;font-size:11.5px;flex-shrink:0;" onclick="closeModal();printSavedFromAll(${idx})">🖨️ PDF</button>
+                  </div>`).join("")}
+              <button class="btn-outline" style="width:100%;margin-top:8px;" onclick="closeModal()">बंद करें</button>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "PRIVACY") {
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">🛡️ Privacy Policy</div>
+              <div style="font-size:13px;line-height:1.65;color:var(--muted);">
+                • आपका नाम, ईमेल और टेस्ट स्कोर सुरक्षित रूप से केवल आपके वेरिफाइड अकाउंट से लिंक होकर Firebase Cloud में सेव रहते हैं।<br/>
+                • हम आपका डेटा किसी थर्ड-पार्टी के साथ साझा नहीं करते।<br/>
+                • आप कभी भी Settings से अपना लोकल ब्राउज़र कैश साफ़ कर सकते हैं।
+              </div>
+              <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">समझ गया</button>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "ABOUT") {
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">ℹ️ About Online Mock Test</div>
+              <div style="font-size:13px;line-height:1.65;color:var(--muted);">
+                <strong>Online Mock Test</strong> (RPSC, RSSB, CTET, UGC NET) प्रतियोगी परीक्षाओं की सटीक प्रैक्टिस, नेगेटिव मार्किंग एनालिसिस, विस्तृत व्याख्या (Solutions) और 2-Column A4 PDF प्रिंट सुविधा के लिए बनाया गया है।<br/><br/>
+                आपका प्रोफ़ाइल और स्कोर Android ऐप और वेबसाइट दोनों पर ऑटोमैटिक सिंक रहता है।
+              </div>
+              <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">बंद करें</button>
+            </div>
+          </div>`;
+      }
+      if (state.modal === "CONTACT") {
+        return `
+          <div class="modal-backdrop" onclick="closeModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+              <div style="font-size:17px;font-weight:900;margin-bottom:8px;">✉️ Contact Us</div>
+              <div style="font-size:13px;line-height:1.7;color:var(--muted);">
+                किसी भी प्रश्न, सुझाव या टेस्ट त्रुटि की सूचना के लिए हमसे संपर्क करें:<br/><br/>
+                📧 <strong>Support:</strong> अपने शिक्षक / Admin से संपर्क करें या टेस्ट के Solution पेज से प्रश्न संख्या नोट करके भेजें।<br/>
+                🌐 <strong>Platform:</strong> Online Mock Test Portal (Android + Web)
+              </div>
+              <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeModal()">बंद करें</button>
+            </div>
+          </div>`;
+      }
+      return "";
+    }
+
+    async function openSavedAttempt(att) {
+      const plain = await ensureQuizPlainText(att.config.id);
       if (!plain) {
-        alert("इस टेस्ट के प्रश्न ब्राउज़र कैश में नहीं हैं, कृपया एक बार Re-Test खोलें।");
+        alert("इस टेस्ट के प्रश्न लोड नहीं हो सके, कृपया इंटरनेट चेक करें या एक बार Re-Test खोलें।");
         return;
       }
       const parsed = parseQuizTxt(plain).questions;
@@ -1695,12 +1989,13 @@
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                 <div>
                   <div style="font-size:14.5px;font-weight:800;">${idx + 1}. ${escHtml(q.title)}</div>
-                  <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${q.questionCount} Questions • ${q.timeMinutes} Min • +${q.marksPerCorrect}/-${q.negativeMark}</div>
+                  ${q.subtitle && q.subtitle !== "Online Practice Test" ? `<div class="test-desc">${escHtml(q.subtitle)}</div>` : ""}
+                  <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">${q.questionCount} Questions • ${q.timeMinutes} Min • +${q.marksPerCorrect}/-${q.negativeMark}</div>
                 </div>
-                ${atts.length ? `<span class="pill-rose" style="background:var(--green);margin:0;">${atts.length}x Done</span>` : ""}
+                ${atts.length ? `<span class="pill-rose" style="background:var(--green);margin:0;flex-shrink:0;">${atts.length}x Done</span>` : ""}
               </div>
               ${latest ? `
-                <div style="margin-top:8px;padding:8px;border-radius:10px;background:#08112B;font-size:12px;">
+                <div class="latest-attempt-box" style="margin-top:8px;padding:8px;border-radius:10px;background:#08112B;font-size:12px;">
                   <strong style="color:var(--gold);">नवीनतम (Attempt ${latest.attemptNumber}):</strong> ${latest.obtainedMarks.toFixed(2)} / ${latest.maxMarks.toFixed(2)} (${latest.percentage.toFixed(1)}%)
                 </div>` : ""}
               <div style="display:flex;gap:8px;margin-top:10px;">
@@ -1741,9 +2036,10 @@
               </div>`).join("") + `</div>`
         ) : `<div class="cards-grid-2">` + state.onlineQuizzes.map(q => `
           <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-            <div>
+            <div style="flex:1;min-width:0;">
               <div style="font-size:13.5px;font-weight:800;">[${q.examName}] ${escHtml(q.title)}</div>
-              <div style="font-size:11px;color:var(--muted);">${escHtml(q.subject)} • ${q.questionCount} Qs • ${q.timeMinutes} Min</div>
+              ${q.subtitle && q.subtitle !== "Online Practice Test" ? `<div class="test-desc">${escHtml(q.subtitle)}</div>` : ""}
+              <div style="font-size:11px;color:var(--muted);margin-top:3px;">${escHtml(q.subject)} • ${q.questionCount} Qs • ${q.timeMinutes} Min</div>
             </div>
             <button class="btn-primary" style="padding:7px 12px;font-size:11.5px;" onclick="launchById('${q.id}')">▶ Start</button>
           </div>`).join("") + `</div>`}
@@ -1779,11 +2075,76 @@
             <div><div style="font-size:16px;font-weight:900;color:var(--purple);">${totalS}</div><div style="font-size:11px;color:var(--muted);">Skipped</div></div>
           </div>
         </div>
-        <div class="card-box" style="display:flex;flex-direction:column;gap:10px;">
-          <button class="btn-outline" style="text-align:left;" onclick="goScreen('PROFILE_SETUP')">👤 Edit Profile (नाम व Exam बदलें)</button>
-          <button class="btn-outline" style="text-align:left;" onclick="goScreen('CUSTOM_BUILDER')">📝 Custom Quiz Builder (.txt अपलोड)</button>
-          <button class="btn-outline" style="text-align:left;border-color:var(--sky);color:var(--sky);" onclick="logoutAccount()">🚪 Logout (लॉगआउट करें)</button>
-          <button class="btn-outline" style="text-align:left;border-color:var(--red);color:var(--red);" onclick="clearAllData()">🗑️ Clear All Saved Scores & Cache</button>
+        <div class="settings-menu-card">
+          <div class="settings-row" onclick="goScreen('PROFILE_SETUP')">
+            <div class="settings-ico" style="background:rgba(29,78,216,0.22);border-color:#3B82F6;">👤</div>
+            <div class="settings-txt">
+              <div class="settings-title">Edit Profile</div>
+              <div class="settings-sub">Update your personal information</div>
+            </div>
+            <div class="settings-chev">›</div>
+          </div>
+
+          <div class="settings-row" onclick="toggleWebsiteTheme()">
+            <div class="settings-ico" style="background:rgba(225,29,72,0.22);border-color:var(--rose);">🎨</div>
+            <div class="settings-txt">
+              <div class="settings-title">Website Theme</div>
+              <div class="settings-sub">Switch Dark / Light mode (${document.body.classList.contains("light-theme") ? "Light Mode" : "Dark Mode"})</div>
+            </div>
+            <div class="toggle-track ${document.body.classList.contains("light-theme") ? "on" : ""}">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <div class="settings-row" onclick="openModal('DOWNLOAD_CENTER')">
+            <div class="settings-ico" style="background:rgba(14,165,233,0.22);border-color:var(--sky);">⬇️</div>
+            <div class="settings-txt">
+              <div class="settings-title">Download Center</div>
+              <div class="settings-sub">Download PDFs & Study Material (${allAtts.length} Ready)</div>
+            </div>
+            <div class="settings-chev">›</div>
+          </div>
+
+          <div class="settings-row" onclick="openModal('PRIVACY')">
+            <div class="settings-ico" style="background:rgba(245,158,11,0.2);border-color:var(--gold);">🛡️</div>
+            <div class="settings-txt">
+              <div class="settings-title">Privacy Policy</div>
+              <div class="settings-sub">Read our privacy policy</div>
+            </div>
+            <div class="settings-chev">›</div>
+          </div>
+
+          <div class="settings-row" onclick="openModal('ABOUT')">
+            <div class="settings-ico" style="background:rgba(14,165,233,0.22);border-color:var(--sky);">ℹ️</div>
+            <div class="settings-txt">
+              <div class="settings-title">About Us</div>
+              <div class="settings-sub">Know more about Online Mock Test</div>
+            </div>
+            <div class="settings-chev">›</div>
+          </div>
+
+          <div class="settings-row" onclick="openModal('CONTACT')">
+            <div class="settings-ico" style="background:rgba(16,185,129,0.2);border-color:var(--green);">✉️</div>
+            <div class="settings-txt">
+              <div class="settings-title">Contact Us</div>
+              <div class="settings-sub">Have any query? Contact us</div>
+            </div>
+            <div class="settings-chev">›</div>
+          </div>
+
+          <div class="settings-row" onclick="goScreen('CUSTOM_BUILDER')">
+            <div class="settings-ico" style="background:rgba(139,92,246,0.22);border-color:var(--purple);">📝</div>
+            <div class="settings-txt">
+              <div class="settings-title">Custom Quiz Builder</div>
+              <div class="settings-sub">Upload your own .txt mock test</div>
+            </div>
+            <div class="settings-chev">›</div>
+          </div>
+        </div>
+
+        <div class="settings-action-row">
+          <button class="pill-action-btn" style="background:transparent;border:1.5px solid var(--sky);color:var(--sky);" onclick="logoutAccount()">🚪 Logout</button>
+          <button class="pill-action-btn" style="background:var(--rose);border:none;color:#fff;" onclick="clearAllData()">🗑️ Clear Data</button>
         </div>
         ${bottomNavHtml(3)}`;
     }
@@ -2226,14 +2587,20 @@
     };
     window.confirmSubmit = () => { if (confirm("क्या आप वाकई परीक्षा सबमिट करना चाहते हैं?")) finishExam(); };
     window.openModal = (m) => { state.modal = m; render(); };
+    window.toggleWebsiteTheme = () => {
+      const next = document.body.classList.contains("light-theme") ? "dark" : "light";
+      applyTheme(next);
+      showToast(next === "light" ? "☀️ Light Theme चालू हो गई!" : "🌙 Dark Theme चालू हो गई!");
+      render();
+    };
     window.closeModal = () => { state.modal = null; render(); };
     window.openSavedByQuizId = (quizId, idx) => { const att = (state.attemptsMap[quizId] || [])[idx]; if (att) openSavedAttempt(att); };
     window.openSavedFromAll = (idx) => { const att = getAllAttemptsSorted()[idx]; if (att) openSavedAttempt(att); };
-    window.printSavedFromAll = (idx) => {
+    window.printSavedFromAll = async (idx) => {
       const att = getAllAttemptsSorted()[idx];
       if (!att) return;
-      const plain = localStorage.getItem(LS_QUIZ_CACHE_PREFIX + att.config.id + "_plain");
-      if (!plain) { alert("PDF के लिए प्रश्न कैश में उपलब्ध नहीं हैं, कृपया एक बार टेस्ट खोलें।"); return; }
+      const plain = await ensureQuizPlainText(att.config.id);
+      if (!plain) { alert("PDF के लिए प्रश्न लोड नहीं हो सके, कृपया इंटरनेट चेक करें।"); return; }
       const qs = parseQuizTxt(plain).questions;
       if (qs.length) printTwoColumnPdf(att.config, qs, att.answers);
     };
